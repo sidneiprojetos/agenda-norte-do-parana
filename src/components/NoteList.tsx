@@ -15,6 +15,7 @@ import {
 import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
 import { ADMIN_EMAIL, isUserAdmin } from '../firebase';
+import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface NoteListProps {
   notes: Note[];
@@ -107,10 +108,12 @@ export const NoteList: React.FC<NoteListProps> = ({
           <button
             key={cat}
             onClick={() => onCategoryChange(cat)}
-            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
               selectedCategory === cat
-                ? 'bg-amber-600 text-white shadow-sm font-semibold'
-                : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                ? cat === 'Todas'
+                  ? 'border-amber-500 bg-amber-600 text-white shadow-sm font-semibold'
+                  : `${getCategoryStyle(cat).active} font-semibold`
+                : 'border-transparent bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
             }`}
           >
             {cat}
@@ -189,7 +192,7 @@ export const NoteList: React.FC<NoteListProps> = ({
                         </span>
                       )}
                       {note.category && (
-                        <span className="rounded-md bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                        <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getCategoryStyle(note.category).badge}`}>
                           {note.category}
                         </span>
                       )}

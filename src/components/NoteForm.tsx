@@ -13,6 +13,7 @@ import {
 import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
 import { loginWithGoogle } from '../firebase';
+import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface NoteFormProps {
   selectedDate: string;
@@ -205,10 +206,10 @@ export const NoteForm: React.FC<NoteFormProps> = ({
               type="button"
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`rounded-lg px-2 py-1 text-[11px] font-medium transition ${
+              className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition ${
                 category === cat
-                  ? 'bg-amber-600 text-white font-semibold shadow-sm'
-                  : 'bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                  ? `${getCategoryStyle(cat).selected} font-semibold`
+                  : 'border-transparent bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
               }`}
             >
               {cat}

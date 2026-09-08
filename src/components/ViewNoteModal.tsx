@@ -14,6 +14,7 @@ import {
 import { Note, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
 import { ADMIN_EMAIL, isUserAdmin } from '../firebase';
+import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface ViewNoteModalProps {
   note: Note | null;
@@ -81,7 +82,7 @@ export const ViewNoteModal: React.FC<ViewNoteModalProps> = ({
                 {note.title}
               </h2>
               {note.category && (
-                <span className="rounded-md bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-xs font-semibold text-amber-300">
+                <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${getCategoryStyle(note.category).badge}`}>
                   {note.category}
                 </span>
               )}
