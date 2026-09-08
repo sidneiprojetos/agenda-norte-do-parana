@@ -13,6 +13,7 @@ import {
 import { db, ADMIN_EMAIL, isUserAdmin } from '../firebase';
 import { Note } from '../types';
 import { INITIAL_NOTES } from '../data/initialNotes';
+import { removeUndefinedFields } from '../utils/cleanFirestore';
 
 const NOTES_COLLECTION = 'notes';
 
@@ -38,7 +39,7 @@ export function subscribeToNotes(callback: (notes: Note[]) => void): () => void 
           console.log('Firebase notes collection is empty. Seeding initial notes...');
           try {
             for (const note of INITIAL_NOTES) {
-              await setDoc(doc(db, NOTES_COLLECTION, note.id), {
+              const cleaned = removeUndefinedFields({
                 ...note,
                 authorEmail: note.createdBy,
                 authorName: 'Sidnei (ADM)',
@@ -46,6 +47,7 @@ export function subscribeToNotes(callback: (notes: Note[]) => void): () => void 
                 createdAt: note.createdAt,
                 updatedAt: note.createdAt
               });
+              await setDoc(doc(db, NOTES_COLLECTION, note.id), cleaned);
             }
           } catch (seedErr) {
             console.warn('Initial seeding handled gracefully:', seedErr);
@@ -103,12 +105,14 @@ export async function createFirestoreNote(noteData: Omit<Note, 'id'>): Promise<s
   const newDocRef = doc(notesRef);
   const noteId = newDocRef.id;
 
-  await setDoc(newDocRef, {
+  const rawDoc = {
     ...noteData,
     id: noteId,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  });
+  };
+
+  await setDoc(newDocRef, removeUndefinedFields(rawDoc));
 
   return noteId;
 }
@@ -121,10 +125,11 @@ export async function updateFirestoreNote(
   updates: Partial<Omit<Note, 'id'>>
 ): Promise<void> {
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
-  await updateDoc(noteDocRef, {
+  const rawUpdates = {
     ...updates,
     updatedAt: new Date().toISOString()
-  });
+  };
+  await updateDoc(noteDocRef, removeUndefinedFields(rawUpdates));
 }
 
 /**
@@ -150,14 +155,14 @@ export async function saveUserProfile(user: {
 
   await setDoc(
     userDocRef,
-    {
+    removeUndefinedFields({
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       photoURL: user.photoURL,
       role: isAdmin ? 'admin' : 'member',
       lastLogin: new Date().toISOString()
-    },
+    }),
     { merge: true }
   );
 }

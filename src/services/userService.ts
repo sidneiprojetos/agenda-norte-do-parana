@@ -12,6 +12,7 @@ import {
 import { User } from 'firebase/auth';
 import { db, isUserAdmin } from '../firebase';
 import { UserProfile, UserRole, UserStatus } from '../types';
+import { removeUndefinedFields } from '../utils/cleanFirestore';
 
 const USERS_COLLECTION = 'users';
 
@@ -52,7 +53,7 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
 
     if (!userSnapshot || !userSnapshot.exists()) {
       // Create profile in background without blocking login
-      setDoc(userDocRef, defaultProfile).catch((err) =>
+      setDoc(userDocRef, removeUndefinedFields(defaultProfile)).catch((err) =>
         console.warn('Background profile write handled:', err)
       );
       return defaultProfile;
@@ -77,7 +78,7 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
       notes: existingData.notes || ''
     };
 
-    setDoc(userDocRef, updatedProfile, { merge: true }).catch((err) =>
+    setDoc(userDocRef, removeUndefinedFields(updatedProfile), { merge: true }).catch((err) =>
       console.warn('Background profile update handled:', err)
     );
     return updatedProfile;
@@ -184,10 +185,13 @@ export async function updateUserDetails(
   }
 ): Promise<void> {
   const userDocRef = doc(db, USERS_COLLECTION, uid);
-  await updateDoc(userDocRef, {
-    ...details,
-    updatedAt: new Date().toISOString()
-  });
+  await updateDoc(
+    userDocRef,
+    removeUndefinedFields({
+      ...details,
+      updatedAt: new Date().toISOString()
+    })
+  );
 }
 
 /**

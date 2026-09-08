@@ -6,17 +6,15 @@ import {
   Copy,
   Check,
   ExternalLink,
-  ShieldAlert,
-  Sparkles
+  ShieldAlert
 } from 'lucide-react';
 import { loginWithGoogle } from '../firebase';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
-  onLoginAsPreviewAdmin?: () => void;
 }
 
-export function LoginScreen({ onLoginSuccess, onLoginAsPreviewAdmin }: LoginScreenProps) {
+export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
@@ -153,20 +151,6 @@ export function LoginScreen({ onLoginSuccess, onLoginAsPreviewAdmin }: LoginScre
               <p>2. Vá em <strong>Authentication &rarr; Configura&ccedil;&otilde;es &rarr; Dom&iacute;nios autorizados</strong>.</p>
               <p>3. Adicione <strong>{unauthorizedDomain}</strong> (ou <strong>vercel.app</strong>) e salve.</p>
             </div>
-
-            {/* Instant Preview Login Bypass for Sidnei */}
-            {onLoginAsPreviewAdmin && (
-              <div className="pt-2 border-t border-amber-500/20">
-                <button
-                  id="preview-admin-bypass-btn"
-                  onClick={onLoginAsPreviewAdmin}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-2.5 text-xs shadow-md transition active:scale-98"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  <span>Entrar Agora no Modo Preview (Sidnei ADM)</span>
-                </button>
-              </div>
-            )}
           </div>
         )}
 
@@ -209,18 +193,6 @@ export function LoginScreen({ onLoginSuccess, onLoginAsPreviewAdmin }: LoginScre
           )}
           <span>{isLoading ? 'Conectando ao Google...' : 'Entrar com Conta Google'}</span>
         </button>
-
-        {/* Instant Preview Login Button for immediate testing in AI Studio */}
-        {!unauthorizedDomain && onLoginAsPreviewAdmin && (
-          <button
-            id="quick-preview-admin-btn"
-            onClick={onLoginAsPreviewAdmin}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800/80 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-amber-400 transition"
-          >
-            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
-            <span>Testar como Sidnei (ADM - Modo Preview)</span>
-          </button>
-        )}
 
         {/* Footer info */}
         <p className="mt-6 text-[11px] text-zinc-500">

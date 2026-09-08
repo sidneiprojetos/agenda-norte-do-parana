@@ -394,32 +394,6 @@ export default function App() {
     return true;
   });
 
-  const handleLoginAsPreviewAdmin = () => {
-    const adminUser: AppUser = {
-      uid: 'admin-preview-sidnei',
-      email: ADMIN_EMAIL,
-      displayName: 'Sidnei Bogas (ADM)',
-      photoURL: null,
-      isAdmin: true,
-      role: 'admin',
-      status: 'approved',
-      division: 'Norte do Paraná'
-    };
-    setCurrentUser(adminUser);
-    setUserProfile({
-      uid: 'admin-preview-sidnei',
-      email: ADMIN_EMAIL,
-      displayName: 'Sidnei Bogas (ADM)',
-      photoURL: null,
-      role: 'admin',
-      status: 'approved',
-      createdAt: new Date().toISOString(),
-      approvedBy: 'Master',
-      division: 'Norte do Paraná'
-    });
-    showNotification('Acesso concedido como Administrador Master (Sidnei)!');
-  };
-
   // If still checking authentication state, show branded loading splash
   if (authLoading) {
     return (
@@ -431,18 +405,6 @@ export default function App() {
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
           <span>Verificando autenticação Google...</span>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setAuthLoading(false);
-            if (!currentUser) {
-              handleLoginAsPreviewAdmin();
-            }
-          }}
-          className="mt-6 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-2 text-xs font-medium text-amber-400 hover:border-amber-500/50 hover:bg-zinc-800 cursor-pointer transition"
-        >
-          Demorando para carregar? Clique aqui para entrar direto &rarr;
-        </button>
       </div>
     );
   }
@@ -455,7 +417,6 @@ export default function App() {
           setAuthLoading(true);
           setTimeout(() => setAuthLoading(false), 1500);
         }}
-        onLoginAsPreviewAdmin={handleLoginAsPreviewAdmin}
       />
     );
   }
