@@ -41,6 +41,6 @@ No menu superior do Google AI Studio Build:
 ### Passo 3: Autorizar o Domínio da Vercel no Firebase
 Para que o login com o Google funcione no seu endereço da Vercel:
 1. Acesse o [Console do Firebase](https://console.firebase.google.com/).
-2. Abra o projeto: `cool-hybrid-0c9s2`.
+2. Abra o seu projeto Firebase.
 3. Vá em **Authentication** -> aba **Settings** (Configurações) -> **Authorized domains** (Domínios autorizados).
-4. Clique em **Add domain** e adicione o domínio gerado pela Vercel (ex: `agenda-norte-do-parana.vercel.app` ou seu domínio personalizado).
+4. Clique em **Add domain** e adicione o domínio gerado pela Vercel (ex: `agenda-norte-do-parana.vercel.app` ou `vercel.app`).

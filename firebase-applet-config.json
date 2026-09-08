@@ -1,12 +1,8 @@
 {
-  "projectId": "cool-hybrid-0c9s2",
-  "appId": "1:892486446864:web:f9300e3947823f81f47f95",
-  "apiKey": "AIzaSyBSNv0_N01AbyEP25mquaH144xNZ2tf4K0",
-  "authDomain": "cool-hybrid-0c9s2.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-agenda-55495bd2-e0df-46e9-b487-21d61084d7c8",
-  "storageBucket": "cool-hybrid-0c9s2.firebasestorage.app",
-  "messagingSenderId": "892486446864",
-  "measurementId": "",
-  "oAuthClientId": "892486446864-d5pahjnlej7dkajvj61d9ca4vtlpc0qh.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "projectId": "agenda-norte-8b318",
+  "appId": "1:880518804478:web:882cf5aab36c3cf69f06af",
+  "apiKey": "AIzaSyAN_1pcswsMZnaxMfnXtB63WCoSHSKzdWI",
+  "authDomain": "agenda-norte-8b318.firebaseapp.com",
+  "storageBucket": "agenda-norte-8b318.firebasestorage.app",
+  "messagingSenderId": "880518804478"
 }

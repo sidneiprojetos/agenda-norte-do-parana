@@ -386,6 +386,32 @@ export default function App() {
     return true;
   });
 
+  const handleLoginAsPreviewAdmin = () => {
+    const adminUser: AppUser = {
+      uid: 'admin-preview-sidnei',
+      email: ADMIN_EMAIL,
+      displayName: 'Sidnei Bogas (ADM)',
+      photoURL: null,
+      isAdmin: true,
+      role: 'admin',
+      status: 'approved',
+      division: 'Norte do Paraná'
+    };
+    setCurrentUser(adminUser);
+    setUserProfile({
+      uid: 'admin-preview-sidnei',
+      email: ADMIN_EMAIL,
+      displayName: 'Sidnei Bogas (ADM)',
+      photoURL: null,
+      role: 'admin',
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+      approvedBy: 'Master',
+      division: 'Norte do Paraná'
+    });
+    showNotification('Acesso concedido como Administrador Master (Sidnei)!');
+  };
+
   // If still checking authentication state, show branded loading splash
   if (authLoading) {
     return (
@@ -403,7 +429,12 @@ export default function App() {
 
   // 1. Mandatory Google Authentication Gate before showing any app screens
   if (!currentUser) {
-    return <LoginScreen onLoginSuccess={() => setAuthLoading(true)} />;
+    return (
+      <LoginScreen
+        onLoginSuccess={() => setAuthLoading(true)}
+        onLoginAsPreviewAdmin={handleLoginAsPreviewAdmin}
+      />
+    );
   }
 
   // 2. Pending Approval Gate (if not admin and status is pending)

@@ -21,12 +21,25 @@ import {
 } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 
-// Initialize Firebase App
-export const app = initializeApp(firebaseConfig);
+// Active configuration: prioritizes Vercel / .env environment variables if provided
+export const activeFirebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfig.appId,
+};
 
-// Initialize Firestore with specific databaseId if provided
-export const db = firebaseConfig.firestoreDatabaseId
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+// Initialize Firebase App
+export const app = initializeApp(activeFirebaseConfig);
+
+// Initialize Firestore (uses custom databaseId only if configured, otherwise standard default)
+const customDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || 
+  (!import.meta.env.VITE_FIREBASE_PROJECT_ID ? (firebaseConfig as Record<string, any>).firestoreDatabaseId : undefined);
+
+export const db = customDbId
+  ? getFirestore(app, customDbId)
   : getFirestore(app);
 
 // Initialize Firebase Auth

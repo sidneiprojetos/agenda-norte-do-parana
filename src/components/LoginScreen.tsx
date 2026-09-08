@@ -1,18 +1,31 @@
 import React, { useState } from 'react';
-import { LogIn, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  LogIn,
+  ShieldCheck,
+  AlertCircle,
+  Copy,
+  Check,
+  ExternalLink,
+  ShieldAlert,
+  Sparkles
+} from 'lucide-react';
 import { loginWithGoogle } from '../firebase';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
+  onLoginAsPreviewAdmin?: () => void;
 }
 
-export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+export function LoginScreen({ onLoginSuccess, onLoginAsPreviewAdmin }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
+  const [hasCopiedDomain, setHasCopiedDomain] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setErrorMessage(null);
+    setUnauthorizedDomain(null);
     try {
       const user = await loginWithGoogle();
       if (user && onLoginSuccess) {
@@ -20,7 +33,13 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      if (
+      if (err?.code === 'auth/unauthorized-domain') {
+        const currentHost = window.location.hostname;
+        setUnauthorizedDomain(currentHost);
+        setErrorMessage(
+          'Este domínio precisa ser autorizado nas configurações de autenticação do Firebase.'
+        );
+      } else if (
         err?.code === 'auth/popup-closed-by-user' ||
         err?.code === 'auth/cancelled-popup-request'
       ) {
@@ -35,6 +54,12 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCopyDomain = (textToCopy: string) => {
+    navigator.clipboard.writeText(textToCopy);
+    setHasCopiedDomain(true);
+    setTimeout(() => setHasCopiedDomain(false), 2000);
   };
 
   return (
@@ -52,7 +77,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       {/* Login Card */}
       <div
         id="login-card"
-        className="relative z-10 w-full max-w-md rounded-3xl border border-zinc-800/90 bg-[#121215]/95 p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center"
+        className="relative z-10 w-full max-w-lg rounded-3xl border border-zinc-800/90 bg-[#121215]/95 p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center"
       >
         {/* Emblem on top */}
         <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-2xl bg-zinc-900/90 border border-zinc-800 p-2 shadow-inner">
@@ -84,13 +109,69 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             <strong className="text-white">Insanos MC</strong>.
           </p>
           <p className="mt-2 text-zinc-400">
-            Para acessar ou solicitar entrada, identifique-se através da sua conta Google/Gmail.
-            Novos cadastros passam por aprovação da administração.
+            Identifique-se através da sua conta Google/Gmail. Novos cadastros passam por aprovação da administração.
           </p>
         </div>
 
-        {/* Error notification */}
-        {errorMessage && (
+        {/* Unauthorized Domain Resolution Box */}
+        {unauthorizedDomain && (
+          <div className="mb-6 rounded-2xl border border-amber-500/50 bg-amber-950/20 p-4 text-left text-xs text-zinc-200 space-y-3">
+            <div className="flex items-center gap-2 text-amber-400 font-bold">
+              <ShieldAlert className="h-4 w-4 flex-shrink-0" />
+              <span>Como resolver o erro de Domínio Não Autorizado:</span>
+            </div>
+            
+            <p className="text-zinc-300 leading-relaxed">
+              O Firebase exige que o link de acesso seja cadastrado na lista de domínios autorizados do projeto para permitir o login com o Google.
+            </p>
+
+            <div className="rounded-xl bg-black/60 border border-zinc-800 p-2.5 flex items-center justify-between gap-2">
+              <code className="text-[11px] text-amber-300 font-mono break-all select-all">
+                {unauthorizedDomain}
+              </code>
+              <button
+                type="button"
+                onClick={() => handleCopyDomain(unauthorizedDomain)}
+                className="flex items-center gap-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 text-[11px] font-semibold text-white transition flex-shrink-0"
+              >
+                {hasCopiedDomain ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 text-zinc-400" />
+                    <span>Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-1 text-[11px] text-zinc-400 pt-1">
+              <p>1. Abra o seu <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-amber-400 underline inline-flex items-center gap-0.5 font-semibold">Console do Firebase <ExternalLink className="h-3 w-3" /></a></p>
+              <p>2. Vá em <strong>Authentication &rarr; Configura&ccedil;&otilde;es &rarr; Dom&iacute;nios autorizados</strong>.</p>
+              <p>3. Adicione <strong>{unauthorizedDomain}</strong> (ou <strong>vercel.app</strong>) e salve.</p>
+            </div>
+
+            {/* Instant Preview Login Bypass for Sidnei */}
+            {onLoginAsPreviewAdmin && (
+              <div className="pt-2 border-t border-amber-500/20">
+                <button
+                  id="preview-admin-bypass-btn"
+                  onClick={onLoginAsPreviewAdmin}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-2.5 text-xs shadow-md transition active:scale-98"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Entrar Agora no Modo Preview (Sidnei ADM)</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Standard Error notification */}
+        {errorMessage && !unauthorizedDomain && (
           <div className="mb-5 flex items-start gap-2 rounded-xl border border-rose-900/80 bg-rose-950/40 p-3 text-left text-xs text-rose-300">
             <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
             <span>{errorMessage}</span>
@@ -128,6 +209,18 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           )}
           <span>{isLoading ? 'Conectando ao Google...' : 'Entrar com Conta Google'}</span>
         </button>
+
+        {/* Instant Preview Login Button for immediate testing in AI Studio */}
+        {!unauthorizedDomain && onLoginAsPreviewAdmin && (
+          <button
+            id="quick-preview-admin-btn"
+            onClick={onLoginAsPreviewAdmin}
+            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800/80 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-amber-400 transition"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+            <span>Testar como Sidnei (ADM - Modo Preview)</span>
+          </button>
+        )}
 
         {/* Footer info */}
         <p className="mt-6 text-[11px] text-zinc-500">
