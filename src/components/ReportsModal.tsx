@@ -39,6 +39,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
   const [author, setAuthor] = useState('Todos');
   const [location, setLocation] = useState('Todos');
   const [priority, setPriority] = useState('Todas');
+  const [reportFormat, setReportFormat] = useState<'detalhado' | 'por-data'>('detalhado');
   const periodLabel = startDate || endDate
       ? `${startDate ? formatDateToBR(startDate) : 'Início'} até ${endDate ? formatDateToBR(endDate) : 'fim'}`
       : 'Todos os períodos';
@@ -95,6 +96,12 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     setLocation('Todos');
     setPriority('Todas');
   };
+
+  const sortedNotes = [...filteredNotes].sort((a, b) => {
+    const dateOrder = a.date.localeCompare(b.date);
+    if (dateOrder !== 0) return dateOrder;
+    return (a.time || '').localeCompare(b.time || '');
+  });
 
   const exportReport = () => {
     const header = ['Título', 'Data', 'Horário', 'Categoria', 'Prioridade', 'Local', 'Autor', 'Descrição'];
@@ -199,6 +206,12 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
             <button onClick={clearFilters} className="ml-auto text-[11px] font-semibold text-zinc-400 underline-offset-2 hover:text-white hover:underline">Limpar filtros</button>
           </div>
 
+          <div className="report-format mt-4 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-[10px] font-semibold uppercase text-zinc-500">Formato</span>
+            <button onClick={() => setReportFormat('detalhado')} className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${reportFormat === 'detalhado' ? 'border-sky-500 bg-sky-600 text-white' : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:text-zinc-200'}`}>Detalhado</button>
+            <button onClick={() => setReportFormat('por-data')} className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${reportFormat === 'por-data' ? 'border-sky-500 bg-sky-600 text-white' : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:text-zinc-200'}`}>Evento por data</button>
+          </div>
+
           <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
             <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-3 lg:col-span-1">
               <span className="text-[10px] uppercase text-zinc-500">Resultado</span>
@@ -222,6 +235,18 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
             </div>
             {filteredNotes.length === 0 ? (
               <div className="p-8 text-center text-xs text-zinc-500">Nenhuma anotação corresponde aos filtros selecionados.</div>
+            ) : reportFormat === 'por-data' ? (
+              <div className="divide-y divide-zinc-800/80">
+                {sortedNotes.map((note) => (
+                  <button key={note.id} onClick={() => onViewNote(note)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-xs transition hover:bg-zinc-800/40">
+                    <span className="w-20 shrink-0 font-semibold text-sky-300">{formatDateToBR(note.date)}</span>
+                    <span className="w-14 shrink-0 text-zinc-500">{note.time || '--:--'}</span>
+                    <strong className="min-w-0 flex-1 truncate text-zinc-100">{note.title}</strong>
+                    <span className={`hidden shrink-0 rounded border px-1.5 py-0.5 text-[10px] sm:inline ${getCategoryStyle(note.category).badge}`}>{note.category || 'Geral'}</span>
+                    <span className="hidden max-w-[180px] truncate text-zinc-500 md:inline">{note.location || 'Sem local'}</span>
+                  </button>
+                ))}
+              </div>
             ) : (
               <div className="divide-y divide-zinc-800/80">
                 {filteredNotes.map((note) => (

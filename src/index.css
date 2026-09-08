@@ -29,6 +29,7 @@
 	}
 
 	.report-filters,
+	.report-format,
 	.report-actions,
 	.report-modal button[aria-label="Fechar relatório"] {
 		display: none !important;
