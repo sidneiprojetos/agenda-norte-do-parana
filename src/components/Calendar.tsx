@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Note } from '../types';
+import { Note, NoteCategory } from '../types';
 import {
   MONTH_NAMES_PT,
   WEEKDAYS_PT,
@@ -8,6 +8,7 @@ import {
   formatDateToISO
 } from '../utils/dateUtils';
 import { Watermark } from './Watermark';
+import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface CalendarProps {
   currentDate: Date;
@@ -91,6 +92,12 @@ export const Calendar: React.FC<CalendarProps> = ({
 
           const isSelected = day.isSelected;
           const isToday = day.dateString === todayStr;
+          const dayNotes = notes.filter((note) => note.date === day.dateString);
+          const categoryKeys: NoteCategory[] = Array.from(
+            new Set(dayNotes.map((note) => note.category || 'Geral'))
+          );
+          const primaryCategory = dayNotes[0]?.category || 'Geral';
+          const calendarCategoryStyle = getCategoryStyle(primaryCategory);
 
           return (
             <button
@@ -102,21 +109,24 @@ export const Calendar: React.FC<CalendarProps> = ({
                   ? 'border-2 border-amber-500 bg-amber-950/40 text-amber-200 shadow-md shadow-amber-900/30'
                   : isToday
                   ? 'bg-amber-500/20 text-amber-400 font-semibold border border-amber-500/30 hover:bg-amber-500/30'
+                  : day.hasNotes
+                  ? `${calendarCategoryStyle.calendar} border-2 font-semibold shadow-lg hover:brightness-125`
                   : 'text-zinc-200 hover:bg-zinc-800/80 hover:text-white'
               }`}
             >
               <span className="leading-none">{day.dayNumber}</span>
 
-              {/* Event Marker Dot */}
+              {/* Category markers */}
               {day.hasNotes && (
-                <span
-                  className={`mt-1 h-1.5 w-1.5 rounded-full ${
-                    isSelected
-                      ? 'bg-amber-400 ring-2 ring-amber-400/40'
-                      : 'bg-amber-500'
-                  }`}
-                  title={`${day.notesCount} anotação(ões)`}
-                />
+                <span className="mt-1 flex items-center gap-0.5" title={`${day.notesCount} anotação(ões)`}>
+                  {categoryKeys.slice(0, 3).map((category) => (
+                    <span
+                      key={category}
+                      className={`h-1.5 w-1.5 rounded-full ring-1 ring-black/30 ${getCategoryStyle(category).active.split(' ')[1]}`}
+                    />
+                  ))}
+                  {day.notesCount > 3 && <span className="text-[8px] font-bold">+</span>}
+                </span>
               )}
             </button>
           );
