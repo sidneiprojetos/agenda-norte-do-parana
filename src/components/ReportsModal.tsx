@@ -125,37 +125,122 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
-    let y = 18;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    const categoryColors: Record<NoteCategory, [number, number, number]> = {
+      Reunião: [14, 116, 144],
+      Passeio: [5, 150, 105],
+      Evento: [124, 58, 237],
+      Aviso: [225, 29, 72],
+      Geral: [217, 119, 6]
+    };
+    const activeFilters = [
+      startDate || endDate ? `Período: ${startDate ? formatDateToBR(startDate) : 'início'} a ${endDate ? formatDateToBR(endDate) : 'fim'}` : '',
+      selectedCategories.length ? `Categorias: ${selectedCategories.join(', ')}` : '',
+      author !== 'Todos' ? `Autor: ${author}` : '',
+      location !== 'Todos' ? `Local: ${location}` : '',
+      priority !== 'Todas' ? `Prioridade: ${priority === 'alta' ? 'Alta' : 'Normal'}` : '',
+      search.trim() ? `Busca: ${search.trim()}` : ''
+    ].filter(Boolean);
 
+    const drawFooter = () => {
+      const pageNumber = pdf.getCurrentPageInfo().pageNumber;
+      pdf.setDrawColor(226, 232, 240);
+      pdf.line(margin, pageHeight - 16, pageWidth - margin, pageHeight - 16);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 116, 139);
+      pdf.text('Agenda Norte do Paraná • Relatório gerado pelo Firestore', margin, pageHeight - 9);
+      pdf.text(`Página ${pageNumber}`, pageWidth - margin, pageHeight - 9, { align: 'right' });
+    };
+
+    pdf.setFillColor(15, 23, 42);
+    pdf.rect(0, 0, pageWidth, 39, 'F');
+    pdf.setFillColor(14, 165, 233);
+    pdf.rect(0, 36, pageWidth, 3, 'F');
+    pdf.setTextColor(255, 255, 255);
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(16);
-    pdf.text('Relatório de eventos', 14, y);
-    y += 8;
-
+    pdf.setFontSize(18);
+    pdf.text('Relatório de eventos', margin, 17);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9);
-    pdf.text(`Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`, 14, y);
-    pdf.text(`Total: ${filteredNotes.length}`, pageWidth - 14, y, { align: 'right' });
-    y += 10;
+    pdf.setTextColor(186, 230, 253);
+    pdf.text('Agenda Norte do Paraná', margin, 27);
+    pdf.text(`Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`, pageWidth - margin, 27, { align: 'right' });
 
-    pdf.setDrawColor(210, 210, 214);
-    pdf.line(14, y, pageWidth - 14, y);
-    y += 8;
-    pdf.setFontSize(10);
+    let y = 49;
+    pdf.setTextColor(71, 85, 105);
+    pdf.setFontSize(9);
+    pdf.text(activeFilters.length ? activeFilters.join('  •  ') : 'Filtros: todos os eventos', margin, y, { maxWidth: contentWidth });
+    y += activeFilters.length > 2 ? 10 : 6;
+
+    const cardGap = 3;
+    const cardWidth = (contentWidth - cardGap * 4) / 5;
+    categoryTotals.forEach(({ category, total }, index) => {
+      const x = margin + index * (cardWidth + cardGap);
+      const [red, green, blue] = categoryColors[category];
+      pdf.setFillColor(248, 250, 252);
+      pdf.setDrawColor(226, 232, 240);
+      pdf.roundedRect(x, y, cardWidth, 22, 2, 2, 'FD');
+      pdf.setFillColor(red, green, blue);
+      pdf.roundedRect(x, y, 2.5, 22, 1, 1, 'F');
+      pdf.setTextColor(red, green, blue);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(7);
+      pdf.text(category.toUpperCase(), x + 6, y + 8);
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFontSize(13);
+      pdf.text(String(total), x + 6, y + 17);
+    });
+    y += 31;
+
+    pdf.setFillColor(15, 23, 42);
+    pdf.roundedRect(margin, y, contentWidth, 9, 2, 2, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.text('DATA', margin + 5, y + 6);
+    pdf.text('EVENTO', margin + 34, y + 6);
+    pdf.text('CATEGORIA', pageWidth - margin - 35, y + 6, { align: 'center' });
+    y += 14;
 
     if (filteredNotes.length === 0) {
-      pdf.text('Nenhuma anotação corresponde aos filtros selecionados.', 14, y);
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      pdf.text('Nenhuma anotação corresponde aos filtros selecionados.', margin, y);
     } else {
       for (const note of sortedNotes) {
-        const line = `${formatDateToBR(note.date)}${note.time ? ` | ${note.time}` : ''} | ${note.title}`;
-        const lines = pdf.splitTextToSize(line, pageWidth - 28) as string[];
-        if (y + lines.length * 6 > 282) {
+        const category = note.category || 'Geral';
+        const [red, green, blue] = categoryColors[category];
+        const title = `${note.time ? `${note.time}  ` : ''}${note.title}`;
+        const titleLines = pdf.splitTextToSize(title, contentWidth - 76) as string[];
+        const rowHeight = Math.max(10, titleLines.length * 5 + 5);
+        if (y + rowHeight > pageHeight - 23) {
+          drawFooter();
           pdf.addPage();
-          y = 18;
+          y = 20;
         }
-        pdf.text(lines, 14, y);
-        y += lines.length * 6;
+        if (Math.floor((y - 63) / 10) % 2 === 0) {
+          pdf.setFillColor(248, 250, 252);
+          pdf.rect(margin, y - 4, contentWidth, rowHeight, 'F');
+        }
+        pdf.setTextColor(30, 41, 59);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text(formatDateToBR(note.date), margin + 5, y + 2);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(9);
+        pdf.text(titleLines, margin + 34, y + 2);
+        pdf.setFillColor(red, green, blue);
+        pdf.roundedRect(pageWidth - margin - 49, y - 2, 38, 6, 2, 2, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(7);
+        pdf.text(category, pageWidth - margin - 30, y + 2, { align: 'center' });
+        y += rowHeight;
       }
+      drawFooter();
     }
 
     pdf.save(`relatorio_eventos_${new Date().toISOString().slice(0, 10)}.pdf`);
