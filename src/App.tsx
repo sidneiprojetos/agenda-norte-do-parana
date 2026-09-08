@@ -225,6 +225,7 @@ export default function App() {
     const userId = currentUser?.uid || 'admin-default';
 
     if (editingNote) {
+      const previousNote = editingNote;
       // Optimistic update in UI
       setNotes((prev) =>
         prev.map((n) =>
@@ -243,15 +244,21 @@ export default function App() {
         )
       );
       // UPDATE in Firestore
-      await updateFirestoreNote(editingNote.id, {
-        title: data.title,
-        content: data.content,
-        date: data.date,
-        time: data.time,
-        location: data.location,
-        category: data.category || editingNote.category,
-        updatedAt: new Date().toISOString()
-      });
+      try {
+        await updateFirestoreNote(editingNote.id, {
+          title: data.title,
+          content: data.content,
+          date: data.date,
+          time: data.time,
+          location: data.location,
+          category: data.category || editingNote.category,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (error) {
+        setNotes((prev) => prev.map((note) => (note.id === previousNote.id ? previousNote : note)));
+        showNotification('Não foi possível salvar a alteração no Firebase.');
+        throw error;
+      }
       setEditingNote(null);
       showNotification(`Anotação "${data.title}" atualizada com sucesso!`);
     } else {
@@ -277,22 +284,29 @@ export default function App() {
       setNotes((prev) => [optimisticNote, ...prev]);
 
       // CREATE in Firestore
-      const realId = await createFirestoreNote({
-        title: data.title,
-        content: data.content,
-        date: data.date,
-        time: data.time,
-        location: data.location,
-        category: data.category || 'Geral',
-        priority: 'normal',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: userEmail,
-        authorEmail: userEmail,
-        authorName: userName,
-        authorPhoto: userPhoto,
-        authorId: userId
-      });
+      let realId: string;
+      try {
+        realId = await createFirestoreNote({
+          title: data.title,
+          content: data.content,
+          date: data.date,
+          time: data.time,
+          location: data.location,
+          category: data.category || 'Geral',
+          priority: 'normal',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: userEmail,
+          authorEmail: userEmail,
+          authorName: userName,
+          authorPhoto: userPhoto,
+          authorId: userId
+        });
+      } catch (error) {
+        setNotes((prev) => prev.filter((note) => note.id !== tempId));
+        showNotification('Não foi possível publicar a anotação no Firebase.');
+        throw error;
+      }
 
       // Update with real Firestore ID
       setNotes((prev) => prev.map((n) => (n.id === tempId ? { ...n, id: realId } : n)));

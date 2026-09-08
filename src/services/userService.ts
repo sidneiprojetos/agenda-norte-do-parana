@@ -52,10 +52,7 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
     ]);
 
     if (!userSnapshot || !userSnapshot.exists()) {
-      // Create profile in background without blocking login
-      setDoc(userDocRef, removeUndefinedFields(defaultProfile)).catch((err) =>
-        console.warn('Background profile write handled:', err)
-      );
+      await setDoc(userDocRef, removeUndefinedFields(defaultProfile));
       return defaultProfile;
     }
 
@@ -78,9 +75,7 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
       notes: existingData.notes || ''
     };
 
-    setDoc(userDocRef, removeUndefinedFields(updatedProfile), { merge: true }).catch((err) =>
-      console.warn('Background profile update handled:', err)
-    );
+    await setDoc(userDocRef, removeUndefinedFields(updatedProfile), { merge: true });
     return updatedProfile;
   } catch (error) {
     console.warn('Firestore profile sync fallback to local profile:', error);

@@ -114,15 +114,7 @@ export async function createFirestoreNote(noteData: Omit<Note, 'id'>): Promise<s
 
   const sanitized = removeUndefinedFields(rawDoc);
 
-  try {
-    // 1.8s timeout so the button never stays stuck on "+ Publicando..."
-    await Promise.race([
-      setDoc(newDocRef, sanitized),
-      new Promise((resolve) => setTimeout(resolve, 1800))
-    ]);
-  } catch (error) {
-    console.warn('Firestore write warning:', error);
-  }
+  await setDoc(newDocRef, sanitized);
 
   return noteId;
 }
@@ -139,14 +131,7 @@ export async function updateFirestoreNote(
     ...updates,
     updatedAt: new Date().toISOString()
   };
-  try {
-    await Promise.race([
-      updateDoc(noteDocRef, removeUndefinedFields(rawUpdates)),
-      new Promise((resolve) => setTimeout(resolve, 1800))
-    ]);
-  } catch (error) {
-    console.warn('Firestore update warning:', error);
-  }
+  await updateDoc(noteDocRef, removeUndefinedFields(rawUpdates));
 }
 
 /**
