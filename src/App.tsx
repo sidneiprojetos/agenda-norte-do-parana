@@ -205,11 +205,7 @@ export default function App() {
 
   const handleSelectDate = (dateStr: string) => {
     setSelectedDate(dateStr);
-    if (selectedDate === dateStr && filterByDate) {
-      setFilterByDate(false);
-    } else {
-      setFilterByDate(true);
-    }
+    setFilterByDate(false);
   };
 
   // CRUD - Create & Update with Firebase
