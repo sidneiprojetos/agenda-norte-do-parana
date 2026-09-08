@@ -39,7 +39,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
   const [author, setAuthor] = useState('Todos');
   const [location, setLocation] = useState('Todos');
   const [priority, setPriority] = useState('Todas');
-  const [reportFormat, setReportFormat] = useState<'detalhado' | 'por-data'>('detalhado');
+  const [reportFormat, setReportFormat] = useState<'detalhado' | 'por-data'>('por-data');
   const periodLabel = startDate || endDate
       ? `${startDate ? formatDateToBR(startDate) : 'Início'} até ${endDate ? formatDateToBR(endDate) : 'fim'}`
       : 'Todos os períodos';
@@ -238,12 +238,11 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
             ) : reportFormat === 'por-data' ? (
               <div className="divide-y divide-zinc-800/80">
                 {sortedNotes.map((note) => (
-                  <button key={note.id} onClick={() => onViewNote(note)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-xs transition hover:bg-zinc-800/40">
-                    <span className="w-20 shrink-0 font-semibold text-sky-300">{formatDateToBR(note.date)}</span>
-                    <span className="w-14 shrink-0 text-zinc-500">{note.time || '--:--'}</span>
-                    <strong className="min-w-0 flex-1 truncate text-zinc-100">{note.title}</strong>
-                    <span className={`hidden shrink-0 rounded border px-1.5 py-0.5 text-[10px] sm:inline ${getCategoryStyle(note.category).badge}`}>{note.category || 'Geral'}</span>
-                    <span className="hidden max-w-[180px] truncate text-zinc-500 md:inline">{note.location || 'Sem local'}</span>
+                  <button key={note.id} onClick={() => onViewNote(note)} className="block w-full truncate px-4 py-2.5 text-left text-xs transition hover:bg-zinc-800/40">
+                    <span className="font-semibold text-sky-300">{formatDateToBR(note.date)}</span>
+                    <span className="text-zinc-500">{note.time ? ` | ${note.time}` : ''}</span>
+                    <span className="text-zinc-500">{' | '}</span>
+                    <strong className="text-zinc-100">{note.title}</strong>
                   </button>
                 ))}
               </div>
