@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "users": {
+      "title": "Usuários - Agenda Norte do Paraná",
+      "description": "Perfis de usuários que acessam a Agenda Norte do Paraná via Google/Gmail",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "member"] },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "approvedAt": { "type": "string" },
+        "approvedBy": { "type": "string" },
+        "division": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["email", "role", "status"]
+    },
+    "notes": {
+      "title": "Anotações - Agenda Norte do Paraná",
+      "description": "Eventos e anotações compartilhadas da Agenda Norte do Paraná",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorEmail": { "type": "string" }
+      },
+      "required": ["title", "date", "createdAt", "authorEmail"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "Perfil de usuário"
+    },
+    "/notes/{noteId}": {
+      "schema": "notes",
+      "description": "Anotação da agenda compartilhada"
+    }
+  }
+}

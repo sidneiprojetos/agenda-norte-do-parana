@@ -1,0 +1,531 @@
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { Note, NoteCategory, AppUser, UserProfile } from './types';
+import { INITIAL_NOTES } from './data/initialNotes';
+import { Calendar } from './components/Calendar';
+import { NoteForm } from './components/NoteForm';
+import { NoteList } from './components/NoteList';
+import { AdminHeader } from './components/AdminHeader';
+import { ViewNoteModal } from './components/ViewNoteModal';
+import { DeleteConfirmModal } from './components/DeleteConfirmModal';
+import { LoginScreen } from './components/LoginScreen';
+import { PendingApprovalScreen } from './components/PendingApprovalScreen';
+import { RejectedScreen } from './components/RejectedScreen';
+import { UserManagementDashboard } from './components/UserManagementDashboard';
+import { formatDateToISO } from './utils/dateUtils';
+import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
+import {
+  subscribeToNotes,
+  createFirestoreNote,
+  updateFirestoreNote,
+  deleteFirestoreNote
+} from './services/notesService';
+import {
+  syncUserProfile,
+  subscribeToUserProfile,
+  subscribeToAllUsers
+} from './services/userService';
+
+const BACKUP_STORAGE_KEY = 'agenda_notes_backup_v2';
+
+export default function App() {
+  // Authentication states
+  const [authLoading, setAuthLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  // Admin User Management dashboard view toggle
+  const [isViewingUserManagement, setIsViewingUserManagement] = useState(false);
+  const [pendingUsersCount, setPendingUsersCount] = useState(0);
+
+  // Notes state synchronized from Firebase Firestore
+  const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
+
+  // Online / Realtime connection state
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+
+  // Calendar month view (defaults to September 2026 as in reference)
+  const [viewDate, setViewDate] = useState<Date>(() => new Date(2026, 8, 7));
+
+  // Selected date (starts on 2026-09-07)
+  const [selectedDate, setSelectedDate] = useState<string>('2026-09-07');
+
+  // Currently editing note
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+
+  // Modal states for Read & Delete operations
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
+  const [deletingNote, setDeletingNote] = useState<Note | null>(null);
+
+  // Notification message
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todas');
+  const [filterByDate, setFilterByDate] = useState(false);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    let profileUnsub: (() => void) | null = null;
+
+    const authUnsub = onAuthStateChanged(auth, async (fbUser) => {
+      if (profileUnsub) {
+        profileUnsub();
+        profileUnsub = null;
+      }
+
+      if (fbUser) {
+        try {
+          // Sync or create user profile in Firestore
+          const profile = await syncUserProfile(fbUser);
+          setUserProfile(profile);
+
+          const isAdmin = isUserAdmin(fbUser.email) || profile.role === 'admin';
+          const appUser: AppUser = {
+            uid: fbUser.uid,
+            email: fbUser.email,
+            displayName: profile.displayName || fbUser.displayName || fbUser.email?.split('@')[0] || 'Membro',
+            photoURL: fbUser.photoURL,
+            isAdmin,
+            role: profile.role,
+            status: profile.status,
+            division: profile.division
+          };
+          setCurrentUser(appUser);
+
+          // Real-time listener for profile updates (so if admin approves in real-time, user unlocks immediately)
+          profileUnsub = subscribeToUserProfile(fbUser.uid, (updated) => {
+            if (updated) {
+              setUserProfile(updated);
+              const isStillAdmin = isUserAdmin(updated.email) || updated.role === 'admin';
+              setCurrentUser({
+                uid: updated.uid,
+                email: updated.email,
+                displayName: updated.displayName,
+                photoURL: updated.photoURL,
+                isAdmin: isStillAdmin,
+                role: updated.role,
+                status: updated.status,
+                division: updated.division
+              });
+            }
+          });
+        } catch (e) {
+          console.error('Error syncing user on auth state change:', e);
+        } finally {
+          setAuthLoading(false);
+        }
+      } else {
+        setCurrentUser(null);
+        setUserProfile(null);
+        setIsViewingUserManagement(false);
+        setAuthLoading(false);
+      }
+    });
+
+    return () => {
+      authUnsub();
+      if (profileUnsub) profileUnsub();
+    };
+  }, []);
+
+  // For Admin: subscribe to user list to update pending count badge in real time
+  useEffect(() => {
+    if (currentUser?.isAdmin) {
+      const unsubUsers = subscribeToAllUsers((userList) => {
+        const pending = userList.filter((u) => u.status === 'pending').length;
+        setPendingUsersCount(pending);
+      });
+      return () => unsubUsers();
+    }
+  }, [currentUser?.isAdmin]);
+
+  // Listen to Firestore real-time updates for notes (only when approved or admin)
+  useEffect(() => {
+    const isApprovedOrAdmin = currentUser?.isAdmin || userProfile?.status === 'approved';
+    if (!currentUser || !isApprovedOrAdmin) {
+      return;
+    }
+
+    const unsubscribe = subscribeToNotes((firestoreNotes) => {
+      setNotes(firestoreNotes);
+      setIsOnline(true);
+      // Keep local backup
+      try {
+        localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(firestoreNotes));
+      } catch (e) {
+        // ignore
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser?.isAdmin, userProfile?.status]);
+
+  const showNotification = (msg: string) => {
+    setToastMessage(msg);
+  };
+
+  const handleRefreshProfile = async () => {
+    if (auth.currentUser) {
+      const profile = await syncUserProfile(auth.currentUser);
+      setUserProfile(profile);
+    }
+  };
+
+  // Calendar navigation
+  const handleChangeMonth = (increment: number) => {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + increment, 1));
+  };
+
+  const handleGoToToday = () => {
+    const today = new Date();
+    setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
+    const todayISO = formatDateToISO(today);
+    setSelectedDate(todayISO);
+  };
+
+  const handleSelectDate = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    if (selectedDate === dateStr && filterByDate) {
+      setFilterByDate(false);
+    } else {
+      setFilterByDate(true);
+    }
+  };
+
+  // CRUD - Create & Update with Firebase
+  const handleSaveNote = async (data: {
+    title: string;
+    content: string;
+    date: string;
+    time?: string;
+    location?: string;
+    category?: NoteCategory;
+  }) => {
+    const userEmail = currentUser?.email || ADMIN_EMAIL;
+    const userName = currentUser?.displayName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Sidnei (ADM)');
+    const userPhoto = currentUser?.photoURL || undefined;
+    const userId = currentUser?.uid || 'admin-default';
+
+    if (editingNote) {
+      // UPDATE in Firestore
+      await updateFirestoreNote(editingNote.id, {
+        title: data.title,
+        content: data.content,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        category: data.category || editingNote.category,
+        updatedAt: new Date().toISOString()
+      });
+      setEditingNote(null);
+      showNotification(`Anotação "${data.title}" atualizada no Firebase!`);
+    } else {
+      // CREATE in Firestore
+      await createFirestoreNote({
+        title: data.title,
+        content: data.content,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        category: data.category || 'Geral',
+        priority: 'normal',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: userEmail,
+        authorEmail: userEmail,
+        authorName: userName,
+        authorPhoto: userPhoto,
+        authorId: userId
+      });
+      showNotification(`Anotação "${data.title}" publicada online!`);
+    }
+  };
+
+  // CRUD - Delete with Firebase
+  const handleConfirmDelete = async () => {
+    if (!deletingNote) return;
+    const title = deletingNote.title;
+    try {
+      await deleteFirestoreNote(deletingNote.id);
+      if (editingNote?.id === deletingNote.id) {
+        setEditingNote(null);
+      }
+      if (viewingNote?.id === deletingNote.id) {
+        setViewingNote(null);
+      }
+      setDeletingNote(null);
+      showNotification(`Anotação "${title}" excluída com sucesso!`);
+    } catch (error: any) {
+      showNotification('Erro ao excluir anotação no Firebase.');
+    }
+  };
+
+  // CRUD - Start Edit
+  const handleStartEdit = (note: Note) => {
+    setViewingNote(null);
+    setEditingNote(note);
+    setSelectedDate(note.date);
+    document.getElementById('note-form-container')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  };
+
+  // Admin: Export backup
+  const handleExportData = () => {
+    try {
+      const dataStr =
+        'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(notes, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute(
+        'download',
+        `backup_agenda_firebase_${formatDateToISO(new Date())}.json`
+      );
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showNotification('Backup da agenda exportado com sucesso!');
+    } catch (e) {
+      showNotification('Erro ao exportar backup da agenda.');
+    }
+  };
+
+  // Admin: Import backup to Firestore
+  const handleImportData = async (file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          showNotification(`Importando ${parsed.length} anotações para o Firebase...`);
+          for (const item of parsed) {
+            if (item.title && item.date) {
+              await createFirestoreNote({
+                title: item.title,
+                content: item.content || '',
+                date: item.date,
+                time: item.time,
+                location: item.location,
+                category: item.category || 'Geral',
+                priority: item.priority || 'normal',
+                createdAt: item.createdAt || new Date().toISOString(),
+                createdBy: item.createdBy || currentUser?.email || ADMIN_EMAIL,
+                authorEmail: item.authorEmail || item.createdBy || currentUser?.email || ADMIN_EMAIL,
+                authorName: item.authorName || undefined,
+                authorId: currentUser?.uid || undefined
+              });
+            }
+          }
+          showNotification(`${parsed.length} anotações importadas com sucesso!`);
+        } else {
+          showNotification('Formato de arquivo inválido. Deve ser um array de anotações.');
+        }
+      } catch (err) {
+        showNotification('Erro ao ler arquivo JSON.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Admin: Reset to default in Firestore
+  const handleResetData = async () => {
+    if (
+      window.confirm(
+        'Deseja restaurar as anotações padrão no Firebase? Isso adicionará os registros iniciais.'
+      )
+    ) {
+      for (const note of INITIAL_NOTES) {
+        await createFirestoreNote({
+          ...note,
+          authorEmail: ADMIN_EMAIL,
+          authorName: 'Sidnei (ADM)',
+          authorId: 'admin-seed'
+        });
+      }
+      showNotification('Anotações padrão reinseridas no Firebase!');
+    }
+  };
+
+  const handleOpenCreateForm = () => {
+    setEditingNote(null);
+    document.getElementById('note-title-input')?.focus();
+    document.getElementById('note-form-container')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  };
+
+  // Filter notes for list display
+  const filteredNotes = notes.filter((n) => {
+    if (filterByDate && n.date !== selectedDate) {
+      return false;
+    }
+    if (selectedCategory !== 'Todas' && n.category !== selectedCategory) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = n.title.toLowerCase().includes(q);
+      const matchContent = n.content.toLowerCase().includes(q);
+      const matchAuthor = (n.authorName || n.authorEmail || n.createdBy || '').toLowerCase().includes(q);
+      const matchLocation = n.location?.toLowerCase().includes(q) || false;
+      return matchTitle || matchContent || matchAuthor || matchLocation;
+    }
+    return true;
+  });
+
+  // If still checking authentication state, show branded loading splash
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#09090b] text-zinc-100 p-4 font-sans">
+        <div className="h-20 w-20 mb-4 animate-pulse">
+          <img src="/insanos.png" alt="Insanos MC Brasil" className="h-full w-full object-contain" />
+        </div>
+        <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+          <span>Verificando autenticação Google...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 1. Mandatory Google Authentication Gate before showing any app screens
+  if (!currentUser) {
+    return <LoginScreen onLoginSuccess={() => setAuthLoading(true)} />;
+  }
+
+  // 2. Pending Approval Gate (if not admin and status is pending)
+  if (!currentUser.isAdmin && userProfile && userProfile.status === 'pending') {
+    return <PendingApprovalScreen userProfile={userProfile} onRefresh={handleRefreshProfile} />;
+  }
+
+  // 3. Rejected/Blocked Screen (if not admin and status is rejected)
+  if (!currentUser.isAdmin && userProfile && userProfile.status === 'rejected') {
+    return <RejectedScreen userProfile={userProfile} />;
+  }
+
+  return (
+    <div className="relative min-h-screen w-full bg-[#09090b] px-3 py-6 sm:px-6 md:py-10 text-zinc-100 antialiased font-sans selection:bg-amber-500 selection:text-black">
+      {/* Insanos MC Brasil Background Emblem */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden"
+        aria-hidden="true"
+      >
+        <img
+          src="/insanos.png"
+          alt="Insanos MC Brasil Background"
+          className="max-h-[85vh] max-w-[90vw] object-contain opacity-35 filter contrast-125 drop-shadow-[0_0_50px_rgba(0,0,0,0.9)]"
+        />
+        {/* Dark radial gradient vignette in pure neutral black - NO BLUE */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#09090b_85%)]" />
+      </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-amber-500/50 bg-[#18181b] px-4 py-3 text-xs font-semibold text-amber-300 shadow-2xl animate-bounce">
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Outer Card Container */}
+      <main className="relative z-10 mx-auto max-w-5xl rounded-3xl border border-zinc-800/80 bg-[#121215]/90 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-md">
+        {/* Admin Header with user imc.sidnei@gmail.com, Google login for guests, and Firestore sync */}
+        <AdminHeader
+          currentUser={currentUser}
+          totalNotes={notes.length}
+          isOnline={isOnline}
+          onExportData={handleExportData}
+          onImportData={handleImportData}
+          onResetData={handleResetData}
+          onOpenCreateForm={handleOpenCreateForm}
+          onOpenUserManagement={() => setIsViewingUserManagement((prev) => !prev)}
+          pendingUsersCount={pendingUsersCount}
+          isViewingUserManagement={isViewingUserManagement}
+        />
+
+        {/* Conditional View: Admin User Management Dashboard OR Normal Agenda */}
+        {isViewingUserManagement && currentUser?.isAdmin ? (
+          <UserManagementDashboard
+            currentAdminEmail={currentUser.email || ADMIN_EMAIL}
+            onBackToAgenda={() => setIsViewingUserManagement(false)}
+            onShowToast={showNotification}
+          />
+        ) : (
+          <>
+            {/* Top Grid: Calendar (Left) and Note Form (Right) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+              {/* Left Column: Interactive Calendar */}
+              <Calendar
+                currentDate={viewDate}
+                selectedDate={selectedDate}
+                onSelectDate={handleSelectDate}
+                onChangeMonth={handleChangeMonth}
+                onGoToToday={handleGoToToday}
+                notes={notes}
+              />
+
+              {/* Right Column: Note Form (Create & Update directly to Firebase) */}
+              <NoteForm
+                selectedDate={selectedDate}
+                editingNote={editingNote}
+                currentUser={currentUser}
+                onSaveNote={handleSaveNote}
+                onCancelEdit={() => setEditingNote(null)}
+              />
+            </div>
+
+            {/* Bottom Section: Shared Notes List */}
+            <NoteList
+              notes={filteredNotes}
+              selectedDate={selectedDate}
+              isDateFilterActive={filterByDate}
+              searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
+              currentUser={currentUser}
+              onSearchChange={setSearchQuery}
+              onCategoryChange={setSelectedCategory}
+              onClearDateFilter={() => setFilterByDate(false)}
+              onViewNote={(note) => setViewingNote(note)}
+              onEditNote={handleStartEdit}
+              onDeleteNote={(note) => setDeletingNote(note)}
+            />
+          </>
+        )}
+      </main>
+
+      {/* Modal: View Details (Read) */}
+      <ViewNoteModal
+        note={viewingNote}
+        isOpen={!!viewingNote}
+        currentUser={currentUser}
+        onClose={() => setViewingNote(null)}
+        onEdit={(note) => handleStartEdit(note)}
+        onDelete={(note) => {
+          setViewingNote(null);
+          setDeletingNote(note);
+        }}
+      />
+
+      {/* Modal: Delete Confirmation (Delete) */}
+      <DeleteConfirmModal
+        note={deletingNote}
+        isOpen={!!deletingNote}
+        onClose={() => setDeletingNote(null)}
+        onConfirm={handleConfirmDelete}
+      />
+    </div>
+  );
+}

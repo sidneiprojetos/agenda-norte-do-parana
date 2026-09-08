@@ -1,0 +1,6 @@
+{
+  "name": "Agenda Norte do Paraná",
+  "description": "Agenda de compromissos e anotações compartilhadas do Norte do Paraná",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
