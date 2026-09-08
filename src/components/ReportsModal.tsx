@@ -121,6 +121,46 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const exportPdfReport = async () => {
+    const { jsPDF } = await import('jspdf');
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    let y = 18;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('Relatório de eventos', 14, y);
+    y += 8;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.text(`Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`, 14, y);
+    pdf.text(`Total: ${filteredNotes.length}`, pageWidth - 14, y, { align: 'right' });
+    y += 10;
+
+    pdf.setDrawColor(210, 210, 214);
+    pdf.line(14, y, pageWidth - 14, y);
+    y += 8;
+    pdf.setFontSize(10);
+
+    if (filteredNotes.length === 0) {
+      pdf.text('Nenhuma anotação corresponde aos filtros selecionados.', 14, y);
+    } else {
+      for (const note of sortedNotes) {
+        const line = `${formatDateToBR(note.date)}${note.time ? ` | ${note.time}` : ''} | ${note.title}`;
+        const lines = pdf.splitTextToSize(line, pageWidth - 28) as string[];
+        if (y + lines.length * 6 > 282) {
+          pdf.addPage();
+          y = 18;
+        }
+        pdf.text(lines, 14, y);
+        y += lines.length * 6;
+      }
+    }
+
+    pdf.save(`relatorio_eventos_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   return (
     <div
       role="dialog"
@@ -214,7 +254,10 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
           <div className="mt-5 overflow-hidden rounded-xl border border-zinc-800">
             <div className="flex items-center justify-between border-b border-zinc-800 bg-[#18181b] px-4 py-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200"><CalendarDays className="h-4 w-4 text-sky-300" />Detalhamento</div>
-              <button onClick={exportReport} disabled={filteredNotes.length === 0} className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-sky-300 transition hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Download className="h-3.5 w-3.5" />CSV</button>
+              <div className="flex items-center gap-2">
+                <button onClick={exportPdfReport} disabled={filteredNotes.length === 0} className="flex items-center gap-1.5 rounded-lg border border-rose-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Download className="h-3.5 w-3.5" />PDF</button>
+                <button onClick={exportReport} disabled={filteredNotes.length === 0} className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-sky-300 transition hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Download className="h-3.5 w-3.5" />CSV</button>
+              </div>
             </div>
             {filteredNotes.length === 0 ? (
               <div className="p-8 text-center text-xs text-zinc-500">Nenhuma anotação corresponde aos filtros selecionados.</div>
