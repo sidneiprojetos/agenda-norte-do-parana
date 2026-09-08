@@ -12,6 +12,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { PendingApprovalScreen } from './components/PendingApprovalScreen';
 import { RejectedScreen } from './components/RejectedScreen';
 import { UserManagementDashboard } from './components/UserManagementDashboard';
+import { ReportsModal } from './components/ReportsModal';
 import { formatDateToISO } from './utils/dateUtils';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
 import {
@@ -36,6 +37,7 @@ export default function App() {
 
   // Admin User Management dashboard view toggle
   const [isViewingUserManagement, setIsViewingUserManagement] = useState(false);
+  const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
   // Notes state synchronized from Firebase Firestore
@@ -526,6 +528,7 @@ export default function App() {
           onImportData={handleImportData}
           onResetData={handleResetData}
           onOpenCreateForm={handleOpenCreateForm}
+          onOpenReports={() => setIsReportsOpen(true)}
           onOpenUserManagement={() => setIsViewingUserManagement((prev) => !prev)}
           pendingUsersCount={pendingUsersCount}
           isViewingUserManagement={isViewingUserManagement}
@@ -591,6 +594,16 @@ export default function App() {
         onDelete={(note) => {
           setViewingNote(null);
           setDeletingNote(note);
+        }}
+      />
+
+      <ReportsModal
+        notes={notes}
+        isOpen={isReportsOpen}
+        onClose={() => setIsReportsOpen(false)}
+        onViewNote={(note) => {
+          setIsReportsOpen(false);
+          setViewingNote(note);
         }}
       />
 

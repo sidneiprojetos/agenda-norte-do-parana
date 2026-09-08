@@ -11,7 +11,8 @@ import {
   User as UserIcon,
   Wifi,
   Sparkles,
-  Users
+  Users,
+  BarChart3
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { loginWithGoogle, logoutUser } from '../firebase';
@@ -24,6 +25,7 @@ interface AdminHeaderProps {
   onImportData: (file: File) => void;
   onResetData: () => void;
   onOpenCreateForm: () => void;
+  onOpenReports?: () => void;
   onOpenUserManagement?: () => void;
   pendingUsersCount?: number;
   isViewingUserManagement?: boolean;
@@ -37,6 +39,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   onImportData,
   onResetData,
   onOpenCreateForm,
+  onOpenReports,
   onOpenUserManagement,
   pendingUsersCount = 0,
   isViewingUserManagement = false
@@ -216,6 +219,18 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                   {pendingUsersCount}
                 </span>
               )}
+            </button>
+          )}
+
+          {currentUser?.isAdmin && onOpenReports && (
+            <button
+              id="admin-reports-btn"
+              onClick={onOpenReports}
+              title="Abrir relatórios com filtros"
+              className="flex items-center gap-1.5 rounded-xl border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-300 transition hover:bg-sky-500/20 active:scale-95"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+              <span>Relatórios</span>
             </button>
           )}
 
