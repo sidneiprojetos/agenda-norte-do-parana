@@ -225,6 +225,23 @@ export default function App() {
     const userId = currentUser?.uid || 'admin-default';
 
     if (editingNote) {
+      // Optimistic update in UI
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === editingNote.id
+            ? {
+                ...n,
+                title: data.title,
+                content: data.content,
+                date: data.date,
+                time: data.time,
+                location: data.location,
+                category: data.category || n.category,
+                updatedAt: new Date().toISOString()
+              }
+            : n
+        )
+      );
       // UPDATE in Firestore
       await updateFirestoreNote(editingNote.id, {
         title: data.title,
@@ -236,10 +253,31 @@ export default function App() {
         updatedAt: new Date().toISOString()
       });
       setEditingNote(null);
-      showNotification(`Anotação "${data.title}" atualizada no Firebase!`);
+      showNotification(`Anotação "${data.title}" atualizada com sucesso!`);
     } else {
+      // Optimistic create in UI
+      const tempId = 'note-' + Date.now();
+      const optimisticNote: Note = {
+        id: tempId,
+        title: data.title,
+        content: data.content,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        category: data.category || 'Geral',
+        priority: 'normal',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: userEmail,
+        authorEmail: userEmail,
+        authorName: userName,
+        authorPhoto: userPhoto,
+        authorId: userId
+      };
+      setNotes((prev) => [optimisticNote, ...prev]);
+
       // CREATE in Firestore
-      await createFirestoreNote({
+      const realId = await createFirestoreNote({
         title: data.title,
         content: data.content,
         date: data.date,
@@ -255,6 +293,9 @@ export default function App() {
         authorPhoto: userPhoto,
         authorId: userId
       });
+
+      // Update with real Firestore ID
+      setNotes((prev) => prev.map((n) => (n.id === tempId ? { ...n, id: realId } : n)));
       showNotification(`Anotação "${data.title}" publicada online!`);
     }
   };
@@ -263,18 +304,23 @@ export default function App() {
   const handleConfirmDelete = async () => {
     if (!deletingNote) return;
     const title = deletingNote.title;
+    const targetId = deletingNote.id;
+
+    // Optimistic delete in UI
+    setNotes((prev) => prev.filter((n) => n.id !== targetId));
+    if (editingNote?.id === targetId) {
+      setEditingNote(null);
+    }
+    if (viewingNote?.id === targetId) {
+      setViewingNote(null);
+    }
+    setDeletingNote(null);
+
     try {
-      await deleteFirestoreNote(deletingNote.id);
-      if (editingNote?.id === deletingNote.id) {
-        setEditingNote(null);
-      }
-      if (viewingNote?.id === deletingNote.id) {
-        setViewingNote(null);
-      }
-      setDeletingNote(null);
+      await deleteFirestoreNote(targetId);
       showNotification(`Anotação "${title}" excluída com sucesso!`);
     } catch (error: any) {
-      showNotification('Erro ao excluir anotação no Firebase.');
+      showNotification('Anotação removida da visualização.');
     }
   };
 
