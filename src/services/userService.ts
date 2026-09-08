@@ -25,25 +25,51 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
     throw new Error('User UID is missing');
   }
 
-  const userDocRef = doc(db, USERS_COLLECTION, fbUser.uid);
-  const userSnapshot = await getDoc(userDocRef);
   const isAdminEmail = isUserAdmin(fbUser.email);
+  const defaultProfile: UserProfile = {
+    uid: fbUser.uid,
+    email: fbUser.email,
+    displayName: fbUser.displayName || fbUser.email?.split('@')[0] || (isAdminEmail ? 'Sidnei Bogas (ADM)' : 'Membro'),
+    photoURL: fbUser.photoURL || null,
+    role: isAdminEmail ? 'admin' : 'member',
+    status: isAdminEmail ? 'approved' : 'pending',
+    createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+    approvedAt: isAdminEmail ? new Date().toISOString() : undefined,
+    approvedBy: isAdminEmail ? 'Master' : undefined,
+    division: 'Norte do Paraná',
+    notes: ''
+  };
 
-  if (userSnapshot.exists()) {
-    const existingData = userSnapshot.data() as Partial<UserProfile>;
+  try {
+    const userDocRef = doc(db, USERS_COLLECTION, fbUser.uid);
     
-    // If user is Sidnei, enforce admin and approved
+    // Wrap getDoc with a 2.5-second timeout so it never blocks or hangs
+    const userSnapshot = await Promise.race([
+      getDoc(userDocRef),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500))
+    ]);
+
+    if (!userSnapshot || !userSnapshot.exists()) {
+      // Create profile in background without blocking login
+      setDoc(userDocRef, defaultProfile).catch((err) =>
+        console.warn('Background profile write handled:', err)
+      );
+      return defaultProfile;
+    }
+
+    const existingData = userSnapshot.data() as Partial<UserProfile>;
     const role: UserRole = isAdminEmail ? 'admin' : (existingData.role || 'member');
     const status: UserStatus = isAdminEmail ? 'approved' : (existingData.status || 'pending');
 
     const updatedProfile: UserProfile = {
       uid: fbUser.uid,
       email: fbUser.email,
-      displayName: fbUser.displayName || existingData.displayName || fbUser.email?.split('@')[0] || 'Membro',
+      displayName: fbUser.displayName || existingData.displayName || defaultProfile.displayName,
       photoURL: fbUser.photoURL || existingData.photoURL || null,
       role,
       status,
-      createdAt: existingData.createdAt || new Date().toISOString(),
+      createdAt: existingData.createdAt || defaultProfile.createdAt,
       lastLogin: new Date().toISOString(),
       approvedAt: isAdminEmail ? (existingData.approvedAt || new Date().toISOString()) : existingData.approvedAt,
       approvedBy: isAdminEmail ? (existingData.approvedBy || 'Master') : existingData.approvedBy,
@@ -51,27 +77,13 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
       notes: existingData.notes || ''
     };
 
-    await setDoc(userDocRef, updatedProfile, { merge: true });
+    setDoc(userDocRef, updatedProfile, { merge: true }).catch((err) =>
+      console.warn('Background profile update handled:', err)
+    );
     return updatedProfile;
-  } else {
-    // Brand new user registration
-    const newProfile: UserProfile = {
-      uid: fbUser.uid,
-      email: fbUser.email,
-      displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Membro',
-      photoURL: fbUser.photoURL || null,
-      role: isAdminEmail ? 'admin' : 'member',
-      status: isAdminEmail ? 'approved' : 'pending',
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      approvedAt: isAdminEmail ? new Date().toISOString() : undefined,
-      approvedBy: isAdminEmail ? 'Master' : undefined,
-      division: 'Norte do Paraná',
-      notes: ''
-    };
-
-    await setDoc(userDocRef, newProfile);
-    return newProfile;
+  } catch (error) {
+    console.warn('Firestore profile sync fallback to local profile:', error);
+    return defaultProfile;
   }
 }
 

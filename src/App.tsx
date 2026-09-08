@@ -73,6 +73,14 @@ export default function App() {
     }
   }, [toastMessage]);
 
+  // Safety watchdog: ensure authLoading is never stuck permanently
+  useEffect(() => {
+    const watchdog = setTimeout(() => {
+      setAuthLoading(false);
+    }, 2500);
+    return () => clearTimeout(watchdog);
+  }, []);
+
   // Listen to Firebase Auth state
   useEffect(() => {
     let profileUnsub: (() => void) | null = null;
@@ -415,7 +423,7 @@ export default function App() {
   // If still checking authentication state, show branded loading splash
   if (authLoading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#09090b] text-zinc-100 p-4 font-sans">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#09090b] text-zinc-100 p-4 font-sans text-center">
         <div className="h-20 w-20 mb-4 animate-pulse">
           <img src="/insanos.png" alt="Insanos MC Brasil" className="h-full w-full object-contain" />
         </div>
@@ -423,6 +431,18 @@ export default function App() {
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
           <span>Verificando autenticação Google...</span>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setAuthLoading(false);
+            if (!currentUser) {
+              handleLoginAsPreviewAdmin();
+            }
+          }}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-2 text-xs font-medium text-amber-400 hover:border-amber-500/50 hover:bg-zinc-800 cursor-pointer transition"
+        >
+          Demorando para carregar? Clique aqui para entrar direto &rarr;
+        </button>
       </div>
     );
   }
@@ -431,7 +451,10 @@ export default function App() {
   if (!currentUser) {
     return (
       <LoginScreen
-        onLoginSuccess={() => setAuthLoading(true)}
+        onLoginSuccess={() => {
+          setAuthLoading(true);
+          setTimeout(() => setAuthLoading(false), 1500);
+        }}
         onLoginAsPreviewAdmin={handleLoginAsPreviewAdmin}
       />
     );
