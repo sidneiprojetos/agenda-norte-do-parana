@@ -4,7 +4,6 @@ import {
   CalendarDays,
   Download,
   MapPin,
-  Printer,
   Search,
   User,
   X
@@ -40,9 +39,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
   const [location, setLocation] = useState('Todos');
   const [priority, setPriority] = useState('Todas');
   const [reportFormat, setReportFormat] = useState<'detalhado' | 'por-data'>('por-data');
-  const periodLabel = startDate || endDate
-      ? `${startDate ? formatDateToBR(startDate) : 'Início'} até ${endDate ? formatDateToBR(endDate) : 'fim'}`
-      : 'Todos os períodos';
 
   if (!isOpen) return null;
 
@@ -125,10 +121,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const printReport = () => {
-    window.print();
-    };
-
   return (
     <div
       role="dialog"
@@ -142,20 +134,14 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
               <BarChart3 className="h-5 w-5" />
             </div>
-                    <div className="report-heading">
+                    <div>
               <h2 id="reports-title" className="text-base font-bold text-white sm:text-lg">Relatórios da agenda</h2>
               <p className="text-[11px] text-zinc-400">Filtros combináveis sobre os dados do Firestore</p>
-                <p className="report-meta hidden text-[11px] text-zinc-500">Emitido em {formatDateToBR(new Date().toISOString().slice(0, 10))} | Período: {periodLabel}</p>
             </div>
           </div>
-          <div className="report-actions flex items-center gap-1">
-            <button onClick={printReport} aria-label="Imprimir ou salvar como PDF" title="Imprimir ou salvar como PDF" className="rounded-lg p-2 text-sky-300 transition hover:bg-sky-500/10 hover:text-sky-200">
-              <Printer className="h-4 w-4" />
-            </button>
-            <button onClick={onClose} aria-label="Fechar relatório" className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <button onClick={onClose} aria-label="Fechar relatório" className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="report-content overflow-y-auto p-5 sm:p-6">
@@ -228,10 +214,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
           <div className="mt-5 overflow-hidden rounded-xl border border-zinc-800">
             <div className="flex items-center justify-between border-b border-zinc-800 bg-[#18181b] px-4 py-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200"><CalendarDays className="h-4 w-4 text-sky-300" />Detalhamento</div>
-              <div className="report-actions flex items-center gap-2">
-                <button onClick={printReport} disabled={filteredNotes.length === 0} className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-sky-300 transition hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Printer className="h-3.5 w-3.5" />Imprimir / PDF</button>
-                <button onClick={exportReport} disabled={filteredNotes.length === 0} className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-sky-300 transition hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Download className="h-3.5 w-3.5" />CSV</button>
-              </div>
+              <button onClick={exportReport} disabled={filteredNotes.length === 0} className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-sky-300 transition hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"><Download className="h-3.5 w-3.5" />CSV</button>
             </div>
             {filteredNotes.length === 0 ? (
               <div className="p-8 text-center text-xs text-zinc-500">Nenhuma anotação corresponde aos filtros selecionados.</div>
