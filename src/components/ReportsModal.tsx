@@ -232,20 +232,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     );
   };
 
-  const filterSummaryText = (): string[] =>
-    [
-      startDate || endDate
-        ? `Período: ${startDate ? formatDateToBR(startDate) : 'início'} a ${
-            endDate ? formatDateToBR(endDate) : 'fim'
-          }`
-        : '',
-      selectedCategories.length ? `Categorias: ${selectedCategories.join(', ')}` : '',
-      author !== 'Todos' ? `Autor: ${author}` : '',
-      location !== 'Todos' ? `Local: ${location}` : '',
-      priority !== 'Todas' ? `Prioridade: ${PRIORITY_LABEL[priority]}` : '',
-      search.trim() ? `Busca: "${search.trim()}"` : ''
-    ].filter(Boolean);
-
   const exportCsv = () => {
     const header = [
       'Título',
@@ -301,7 +287,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
       pdf.setTextColor(100, 116, 139);
-      pdf.text('Agenda Norte do Paraná • Relatório gerado pelo Firestore', margin, pageHeight - 7);
       pdf.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - margin, pageHeight - 7, {
         align: 'right'
       });
@@ -309,37 +294,24 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
 
     // Header band
     pdf.setFillColor(15, 23, 42);
-    pdf.rect(0, 0, pageWidth, 40, 'F');
+    pdf.rect(0, 0, pageWidth, 32, 'F');
     pdf.setFillColor(14, 165, 233);
-    pdf.rect(0, 37, pageWidth, 3, 'F');
-    pdf.setTextColor(255, 255, 255);
+    pdf.rect(0, 29, pageWidth, 3, 'F');
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(18);
-    pdf.text('Relatório da agenda', margin, 17);
+    pdf.setFontSize(10);
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('Agenda Norte do Paraná', margin, 21);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9);
     pdf.setTextColor(186, 230, 253);
-    pdf.text('Agenda Norte do Paraná', margin, 27);
     pdf.text(
       `Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`,
       pageWidth - margin,
-      27,
+      21,
       { align: 'right' }
     );
 
-    let y = 50;
-    const summary = filterSummaryText();
-    pdf.setTextColor(71, 85, 105);
-    pdf.setFontSize(8.5);
-    pdf.text(
-      summary.length
-        ? `Filtros: ${summary.join('  •  ')}`
-        : 'Filtros: todos os eventos',
-      margin,
-      y,
-      { maxWidth: contentWidth }
-    );
-    y += summary.length > 1 ? 10 : 6;
+    let y = 46;
 
     // KPI cards
     const kpis = [
