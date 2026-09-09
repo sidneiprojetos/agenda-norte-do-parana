@@ -514,17 +514,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
 
     let y = 29;
 
-    // KPI summary line
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9);
-    pdf.setTextColor(25, 25, 25);
-    pdf.text(
-      `Total: ${filteredNotes.length}   •   Futuros/Hoje: ${upcomingCount}   •   Realizados: ${completedCount}   •   Alta prioridade: ${highPriorityCount}`,
-      margin,
-      y
-    );
-    y += 9;
-
     drawColumnHeader(y);
     y += 11;
 
