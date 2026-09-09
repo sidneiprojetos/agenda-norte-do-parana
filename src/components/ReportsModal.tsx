@@ -273,84 +273,55 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 14;
     const contentWidth = pageWidth - margin * 2;
-    const categoryColors: Record<NoteCategory, [number, number, number]> = {
-      Reunião: [14, 116, 144],
-      Passeio: [5, 150, 105],
-      Evento: [124, 58, 237],
-      Aviso: [225, 29, 72],
-      Geral: [217, 119, 6]
-    };
+    const bottomLimit = pageHeight - 14;
 
-    const drawFooter = (pageNumber: number, totalPages: number) => {
-      pdf.setDrawColor(226, 232, 240);
-      pdf.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
-      pdf.setFont('helvetica', 'normal');
+    const drawColumnHeader = (y: number) => {
+      pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8);
-      pdf.setTextColor(100, 116, 139);
-      pdf.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - margin, pageHeight - 10, {
-        align: 'right'
-      });
+      pdf.setTextColor(30, 41, 59);
+      pdf.text('DATA', margin + 4, y + 5);
+      pdf.text('HORA', margin + 27, y + 5);
+      pdf.text('EVENTO', margin + 45, y + 5);
+      pdf.text('CATEGORIA', pageWidth - margin - 102, y + 5);
+      pdf.text('LOCAL / AUTOR', pageWidth - margin - 40, y + 5);
+      pdf.setDrawColor(80, 80, 80);
+      pdf.setLineWidth(0.3);
+      pdf.line(margin, y + 7, pageWidth - margin, y + 7);
     };
 
-    // Header band
-    pdf.setFillColor(15, 23, 42);
-    pdf.rect(0, 0, pageWidth, 32, 'F');
-    pdf.setFillColor(14, 165, 233);
-    pdf.rect(0, 29, pageWidth, 3, 'F');
+    // Compact text-only header (saves ink)
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(10);
-    pdf.setTextColor(255, 255, 255);
-    pdf.text('Agenda Norte do Paraná', margin, 21);
+    pdf.setFontSize(11);
+    pdf.setTextColor(25, 25, 25);
+    pdf.text('Agenda Norte do Paraná', margin, 14);
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9);
-    pdf.setTextColor(186, 230, 253);
+    pdf.setFontSize(8);
+    pdf.setTextColor(90, 90, 90);
     pdf.text(
       `Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`,
       pageWidth - margin,
-      21,
+      14,
       { align: 'right' }
     );
+    pdf.setDrawColor(60, 60, 60);
+    pdf.setLineWidth(0.4);
+    pdf.line(margin, 19, pageWidth - margin, 19);
 
-    let y = 46;
+    let y = 29;
 
-    // KPI cards
-    const kpis = [
-      { label: 'Total', value: filteredNotes.length },
-      { label: 'Futuros / Hoje', value: upcomingCount },
-      { label: 'Realizados', value: completedCount },
-      { label: 'Prioridade alta', value: highPriorityCount }
-    ];
-    const cardGap = 3;
-    const cardWidth = (contentWidth - cardGap * 3) / 4;
-    kpis.forEach((kpi, index) => {
-      const x = margin + index * (cardWidth + cardGap);
-      pdf.setFillColor(248, 250, 252);
-      pdf.setDrawColor(226, 232, 240);
-      pdf.roundedRect(x, y, cardWidth, 20, 2, 2, 'FD');
-      pdf.setFillColor(14, 165, 233);
-      pdf.roundedRect(x, y, 2.5, 20, 1, 1, 'F');
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(7);
-      pdf.setTextColor(100, 116, 139);
-      pdf.text(kpi.label.toUpperCase(), x + 6, y + 8);
-      pdf.setFontSize(13);
-      pdf.setTextColor(15, 23, 42);
-      pdf.text(String(kpi.value), x + 6, y + 17);
-    });
-    y += 29;
+    // KPI summary line
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(25, 25, 25);
+    pdf.text(
+      `Total: ${filteredNotes.length}   •   Futuros/Hoje: ${upcomingCount}   •   Realizados: ${completedCount}   •   Alta prioridade: ${highPriorityCount}`,
+      margin,
+      y
+    );
+    y += 9;
 
-    // Table header
-    pdf.setFillColor(15, 23, 42);
-    pdf.roundedRect(margin, y, contentWidth, 8.5, 2, 2, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(8);
-    pdf.text('DATA', margin + 4, y + 6);
-    pdf.text('HORA', margin + 27, y + 6);
-    pdf.text('EVENTO', margin + 45, y + 6);
-    pdf.text('CATEGORIA', pageWidth - margin - 102, y + 6);
-    pdf.text('LOCAL / AUTOR', pageWidth - margin - 40, y + 6);
-    y += 12;
+    drawColumnHeader(y);
+    y += 11;
 
     const colData = margin + 4;
     const colHora = margin + 27;
@@ -359,9 +330,9 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     const colLocalAutor = pageWidth - margin - 40;
 
     if (filteredNotes.length === 0) {
-      pdf.setTextColor(100, 116, 139);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
+      pdf.setTextColor(100, 116, 139);
       pdf.text('Nenhuma anotação corresponde aos filtros selecionados.', margin, y);
     } else {
       let lastMonthKey = '';
@@ -369,100 +340,83 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
         const monthKey = monthKeyOf(note.date);
         if (monthKey !== lastMonthKey) {
           lastMonthKey = monthKey;
-          if (y > pageHeight - 48) {
-            drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
+          if (y + 9 > bottomLimit) {
             pdf.addPage();
-            y = 20;
+            y = 24;
+            drawColumnHeader(y);
+            y += 11;
           }
-          pdf.setFillColor(241, 245, 249);
-          pdf.rect(margin, y - 4, contentWidth, 8, 'F');
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(8);
-          pdf.setTextColor(30, 41, 59);
-          pdf.text(monthLabel(monthKey), margin + 4, y + 1);
-          pdf.setTextColor(148, 163, 184);
-          pdf.setFont('helvetica', 'normal');
-          y += 9;
+          pdf.setTextColor(40, 40, 40);
+          pdf.text(monthLabel(monthKey), margin + 4, y);
+          pdf.setDrawColor(120, 120, 120);
+          pdf.setLineWidth(0.2);
+          pdf.line(margin, y + 1.5, pageWidth - margin, y + 1.5);
+          y += 6.5;
         }
 
         const category = note.category || 'Geral';
-        const [red, green, blue] = categoryColors[category];
-        const title = `${note.title}`;
-        const titleLines = pdf.splitTextToSize(title, colCategoria - colEvento - 6) as string[];
-        const subLine = [note.time || '', note.location || '', noteAuthor(note)]
-          .filter(Boolean)
-          .join(' • ');
-        const subLines = subLine
-          ? (pdf.splitTextToSize(subLine, colCategoria - colEvento - 6) as string[])
-          : [];
-        const rowHeight = Math.max(10, titleLines.length * 5 + (subLines.length ? 3 : 1) + 3);
+        const titleLines = pdf.splitTextToSize(
+          note.title,
+          colCategoria - colEvento - 6
+        ) as string[];
+        const rowHeight = Math.max(9, titleLines.length * 5 + 2);
 
-        if (y + rowHeight > pageHeight - 34) {
-          drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
+        if (y + rowHeight > bottomLimit) {
           pdf.addPage();
-          y = 20;
-        }
-
-        if (Math.floor((y - 100) / 11) % 2 === 0) {
-          pdf.setFillColor(248, 250, 252);
-          pdf.rect(margin, y - 4, contentWidth, rowHeight, 'F');
+          y = 24;
+          drawColumnHeader(y);
+          y += 11;
         }
 
         // Data
-        pdf.setTextColor(30, 41, 59);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8.5);
+        pdf.setTextColor(30, 41, 59);
         pdf.text(formatDateToBR(note.date), colData, y + 2);
         // Hora
         pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(100, 116, 139);
+        pdf.setTextColor(90, 90, 90);
         pdf.text(note.time || '—', colHora, y + 2);
         // Evento
         pdf.setTextColor(30, 41, 59);
         pdf.text(titleLines, colEvento, y + 2);
-        if (subLines.length) {
-          pdf.setFontSize(7);
-          pdf.setTextColor(148, 163, 184);
-          pdf.text(subLines, colEvento, y + 2 + titleLines.length * 5);
-          pdf.setFontSize(8.5);
-        }
-        // Categoria badge
-        pdf.setFillColor(red, green, blue);
-        pdf.roundedRect(colCategoria - 1, y - 2, 30, 6, 2, 2, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(6.5);
-        pdf.text(category, colCategoria + 14, y + 2, { align: 'center' });
-        // Local/Autor
+        // Categoria (plain text, no colored badge)
         pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(70, 70, 70);
+        pdf.text(category, colCategoria, y + 2);
+        // Local/Autor
         pdf.setFontSize(7);
-        pdf.setTextColor(100, 116, 139);
-        pdf.text(subLine.slice(0, 38) || '—', colLocalAutor, y + 2);
+        pdf.setTextColor(120, 120, 120);
+        pdf.text(
+          [note.location || '', noteAuthor(note)].filter(Boolean).join(' • ').slice(0, 38) || '—',
+          colLocalAutor,
+          y + 2
+        );
 
         y += rowHeight;
       }
 
-      // Totals row (with page-break protection so it never reaches the footer)
-      if (y + 8 > pageHeight - 30) {
-        drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
+      // Totals line (thin rule + bold text, no heavy fill)
+      if (y + 8 > bottomLimit) {
         pdf.addPage();
-        y = 20;
+        y = 24;
       }
-      pdf.setFillColor(15, 23, 42);
-      pdf.roundedRect(margin, y, contentWidth, 8, 2, 2, 'F');
-      pdf.setTextColor(255, 255, 255);
+      pdf.setDrawColor(60, 60, 60);
+      pdf.setLineWidth(0.4);
+      pdf.line(margin, y, pageWidth - margin, y);
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.text(`TOTAL: ${filteredNotes.length} anotação(ões)`, margin + 4, y + 5.5);
-      pdf.text(`Futuros: ${upcomingCount}  •  Realizados: ${completedCount}  •  Alta prioridade: ${highPriorityCount}`, pageWidth - margin - 4, y + 5.5, { align: 'right' });
-      y += 8;
-      drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
-    }
-
-    const totalPages = pdf.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      pdf.setPage(i);
-      drawFooter(i, totalPages);
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(25, 25, 25);
+      pdf.text(`TOTAL: ${filteredNotes.length} anotação(ões)`, margin + 4, y + 6);
+      pdf.text(
+        `Futuros: ${upcomingCount}  •  Realizados: ${completedCount}  •  Alta prioridade: ${highPriorityCount}`,
+        pageWidth - margin - 4,
+        y + 6,
+        { align: 'right' }
+      );
     }
 
     pdf.save(`relatorio_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
