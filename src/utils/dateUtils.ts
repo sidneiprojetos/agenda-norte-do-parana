@@ -15,7 +15,7 @@ export const MONTH_NAMES_PT = [
   'Dezembro'
 ];
 
-export const WEEKDAYS_PT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+export const WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 /**
  * Format a Date object to YYYY-MM-DD
@@ -59,7 +59,7 @@ export function formatDateTimeBR(isoString: string): string {
 
 /**
  * Generates calendar grid for a given year and month (0-indexed).
- * Starts week on Monday (Segunda-feira).
+ * Starts week on Sunday (Domingo).
  */
 export function getCalendarDays(
   year: number,
@@ -78,10 +78,8 @@ export function getCalendarDays(
 
   // First day of target month
   const firstDayOfMonth = new Date(year, month, 1);
-  // Get day of week: Sunday is 0, Monday is 1, ..., Saturday is 6
-  let startingDayOfWeek = firstDayOfMonth.getDay();
-  // Adjust so Monday is 0, Sunday is 6
-  let mondayStartIndex = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+  // Get day of week: Sunday is 0, Monday is 1, ..., Saturday is 6 (Sunday-start)
+  const startingDayOfWeek = firstDayOfMonth.getDay();
 
   // Total days in month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -90,7 +88,7 @@ export function getCalendarDays(
 
   // Padding days from previous month
   const prevMonthLastDay = new Date(year, month, 0).getDate();
-  for (let i = mondayStartIndex - 1; i >= 0; i--) {
+  for (let i = startingDayOfWeek - 1; i >= 0; i--) {
     const dayNum = prevMonthLastDay - i;
     const date = new Date(year, month - 1, dayNum);
     const dateString = formatDateToISO(date);
