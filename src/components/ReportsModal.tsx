@@ -27,13 +27,13 @@ interface ReportsModalProps {
   onViewNote: (note: Note) => void;
 }
 
-const CATEGORIES: NoteCategory[] = ['Reunião', 'Passeio', 'Evento', 'Aviso', 'Geral'];
+const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Evento', 'Ação Social', 'Geral'];
 
 const CATEGORY_BAR: Record<NoteCategory, string> = {
   Reunião: 'bg-sky-500',
-  Passeio: 'bg-emerald-500',
+  Pub: 'bg-emerald-500',
   Evento: 'bg-violet-500',
-  Aviso: 'bg-rose-500',
+  'Ação Social': 'bg-rose-500',
   Geral: 'bg-amber-500'
 };
 
@@ -58,6 +58,17 @@ function monthLabel(key: string): string {
 
 function noteAuthor(note: Note): string {
   return note.authorName || note.authorEmail || note.createdBy || 'Anônimo';
+}
+
+async function loadImageAsDataUrl(url: string): Promise<string> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 interface MonthGroup {
@@ -289,18 +300,24 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
       pdf.line(margin, y + 7, pageWidth - margin, y + 7);
     };
 
-    // Compact text-only header (saves ink)
+    // Compact header (saves ink) with club emblem
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(11);
+    pdf.setFontSize(12);
     pdf.setTextColor(25, 25, 25);
-    pdf.text('Agenda Norte do Paraná', margin, 14);
+    try {
+      const logoDataUrl = await loadImageAsDataUrl('/insanos.png');
+      pdf.addImage(logoDataUrl, 'PNG', margin, 6, 10, 10);
+    } catch {
+      // ignore: report still works without the emblem
+    }
+    pdf.text('Agenda Norte do Paraná', margin + 12, 13);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
     pdf.setTextColor(90, 90, 90);
     pdf.text(
       `Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`,
       pageWidth - margin,
-      14,
+      13,
       { align: 'right' }
     );
     pdf.setDrawColor(60, 60, 60);

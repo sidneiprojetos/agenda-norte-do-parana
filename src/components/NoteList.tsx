@@ -36,9 +36,9 @@ interface NoteListProps {
 const CATEGORIES: (NoteCategory | 'Todas')[] = [
   'Todas',
   'Reunião',
-  'Passeio',
+  'Pub',
   'Evento',
-  'Aviso',
+  'Ação Social',
   'Geral'
 ];
 

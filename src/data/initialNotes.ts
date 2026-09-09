@@ -25,11 +25,11 @@ export const INITIAL_NOTES: Note[] = [
   },
   {
     id: 'note-3',
-    title: 'Passeio da Independência',
+    title: 'Pub da Independência',
     content: 'Concentração no Posto às 09:00h - Encontro regional e confraternização',
     date: '2026-09-07',
     time: '09:00',
-    category: 'Passeio',
+    category: 'Pub',
     location: 'Posto Central',
     createdAt: '2026-09-01T09:15:00',
     createdBy: 'imc.sidnei@gmail.com'

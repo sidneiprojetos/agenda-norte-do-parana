@@ -30,7 +30,7 @@ interface NoteFormProps {
   onCancelEdit: () => void;
 }
 
-const CATEGORIES: NoteCategory[] = ['Reunião', 'Passeio', 'Evento', 'Aviso', 'Geral'];
+const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Evento', 'Ação Social', 'Geral'];
 
 export const NoteForm: React.FC<NoteFormProps> = ({
   selectedDate,

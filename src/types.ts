@@ -1,4 +1,4 @@
-export type NoteCategory = 'Reunião' | 'Passeio' | 'Evento' | 'Aviso' | 'Geral';
+export type NoteCategory = 'Reunião' | 'Pub' | 'Evento' | 'Ação Social' | 'Geral';
 
 export interface Note {
   id: string;
