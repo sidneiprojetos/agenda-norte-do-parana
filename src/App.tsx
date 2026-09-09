@@ -47,11 +47,11 @@ export default function App() {
   // Online / Realtime connection state
   const [isOnline, setIsOnline] = useState<boolean>(true);
 
-  // Calendar month view (defaults to September 2026 as in reference)
-  const [viewDate, setViewDate] = useState<Date>(() => new Date(2026, 8, 7));
+  // Calendar month view (defaults to today)
+  const [viewDate, setViewDate] = useState<Date>(() => new Date());
 
-  // Selected date (starts on 2026-09-07)
-  const [selectedDate, setSelectedDate] = useState<string>('2026-09-07');
+  // Selected date (starts today)
+  const [selectedDate, setSelectedDate] = useState<string>(() => formatDateToISO(new Date()));
 
   // Currently editing note
   const [editingNote, setEditingNote] = useState<Note | null>(null);
