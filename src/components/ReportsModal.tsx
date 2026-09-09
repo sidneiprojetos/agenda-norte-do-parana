@@ -283,11 +283,11 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
 
     const drawFooter = (pageNumber: number, totalPages: number) => {
       pdf.setDrawColor(226, 232, 240);
-      pdf.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+      pdf.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
       pdf.setTextColor(100, 116, 139);
-      pdf.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - margin, pageHeight - 7, {
+      pdf.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - margin, pageHeight - 10, {
         align: 'right'
       });
     };
@@ -369,7 +369,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
         const monthKey = monthKeyOf(note.date);
         if (monthKey !== lastMonthKey) {
           lastMonthKey = monthKey;
-          if (y > pageHeight - 40) {
+          if (y > pageHeight - 48) {
             drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
             pdf.addPage();
             y = 20;
@@ -397,7 +397,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
           : [];
         const rowHeight = Math.max(10, titleLines.length * 5 + (subLines.length ? 3 : 1) + 3);
 
-        if (y + rowHeight > pageHeight - 20) {
+        if (y + rowHeight > pageHeight - 34) {
           drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
           pdf.addPage();
           y = 20;
@@ -442,7 +442,12 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
         y += rowHeight;
       }
 
-      // Totals row
+      // Totals row (with page-break protection so it never reaches the footer)
+      if (y + 8 > pageHeight - 30) {
+        drawFooter(pdf.getCurrentPageInfo().pageNumber, 0);
+        pdf.addPage();
+        y = 20;
+      }
       pdf.setFillColor(15, 23, 42);
       pdf.roundedRect(margin, y, contentWidth, 8, 2, 2, 'F');
       pdf.setTextColor(255, 255, 255);
