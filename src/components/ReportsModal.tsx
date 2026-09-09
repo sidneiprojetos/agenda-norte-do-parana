@@ -8,7 +8,6 @@ import {
   PieChart,
   Search,
   Tags,
-  User,
   X,
   TrendingUp,
   History,
@@ -87,7 +86,7 @@ type ReportView = 'geral' | 'categoria' | 'autor' | 'mes' | 'prioridade' | 'list
 const VIEW_OPTIONS: { id: ReportView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'geral', label: 'Visão geral', icon: LayoutGrid },
   { id: 'categoria', label: 'Por categoria', icon: Tags },
-  { id: 'autor', label: 'Por autor', icon: User },
+  { id: 'autor', label: 'Por autor', icon: Tags },
   { id: 'mes', label: 'Por mês', icon: CalendarDays },
   { id: 'prioridade', label: 'Por prioridade', icon: AlertTriangle },
   { id: 'lista', label: 'Listagem detalhada', icon: ListIcon }
@@ -236,7 +235,6 @@ const GroupedNotes: React.FC<GroupedNotesProps> = ({
                         </span>
                       )}
                       <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
                         {noteAuthor(note)}
                       </span>
                     </span>

@@ -4,7 +4,6 @@ import {
   Calendar as CalendarIcon,
   Clock,
   MapPin,
-  User,
   Pencil,
   Trash2,
   ShieldCheck
@@ -109,7 +108,6 @@ export const ViewNoteModal: React.FC<ViewNoteModalProps> = ({
         <div className="mt-4 flex flex-col gap-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-3 text-[11px] text-zinc-400">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <User className="h-3 w-3 text-amber-400" />
               Publicado por:{' '}
               <strong className="text-slate-200">
                 {note.authorName ? `${note.authorName} (${note.authorEmail || note.createdBy})` : (note.authorEmail || note.createdBy)}

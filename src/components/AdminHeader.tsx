@@ -8,7 +8,6 @@ import {
   FileText,
   LogIn,
   LogOut,
-  User as UserIcon,
   Wifi,
   Sparkles,
   Users,
@@ -116,19 +115,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         <div className="flex items-center gap-2">
           {currentUser ? (
             <div className="flex items-center gap-3 rounded-2xl bg-[#18181b]/90 border border-zinc-700/80 p-1.5 pr-3 shadow-md">
-              {currentUser.photoURL ? (
-                <img
-                  src={currentUser.photoURL}
-                  alt={currentUser.displayName || 'Avatar'}
-                  referrerPolicy="no-referrer"
-                  className="h-9 w-9 rounded-xl object-cover border border-amber-500/40"
-                />
-              ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 font-bold text-sm">
-                  {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'U'}
-                </div>
-              )}
-
               <div className="flex flex-col text-left min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-xs text-zinc-100 max-w-[110px] sm:max-w-[160px] truncate">

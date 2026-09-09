@@ -10,8 +10,7 @@ import {
   Clock,
   MapPin,
   Eye,
-  ShieldCheck,
-  User as UserIcon
+  ShieldCheck
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
