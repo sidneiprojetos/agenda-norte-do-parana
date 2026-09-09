@@ -9,30 +9,39 @@ service cloud.firestore {
     
     // Check if user is the master administrator
     function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email.matches('(?i)imc\\.sidnei@.*') ||
-        request.auth.token.email == 'imc.sidnei@gmail.com'
-      );
+      return request.auth.token.email == 'imc.sidnei@gmail.com';
+    }
+    
+    // Check if the requesting user owns the given resource
+    function isOwner(resource) {
+      return isAuthenticated() &&
+        (resource.data.authorId == request.auth.uid ||
+         resource.data.authorEmail == request.auth.token.email);
     }
     
     // Admins collection
     match /admins/{adminId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
     
     // Users collection
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated();
+      // Users can only create their own profile (registration)
+      allow create: if isAuthenticated() && request.auth.uid == userId && request.auth.uid == request.resource.data.uid;
+      // Users can update their own profile; admins can approve/reject/edit anyone
+      allow update: if isAdmin() || request.auth.uid == userId;
       allow delete: if isAdmin();
     }
     
     // Notes collection (Agenda Norte do Paraná)
     match /notes/{noteId} {
       allow read: if isAuthenticated();
-      allow create, update, delete: if isAuthenticated();
+      // Any authenticated user publishes notes to the shared agenda
+      allow create: if isAuthenticated();
+      // Only the author or an admin can update or delete
+      allow update, delete: if isAdmin() || isOwner(resource);
     }
   }
 }
-
