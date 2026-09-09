@@ -166,19 +166,10 @@ export const NoteList: React.FC<NoteListProps> = ({
                   onClick={() => onViewNote(note)}
                   title="Clique para ver detalhes completos"
                 >
-                  {/* Note Icon Box with Author Photo or File Icon */}
-                  {note.authorPhoto ? (
-                    <img
-                      src={note.authorPhoto}
-                      alt={note.authorName || 'Autor'}
-                      referrerPolicy="no-referrer"
-                      className="h-10 w-10 shrink-0 rounded-xl object-cover border border-amber-500/40"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/20 border border-amber-500/30 text-amber-500 group-hover:scale-105 transition-transform">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                  )}
+                  {/* Note Icon Box */}
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/20 border border-amber-500/30 text-amber-500 group-hover:scale-105 transition-transform">
+                    <FileText className="h-5 w-5" />
+                  </div>
 
                   <div className="flex flex-col min-w-0">
                     {/* Title and Date Badge */}
