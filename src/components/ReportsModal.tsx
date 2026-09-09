@@ -37,6 +37,14 @@ const CATEGORY_BAR: Record<NoteCategory, string> = {
   Geral: 'bg-amber-500'
 };
 
+const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
+  Reunião: [2, 132, 199],
+  Pub: [5, 150, 105],
+  Evento: [124, 58, 237],
+  'Ação Social': [225, 29, 72],
+  Geral: [217, 119, 6]
+};
+
 const PRIORITY_LABEL: Record<string, string> = {
   normal: 'Normal',
   alta: 'Alta'
@@ -364,13 +372,13 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
             y += 11;
           }
           pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(8);
-          pdf.setTextColor(40, 40, 40);
+          pdf.setFontSize(9);
+          pdf.setTextColor(15, 23, 42);
           pdf.text(monthLabel(monthKey), margin + 4, y);
-          pdf.setDrawColor(120, 120, 120);
-          pdf.setLineWidth(0.2);
+          pdf.setDrawColor(70, 70, 70);
+          pdf.setLineWidth(0.5);
           pdf.line(margin, y + 1.5, pageWidth - margin, y + 1.5);
-          y += 6.5;
+          y += 7;
         }
 
         const category = note.category || 'Geral';
@@ -399,11 +407,15 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
         // Evento
         pdf.setTextColor(30, 41, 59);
         pdf.text(titleLines, colEvento, y + 2);
-        // Categoria (plain text, no colored badge)
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(7.5);
-        pdf.setTextColor(70, 70, 70);
-        pdf.text(category, colCategoria, y + 2);
+        // Categoria (borda colorida sem preenchimento para economizar tinta)
+        const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[category];
+        pdf.setDrawColor(cRed, cGreen, cBlue);
+        pdf.setLineWidth(0.45);
+        pdf.roundedRect(colCategoria - 1, y - 2, 30, 6, 2, 2, 'S');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(cRed, cGreen, cBlue);
+        pdf.text(category, colCategoria + 14, y + 2, { align: 'center' });
         // Local/Autor
         pdf.setFontSize(7);
         pdf.setTextColor(120, 120, 120);
