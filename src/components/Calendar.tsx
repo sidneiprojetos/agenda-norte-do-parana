@@ -1,5 +1,6 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Note, NoteCategory } from '../types';
 import {
   MONTH_NAMES_PT,
@@ -15,6 +16,7 @@ interface CalendarProps {
   selectedDate: string;
   onSelectDate: (dateStr: string) => void;
   onChangeMonth: (increment: number) => void;
+  onChangeYear?: (increment: number) => void;
   onGoToToday: () => void;
   notes: Note[];
 }
@@ -24,6 +26,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   selectedDate,
   onSelectDate,
   onChangeMonth,
+  onChangeYear,
   onGoToToday,
   notes
 }) => {
@@ -31,7 +34,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   const month = currentDate.getMonth();
 
   const calendarDays = getCalendarDays(year, month, selectedDate, notes);
-  const monthTitle = `${MONTH_NAMES_PT[month]} De ${year}`;
+  const monthTitle = `${MONTH_NAMES_PT[month]}`;
 
   const todayStr = formatDateToISO(new Date());
 
@@ -44,25 +47,53 @@ export const Calendar: React.FC<CalendarProps> = ({
       <Watermark />
 
       {/* Calendar Header */}
-      <div className="relative z-10 mb-4 flex items-center justify-between px-1">
+      <div className="relative z-10 mb-4 flex items-start justify-between px-1">
         <button
           id="prev-month-btn"
           onClick={() => onChangeMonth(-1)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100 active:scale-95"
           title="Mês anterior"
           aria-label="Mês anterior"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <h2 className="text-base sm:text-lg font-bold tracking-wide text-zinc-100">
-          {monthTitle}
-        </h2>
+        <div className="flex flex-col items-center">
+          <h2 key="month-title" className="text-base sm:text-lg font-bold tracking-wide text-zinc-100">
+            {monthTitle}
+          </h2>
+          {/* Year navigation */}
+          <div className="mt-0.5 flex items-center gap-1">
+            {onChangeYear && (
+              <button
+                onClick={() => onChangeYear(-1)}
+                className="flex h-6 w-6 items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-800/80 hover:text-zinc-200 active:scale-95"
+                title="Ano anterior"
+                aria-label="Ano anterior"
+              >
+                <ChevronsLeft className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <span className="min-w-[52px] text-center text-xs font-bold text-zinc-300 tabular-nums">
+              {year}
+            </span>
+            {onChangeYear && (
+              <button
+                onClick={() => onChangeYear(1)}
+                className="flex h-6 w-6 items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-800/80 hover:text-zinc-200 active:scale-95"
+                title="Próximo ano"
+                aria-label="Próximo ano"
+              >
+                <ChevronsRight className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
 
         <button
           id="next-month-btn"
           onClick={() => onChangeMonth(1)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100 active:scale-95"
           title="Próximo mês"
           aria-label="Próximo mês"
         >
@@ -82,12 +113,18 @@ export const Calendar: React.FC<CalendarProps> = ({
         ))}
       </div>
 
-      {/* Days Grid */}
-      <div className="relative z-10 grid grid-cols-7 gap-1 sm:gap-1.5">
+      {/* Days Grid (animated on month/year change) */}
+      <motion.div
+        key={`${year}-${month}`}
+        className="relative z-10 grid grid-cols-7 gap-1 sm:gap-1.5"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+      >
         {calendarDays.map((day, idx) => {
           if (!day.isCurrentMonth) {
             // Keep empty slot for clean layout matching screenshot
-            return <div key={`empty-${idx}`} className="h-10 sm:h-12 w-full" />;
+            return <div key={`empty-${idx}`} className="h-12 sm:h-13 w-full" />;
           }
 
           const isSelected = day.isSelected;
@@ -104,7 +141,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               key={day.dateString}
               id={`calendar-day-${day.dateString}`}
               onClick={() => onSelectDate(day.dateString)}
-              className={`group relative flex h-10 sm:h-12 w-full flex-col items-center justify-center rounded-xl text-sm font-medium transition-all ${
+              className={`group relative flex h-12 sm:h-13 w-full flex-col items-center justify-center rounded-xl text-sm font-medium transition-all ${
                 isSelected
                   ? 'border-2 border-amber-500 bg-amber-950/40 text-amber-200 shadow-md shadow-amber-900/30'
                   : isToday
@@ -131,7 +168,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             </button>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Bottom Footer: "Hoje" button */}
       <div className="relative z-10 mt-3 flex justify-end px-1">

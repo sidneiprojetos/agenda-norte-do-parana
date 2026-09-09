@@ -11,6 +11,7 @@ import {
 import { Note, NoteCategory } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
+import { Modal } from './Modal';
 
 interface ReportsModalProps {
   notes: Note[];
@@ -247,29 +248,30 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="reports-title"
-      className="report-modal fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm sm:p-5"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Relatórios da agenda"
+      maxWidthClass="max-w-6xl"
+      showCloseButton={false}
+      panelClassName="flex max-h-[94vh] flex-col overflow-hidden rounded-2xl border border-zinc-700/80 bg-[#121215] shadow-2xl"
     >
-      <div className="flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-zinc-700/80 bg-[#121215] shadow-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
-              <BarChart3 className="h-5 w-5" />
-            </div>
-                    <div>
-              <h2 id="reports-title" className="text-base font-bold text-white sm:text-lg">Relatórios da agenda</h2>
-              <p className="text-[11px] text-zinc-400">Filtros combináveis sobre os dados do Firestore</p>
-            </div>
+      <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-5 py-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
+            <BarChart3 className="h-5 w-5" />
           </div>
-          <button onClick={onClose} aria-label="Fechar relatório" className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white">
-            <X className="h-4 w-4" />
-          </button>
+          <div>
+            <h2 id="reports-title" className="text-base font-bold text-white sm:text-lg">Relatórios da agenda</h2>
+            <p className="text-[11px] text-zinc-400">Filtros combináveis sobre os dados do Firestore</p>
+          </div>
         </div>
+        <button onClick={onClose} aria-label="Fechar relatório" className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-        <div className="report-content overflow-y-auto p-5 sm:p-6">
+      <div className="report-content overflow-y-auto p-5 sm:p-6">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <label className="relative lg:col-span-2">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
@@ -372,7 +374,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };

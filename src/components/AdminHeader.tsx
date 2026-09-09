@@ -80,8 +80,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       {/* Top row: Title and Authentication / Profile status */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Brand and Subtitle */}
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-13 w-13 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-amber-600/30 to-amber-700/10 border border-amber-500/40 p-1 shadow-inner">
+        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+          <div className="flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-600/30 to-amber-700/10 border border-amber-500/40 p-1 shadow-inner">
             <img
               src="/insanos.png"
               alt="Insanos MC Brasil"
@@ -89,9 +89,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             />
           </div>
 
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white truncate">
                 Agenda Norte do Paraná
               </h1>
               {currentUser?.isAdmin && (
@@ -106,7 +106,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 Firestore Tempo Real
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-zinc-400">
+            <p className="text-xs sm:text-sm text-zinc-400 truncate">
               Insanos MC • Crie, agende e gerencie anotações compartilhadas
             </p>
           </div>
@@ -129,9 +129,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 </div>
               )}
 
-              <div className="flex flex-col text-left">
+              <div className="flex flex-col text-left min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-xs text-zinc-100 max-w-[160px] truncate">
+                  <span className="font-semibold text-xs text-zinc-100 max-w-[110px] sm:max-w-[160px] truncate">
                     {currentUser.displayName || currentUser.email}
                   </span>
                   {currentUser.isAdmin ? (
@@ -144,7 +144,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-zinc-400 font-mono max-w-[170px] truncate">
+                <span className="hidden sm:block text-[11px] text-zinc-400 font-mono max-w-[170px] truncate">
                   {currentUser.email}
                 </span>
               </div>
@@ -194,7 +194,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <button
             id="admin-create-note-btn"
             onClick={onOpenCreateForm}
-            className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 text-xs font-semibold shadow-md shadow-amber-900/30 transition active:scale-95"
+            className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white px-2.5 sm:px-3.5 py-2 text-xs font-semibold shadow-md shadow-amber-900/30 transition active:scale-95"
           >
             <Plus className="h-3.5 w-3.5 stroke-[3]" />
             <span>Nova Anotação</span>
@@ -234,8 +234,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             </button>
           )}
 
-          <span className="text-xs text-zinc-400 px-1">
-            Total de anotações: <strong className="text-zinc-200">{totalNotes}</strong>
+          <span className="text-xs text-zinc-400 px-1 whitespace-nowrap">
+            Total: <strong className="text-zinc-200">{totalNotes}</strong>
           </span>
 
           {!currentUser && (
@@ -262,7 +262,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             className="flex items-center gap-1.5 rounded-xl border border-zinc-700/80 bg-zinc-800/60 hover:bg-zinc-700/80 px-2.5 py-1.5 text-xs text-zinc-300 transition"
           >
             <Download className="h-3.5 w-3.5 text-zinc-400" />
-            <span>Exportar</span>
+            <span className="hidden sm:inline">Exportar</span>
           </button>
 
           {currentUser?.isAdmin && (
@@ -274,7 +274,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 className="flex items-center gap-1.5 rounded-xl border border-zinc-700/80 bg-zinc-800/60 hover:bg-zinc-700/80 px-2.5 py-1.5 text-xs text-zinc-300 transition"
               >
                 <Upload className="h-3.5 w-3.5 text-zinc-400" />
-                <span>Importar</span>
+                <span className="hidden sm:inline">Importar</span>
               </button>
 
               <button

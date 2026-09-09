@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import {
   FileText,
   Pencil,
@@ -151,8 +152,12 @@ export const NoteList: React.FC<NoteListProps> = ({
               isUserAdmin(note.createdBy);
 
             return (
-              <div
+              <motion.div
                 key={note.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.24, ease: 'easeOut' }}
                 id={`note-card-${note.id}`}
                 className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-zinc-800/80 bg-[#161619]/80 p-4 transition-all hover:border-zinc-700 hover:bg-[#1f1f23]"
               >
@@ -268,7 +273,7 @@ export const NoteList: React.FC<NoteListProps> = ({
                     </>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

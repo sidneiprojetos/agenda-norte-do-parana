@@ -4,17 +4,16 @@ import {
   Calendar as CalendarIcon,
   Clock,
   MapPin,
-  Tag,
   User,
   Pencil,
   Trash2,
-  X,
   ShieldCheck
 } from 'lucide-react';
 import { Note, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
-import { ADMIN_EMAIL, isUserAdmin } from '../firebase';
+import { isUserAdmin } from '../firebase';
 import { getCategoryStyle } from '../utils/categoryStyles';
+import { Modal } from './Modal';
 
 interface ViewNoteModalProps {
   note: Note | null;
@@ -33,34 +32,24 @@ export const ViewNoteModal: React.FC<ViewNoteModalProps> = ({
   onEdit,
   onDelete
 }) => {
-  if (!isOpen || !note) return null;
-
-  const canModify = !currentUser
+  const canModify = !note || !currentUser
     ? true
     : currentUser.isAdmin ||
       note.authorEmail === currentUser.email ||
       note.authorId === currentUser.uid;
 
   const isNoteByAdmin =
-    isUserAdmin(note.authorEmail) ||
-    isUserAdmin(note.createdBy);
+    !!note && (isUserAdmin(note.authorEmail) || isUserAdmin(note.createdBy));
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel={`Detalhes da anotação: ${note?.title ?? ''}`}
+      maxWidthClass="max-w-lg"
     >
-      <div className="relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#141417] p-6 shadow-2xl">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition"
-          aria-label="Fechar"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
+      {note && (
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-start gap-3.5 mb-4">
           {note.authorPhoto ? (
@@ -180,6 +169,7 @@ export const ViewNoteModal: React.FC<ViewNoteModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+      )}
+    </Modal>
   );
 };

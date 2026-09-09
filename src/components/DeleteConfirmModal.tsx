@@ -1,7 +1,8 @@
 import React from 'react';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 import { Note } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
+import { Modal } from './Modal';
 
 interface DeleteConfirmModalProps {
   note: Note | null;
@@ -16,23 +17,18 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   onClose,
   onConfirm
 }) => {
-  if (!isOpen || !note) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Confirmar exclusão"
+      maxWidthClass="max-w-md"
+      closeOnOverlayClick={false}
+      panelClassName="border-rose-900/60"
     >
-      <div className="relative w-full max-w-md rounded-2xl border border-rose-900/60 bg-[#141417] p-6 shadow-2xl">
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-start gap-4">
+      {note && (
+      <div className="p-6">
+        <div className="flex items-start gap-4 pt-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500">
             <AlertTriangle className="h-6 w-6" />
           </div>
@@ -80,6 +76,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+      )}
+    </Modal>
   );
 };

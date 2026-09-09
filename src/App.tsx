@@ -13,6 +13,7 @@ import { PendingApprovalScreen } from './components/PendingApprovalScreen';
 import { RejectedScreen } from './components/RejectedScreen';
 import { UserManagementDashboard } from './components/UserManagementDashboard';
 import { ReportsModal } from './components/ReportsModal';
+import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
 import {
@@ -59,21 +60,25 @@ export default function App() {
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
 
-  // Notification message
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Notification toasts with type (success/error/info)
+  const [toasts, setToasts] = useState<ToastData[]>([]);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [filterByDate, setFilterByDate] = useState(false);
 
-  // Auto-dismiss toast
-  useEffect(() => {
-    if (toastMessage) {
-      const timer = setTimeout(() => setToastMessage(null), 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [toastMessage]);
+  const showNotification = (msg: string, type: ToastType = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message: msg, type }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   // Safety watchdog: ensure authLoading is never stuck permanently
   useEffect(() => {
@@ -180,10 +185,6 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUser?.isAdmin, userProfile?.status]);
 
-  const showNotification = (msg: string) => {
-    setToastMessage(msg);
-  };
-
   const handleRefreshProfile = async () => {
     if (auth.currentUser) {
       const profile = await syncUserProfile(auth.currentUser);
@@ -194,6 +195,10 @@ export default function App() {
   // Calendar navigation
   const handleChangeMonth = (increment: number) => {
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + increment, 1));
+  };
+
+  const handleChangeYear = (increment: number) => {
+    setViewDate((prev) => new Date(prev.getFullYear() + increment, prev.getMonth(), 1));
   };
 
   const handleGoToToday = () => {
@@ -254,7 +259,7 @@ export default function App() {
         });
       } catch (error) {
         setNotes((prev) => prev.map((note) => (note.id === previousNote.id ? previousNote : note)));
-        showNotification('Não foi possível salvar a alteração no Firebase.');
+        showNotification('Não foi possível salvar a alteração no Firebase.', 'error');
         throw error;
       }
       setEditingNote(null);
@@ -302,7 +307,7 @@ export default function App() {
         });
       } catch (error) {
         setNotes((prev) => prev.filter((note) => note.id !== tempId));
-        showNotification('Não foi possível publicar a anotação no Firebase.');
+        showNotification('Não foi possível publicar a anotação no Firebase.', 'error');
         throw error;
       }
 
@@ -332,7 +337,7 @@ export default function App() {
       await deleteFirestoreNote(targetId);
       showNotification(`Anotação "${title}" excluída com sucesso!`);
     } catch (error: any) {
-      showNotification('Anotação removida da visualização.');
+      showNotification('Anotação removida da visualização.', 'error');
     }
   };
 
@@ -363,7 +368,7 @@ export default function App() {
       downloadAnchor.remove();
       showNotification('Backup da agenda exportado com sucesso!');
     } catch (e) {
-      showNotification('Erro ao exportar backup da agenda.');
+      showNotification('Erro ao exportar backup da agenda.', 'error');
     }
   };
 
@@ -375,7 +380,7 @@ export default function App() {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
-          showNotification(`Importando ${parsed.length} anotações para o Firebase...`);
+          showNotification(`Importando ${parsed.length} anotações para o Firebase...`, 'info');
           for (const item of parsed) {
             if (item.title && item.date) {
               await createFirestoreNote({
@@ -396,10 +401,10 @@ export default function App() {
           }
           showNotification(`${parsed.length} anotações importadas com sucesso!`);
         } else {
-          showNotification('Formato de arquivo inválido. Deve ser um array de anotações.');
+          showNotification('Formato de arquivo inválido. Deve ser um array de anotações.', 'error');
         }
       } catch (err) {
-        showNotification('Erro ao ler arquivo JSON.');
+        showNotification('Erro ao ler arquivo JSON.', 'error');
       }
     };
     reader.readAsText(file);
@@ -505,13 +510,8 @@ export default function App() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#09090b_85%)]" />
       </div>
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-amber-500/50 bg-[#18181b] px-4 py-3 text-xs font-semibold text-amber-300 shadow-2xl animate-bounce">
-          <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       {/* Outer Card Container */}
       <main className="relative z-10 mx-auto max-w-5xl rounded-3xl border border-zinc-800/80 bg-[#121215]/90 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-md">
@@ -547,6 +547,7 @@ export default function App() {
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
                 onChangeMonth={handleChangeMonth}
+                onChangeYear={handleChangeYear}
                 onGoToToday={handleGoToToday}
                 notes={notes}
               />
