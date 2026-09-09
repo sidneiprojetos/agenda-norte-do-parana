@@ -3,8 +3,11 @@ import {
   BarChart3,
   CalendarDays,
   Download,
+  FileText,
   MapPin,
+  PieChart,
   Search,
+  Tags,
   User,
   X,
   TrendingUp,
@@ -79,12 +82,174 @@ async function loadImageAsDataUrl(url: string): Promise<string> {
   });
 }
 
-interface MonthGroup {
+type ReportView = 'geral' | 'categoria' | 'autor' | 'mes' | 'prioridade' | 'lista';
+
+const VIEW_OPTIONS: { id: ReportView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'geral', label: 'Visão geral', icon: LayoutGrid },
+  { id: 'categoria', label: 'Por categoria', icon: Tags },
+  { id: 'autor', label: 'Por autor', icon: User },
+  { id: 'mes', label: 'Por mês', icon: CalendarDays },
+  { id: 'prioridade', label: 'Por prioridade', icon: AlertTriangle },
+  { id: 'lista', label: 'Listagem detalhada', icon: ListIcon }
+];
+
+interface NoteGroup {
   key: string;
   label: string;
-  count: number;
   notes: Note[];
 }
+
+async function drawReportHeader(pdf: import('jspdf').jsPDF, pageWidth: number) {
+  const margin = 14;
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(12);
+  pdf.setTextColor(25, 25, 25);
+  try {
+    const logoDataUrl = await loadImageAsDataUrl('/insanos.png');
+    pdf.addImage(logoDataUrl, 'PNG', margin, 6, 10, 10);
+  } catch {
+    // ignore: report still works without the emblem
+  }
+  pdf.text('Agenda Norte do Paraná', margin + 12, 13);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8);
+  pdf.setTextColor(90, 90, 90);
+  pdf.text(
+    `Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`,
+    pageWidth - margin,
+    13,
+    { align: 'right' }
+  );
+  pdf.setDrawColor(60, 60, 60);
+  pdf.setLineWidth(0.4);
+  pdf.line(margin, 19, pageWidth - margin, 19);
+}
+
+function buildGroups(
+  notes: Note[],
+  keyOf: (note: Note) => string,
+  labelOf: (key: string) => string
+): NoteGroup[] {
+  const map = new Map<string, Note[]>();
+  notes.forEach((note) => {
+    const key = keyOf(note);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(note);
+  });
+  return Array.from(map.entries()).map(([key, groupNotes]) => ({
+    key,
+    label: labelOf(key),
+    notes: groupNotes
+  }));
+}
+
+interface GroupedNotesProps {
+  groups: NoteGroup[];
+  title: string;
+  headerClass: (key: string) => string;
+  emptyText: string;
+  onViewNote: (note: Note) => void;
+}
+
+const GroupedNotes: React.FC<GroupedNotesProps> = ({
+  groups,
+  title,
+  headerClass,
+  emptyText,
+  onViewNote
+}) => {
+  if (groups.length === 0) {
+    return (
+      <div className="mt-5 flex flex-col items-center gap-2 rounded-xl border border-dashed border-zinc-800 bg-[#141416]/50 p-10 text-center">
+        <CalendarX2 className="h-8 w-8 text-zinc-600" />
+        <p className="text-sm font-medium text-zinc-300">{emptyText}</p>
+        <p className="text-xs text-zinc-500">
+          Ajuste os filtros acima ou clique em "Limpar filtros".
+        </p>
+      </div>
+    );
+  }
+
+  const total = groups.reduce((acc, group) => acc + group.notes.length, 0);
+
+  return (
+    <div className="mt-5">
+      <div className="overflow-hidden rounded-xl border border-zinc-800">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-[#18181b] px-4 py-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
+            <CalendarDays className="h-4 w-4 text-sky-300" />
+            {title}
+            <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] text-sky-300">
+              {total} evento(s)
+            </span>
+          </div>
+        </div>
+
+        <div className="divide-y divide-zinc-800/80">
+          {groups.map((group) => (
+            <div key={group.key}>
+              <div className="flex items-center justify-between bg-zinc-900/70 px-4 py-2">
+                <span
+                  className={`text-[11px] font-bold uppercase tracking-wider ${headerClass(group.key)}`}
+                >
+                  {group.label}
+                </span>
+                <span className="text-[11px] text-zinc-400">
+                  {group.notes.length} evento(s)
+                </span>
+              </div>
+              <div className="divide-y divide-zinc-800/60">
+                {group.notes.map((note) => (
+                  <button
+                    key={note.id}
+                    onClick={() => onViewNote(note)}
+                    className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-zinc-800/40 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs text-zinc-100">
+                        {note.time && (
+                          <span className="mr-2 rounded bg-zinc-700/80 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+                            {note.time}
+                          </span>
+                        )}
+                        <strong>{note.title}</strong>
+                        {note.priority === 'alta' && (
+                          <span className="ml-2 inline-flex items-center gap-0.5 rounded bg-rose-600/30 px-1.5 py-0.5 text-[9px] font-bold uppercase text-rose-300">
+                            <AlertTriangle className="h-2.5 w-2.5" /> Alta
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
+                        <span className="text-sky-300">{formatDateToBR(note.date)}</span>
+                        <span
+                          className={`rounded border px-1.5 py-0.5 ${getCategoryStyle(note.category).badge}`}
+                        >
+                          {note.category || 'Geral'}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-wrap items-center gap-3 text-[11px] text-zinc-400">
+                      {note.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {note.location}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {noteAuthor(note)}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ReportsModal: React.FC<ReportsModalProps> = ({
   notes,
@@ -99,7 +264,8 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
   const [author, setAuthor] = useState('Todos');
   const [location, setLocation] = useState('Todos');
   const [priority, setPriority] = useState('Todas');
-  const [view, setView] = useState<'geral' | 'lista'>('geral');
+  const [view, setView] = useState<ReportView>('geral');
+  const [monthFilter, setMonthFilter] = useState('todas');
 
   const todayISO = formatDateToISO(new Date());
 
@@ -210,20 +376,56 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
 
   const maxMonthCount = Math.max(1, ...monthStats.map((item) => item.count));
 
-  const monthGroups: MonthGroup[] = useMemo(() => {
-    const groups = new Map<string, Note[]>();
-    sortedNotes.forEach((note) => {
-      const key = monthKeyOf(note.date);
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key)!.push(note);
-    });
-    return Array.from(groups.entries()).map(([key, groupNotes]) => ({
-      key,
-      label: monthLabel(key),
-      count: groupNotes.length,
-      notes: groupNotes
-    }));
+  const monthGroups: NoteGroup[] = useMemo(() => {
+    return buildGroups(sortedNotes, (note) => monthKeyOf(note.date), monthLabel);
   }, [sortedNotes]);
+
+  const categoryGroups: NoteGroup[] = useMemo(() => {
+    const categoryOrder: Record<string, number> = {};
+    CATEGORIES.forEach((category, index) => {
+      categoryOrder[category] = index;
+    });
+    return buildGroups(sortedNotes, (note) => note.category || 'Geral', (key) => key).sort(
+      (a, b) =>
+        (categoryOrder[a.key] ?? 99) - (categoryOrder[b.key] ?? 99) ||
+        a.label.localeCompare(b.label)
+    );
+  }, [sortedNotes]);
+
+  const authorGroups: NoteGroup[] = useMemo(
+    () =>
+      buildGroups(sortedNotes, noteAuthor, (key) => key).sort(
+        (a, b) => b.notes.length - a.notes.length || a.label.localeCompare(b.label)
+      ),
+    [sortedNotes]
+  );
+
+  const priorityGroups: NoteGroup[] = useMemo(
+    () =>
+      buildGroups(sortedNotes, (note) => note.priority || 'normal', (key) => PRIORITY_LABEL[key] || key)
+        .sort((a, b) => (a.key === 'alta' ? 0 : 1) - (b.key === 'alta' ? 0 : 1)),
+    [sortedNotes]
+  );
+
+  const selectedMonthGroups: NoteGroup[] = useMemo(() => {
+    if (monthFilter === 'todas') return monthGroups;
+    const notesInMonth = sortedNotes.filter((note) => monthKeyOf(note.date) === monthFilter);
+    return notesInMonth.length > 0
+      ? [{ key: monthFilter, label: monthLabel(monthFilter), notes: notesInMonth }]
+      : [];
+  }, [monthFilter, monthGroups, sortedNotes]);
+
+  const activeFiltersSummary = useMemo(() => {
+    const parts: string[] = [];
+    if (search.trim()) parts.push(`Busca: "${search.trim()}"`);
+    if (startDate) parts.push(`De ${formatDateToBR(startDate)}`);
+    if (endDate) parts.push(`Até ${formatDateToBR(endDate)}`);
+    if (selectedCategories.length) parts.push(`Categorias: ${selectedCategories.join(', ')}`);
+    if (author !== 'Todos') parts.push(`Autor: ${author}`);
+    if (location !== 'Todos') parts.push(`Local: ${location}`);
+    if (priority !== 'Todas') parts.push(`Prioridade: ${PRIORITY_LABEL[priority] || priority}`);
+    return parts;
+  }, [search, startDate, endDate, selectedCategories, author, location, priority]);
 
   const activeFilterCount =
     (search.trim() ? 1 : 0) +
@@ -308,29 +510,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
       pdf.line(margin, y + 7, pageWidth - margin, y + 7);
     };
 
-    // Compact header (saves ink) with club emblem
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(12);
-    pdf.setTextColor(25, 25, 25);
-    try {
-      const logoDataUrl = await loadImageAsDataUrl('/insanos.png');
-      pdf.addImage(logoDataUrl, 'PNG', margin, 6, 10, 10);
-    } catch {
-      // ignore: report still works without the emblem
-    }
-    pdf.text('Agenda Norte do Paraná', margin + 12, 13);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.setTextColor(90, 90, 90);
-    pdf.text(
-      `Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`,
-      pageWidth - margin,
-      13,
-      { align: 'right' }
-    );
-    pdf.setDrawColor(60, 60, 60);
-    pdf.setLineWidth(0.4);
-    pdf.line(margin, 19, pageWidth - margin, 19);
+    await drawReportHeader(pdf, pageWidth);
 
     let y = 29;
 
@@ -449,6 +629,127 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     }
 
     pdf.save(`relatorio_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  const exportPdfSummary = async () => {
+    const { jsPDF } = await import('jspdf');
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+
+    await drawReportHeader(pdf, pageWidth);
+
+    let y = 32;
+    const line = () => {
+      pdf.setDrawColor(140, 140, 140);
+      pdf.setLineWidth(0.2);
+      pdf.line(margin, y + 1.5, pageWidth - margin, y + 1.5);
+    };
+    const sectionTitle = (text: string) => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text(text, margin, y);
+      line();
+      y += 6;
+    };
+
+    const bottomLimit = pageHeight - 14;
+
+    // KPI summary
+    sectionTitle('Resumo geral');
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text(
+      `Total: ${filteredNotes.length}   •   Futuros/Hoje: ${upcomingCount}   •   Realizados: ${completedCount}   •   Alta prioridade: ${highPriorityCount}`,
+      margin,
+      y
+    );
+    y += 7;
+
+    if (activeFiltersSummary.length > 0) {
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(110, 110, 110);
+      const filtersText = activeFiltersSummary.join('  •  ');
+      pdf.text(pdf.splitTextToSize(`Filtros: ${filtersText}`, contentWidth) as string[], margin, y);
+      y += filtersText.length > 55 ? 10 : 7;
+    }
+
+    const drawBarSection = (
+      title: string,
+      rows: { label: string; value: number; color: [number, number, number] }[],
+      maxValue: number
+    ) => {
+      sectionTitle(title);
+      if (rows.length === 0) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(110, 110, 110);
+        pdf.text('Sem dados no intervalo atual.', margin, y);
+        y += 7;
+        return;
+      }
+      rows.forEach((row) => {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.setTextColor(40, 40, 40);
+        pdf.text(row.label.slice(0, 52), margin, y);
+        pdf.setTextColor(90, 90, 90);
+        pdf.text(String(row.value), margin + 62, y);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.2);
+        pdf.line(margin + 70, y - 1.5, pageWidth - margin, y - 1.5);
+        pdf.setDrawColor(row.color[0], row.color[1], row.color[2]);
+        pdf.setLineWidth(1.6);
+        pdf.line(
+          margin + 70,
+          y - 1,
+          margin + 70 + (row.value / maxValue) * (contentWidth - 70),
+          y - 1
+        );
+        y += 5.5;
+      });
+      y += 1;
+    };
+
+    // Category breakdown
+    const categoryRows = categoryStats
+      .filter((item) => item.total > 0)
+      .map(({ category, total }) => ({
+        label: category,
+        value: total,
+        color: PDF_CATEGORY_COLORS[category]
+      }));
+    drawBarSection('Distribuição por categoria', categoryRows, Math.max(1, ...categoryRows.map((r) => r.value)));
+    if (y + 20 > bottomLimit) {
+      pdf.addPage();
+      y = 24;
+    }
+
+    // Author breakdown
+    const authorRows = authorStats.map(({ name, total }) => ({
+      label: name,
+      value: total,
+      color: [2, 132, 199] as [number, number, number]
+    }));
+    drawBarSection('Distribuição por autor', authorRows, Math.max(1, ...authorRows.map((r) => r.value)));
+    if (y + 20 > bottomLimit) {
+      pdf.addPage();
+      y = 24;
+    }
+
+    // Monthly breakdown
+    const monthRows = monthStats.map(({ key, count }) => ({
+      label: monthLabel(key),
+      value: count,
+      color: [2, 132, 199] as [number, number, number]
+    }));
+    drawBarSection('Eventos por mês', monthRows, Math.max(1, ...monthRows.map((r) => r.value)));
+
+    pdf.save(`resumo_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
@@ -590,41 +891,40 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
 
         {/* View toggle + exports */}
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 pt-4">
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setView('geral')}
-              className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
-                view === 'geral'
-                  ? 'border-sky-500 bg-sky-600 text-white'
-                  : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <LayoutGrid className="h-3 w-3" /> Visão geral
-              </span>
-            </button>
-            <button
-              onClick={() => setView('lista')}
-              className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
-                view === 'lista'
-                  ? 'border-sky-500 bg-sky-600 text-white'
-                  : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <ListIcon className="h-3 w-3" /> Listagem detalhada
-              </span>
-            </button>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {VIEW_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setView(option.id)}
+                className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                  view === option.id
+                    ? 'border-sky-500 bg-sky-600 text-white'
+                    : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <option.icon className="h-3 w-3" /> {option.label}
+                </span>
+              </button>
+            ))}
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={exportPdfSummary}
+              disabled={filteredNotes.length === 0}
+              className="flex items-center gap-1.5 rounded-lg border border-violet-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-violet-300 transition hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <PieChart className="h-3.5 w-3.5" />
+              PDF resumo
+            </button>
             <button
               onClick={exportPdfReport}
               disabled={filteredNotes.length === 0}
               className="flex items-center gap-1.5 rounded-lg border border-rose-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Download className="h-3.5 w-3.5" />
-              PDF
+              <FileText className="h-3.5 w-3.5" />
+              PDF detalhado
             </button>
             <button
               onClick={exportCsv}
@@ -780,92 +1080,65 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
               )}
             </div>
           </div>
-        ) : (
+        ) : view === 'mes' ? (
           <div className="mt-5">
-            {filteredNotes.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-zinc-800 bg-[#141416]/50 p-10 text-center">
-                <CalendarX2 className="h-8 w-8 text-zinc-600" />
-                <p className="text-sm font-medium text-zinc-300">
-                  Nenhuma anotação corresponde aos filtros selecionados.
-                </p>
-                <p className="text-xs text-zinc-500">
-                  Ajuste os filtros acima ou clique em "Limpar filtros".
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-xl border border-zinc-800">
-                <div className="flex items-center justify-between border-b border-zinc-800 bg-[#18181b] px-4 py-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
-                    <CalendarDays className="h-4 w-4 text-sky-300" />
-                    Listagem detalhada
-                    <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] text-sky-300">
-                      {filteredNotes.length} evento(s)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="divide-y divide-zinc-800/80">
-                  {monthGroups.map((group) => (
-                    <div key={group.key}>
-                      <div className="flex items-center justify-between bg-zinc-900/70 px-4 py-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
-                          {group.label}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">
-                          {group.count} evento(s)
-                        </span>
-                      </div>
-                      <div className="divide-y divide-zinc-800/60">
-                        {group.notes.map((note) => (
-                          <button
-                            key={note.id}
-                            onClick={() => onViewNote(note)}
-                            className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-zinc-800/40 sm:flex-row sm:items-center sm:justify-between"
-                          >
-                            <span className="min-w-0">
-                              <span className="block truncate text-xs text-zinc-100">
-                                {note.time && (
-                                  <span className="mr-2 rounded bg-zinc-700/80 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
-                                    {note.time}
-                                  </span>
-                                )}
-                                <strong>{note.title}</strong>
-                                {note.priority === 'alta' && (
-                                  <span className="ml-2 inline-flex items-center gap-0.5 rounded bg-rose-600/30 px-1.5 py-0.5 text-[9px] font-bold uppercase text-rose-300">
-                                    <AlertTriangle className="h-2.5 w-2.5" /> Alta
-                                  </span>
-                                )}
-                              </span>
-                              <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
-                                <span className="text-sky-300">{formatDateToBR(note.date)}</span>
-                                <span
-                                  className={`rounded border px-1.5 py-0.5 ${getCategoryStyle(note.category).badge}`}
-                                >
-                                  {note.category || 'Geral'}
-                                </span>
-                              </span>
-                            </span>
-                            <span className="flex shrink-0 flex-wrap items-center gap-3 text-[11px] text-zinc-400">
-                              {note.location && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {note.location}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                {noteAuthor(note)}
-                              </span>
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+                Eventos por mês
+              </h3>
+              <select
+                value={monthFilter}
+                onChange={(event) => setMonthFilter(event.target.value)}
+                className="rounded-xl border border-zinc-700 bg-[#1a1a1e] px-3 py-2 text-xs text-zinc-200 outline-none focus:border-sky-500"
+              >
+                <option value="todas">Todos os meses</option>
+                {monthStats.map(({ key }) => (
+                  <option key={key} value={key}>
+                    {monthLabel(key)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <GroupedNotes
+              groups={selectedMonthGroups}
+              title="Eventos do mês"
+              headerClass={() => 'text-sky-300'}
+              emptyText="Nenhuma anotação corresponde aos filtros selecionados."
+              onViewNote={onViewNote}
+            />
           </div>
+        ) : view === 'categoria' ? (
+          <GroupedNotes
+            groups={categoryGroups}
+            title="Anotações por categoria"
+            headerClass={(key) => getCategoryStyle(key as NoteCategory).active}
+            emptyText="Nenhuma anotação corresponde aos filtros selecionados."
+            onViewNote={onViewNote}
+          />
+        ) : view === 'autor' ? (
+          <GroupedNotes
+            groups={authorGroups}
+            title="Anotações por autor"
+            headerClass={() => 'text-sky-300'}
+            emptyText="Nenhuma anotação corresponde aos filtros selecionados."
+            onViewNote={onViewNote}
+          />
+        ) : view === 'prioridade' ? (
+          <GroupedNotes
+            groups={priorityGroups}
+            title="Anotações por prioridade"
+            headerClass={(key) => (key === 'alta' ? 'text-rose-300' : 'text-zinc-300')}
+            emptyText="Nenhuma anotação corresponde aos filtros selecionados."
+            onViewNote={onViewNote}
+          />
+        ) : (
+          <GroupedNotes
+            groups={monthGroups}
+            title="Listagem detalhada"
+            headerClass={() => 'text-sky-300'}
+            emptyText="Nenhuma anotação corresponde aos filtros selecionados."
+            onViewNote={onViewNote}
+          />
         )}
       </div>
     </Modal>
