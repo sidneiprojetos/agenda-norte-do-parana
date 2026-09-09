@@ -23,7 +23,7 @@ const NOTES_COLLECTION = 'notes';
  */
 export function subscribeToNotes(callback: (notes: Note[]) => void): () => void {
   const notesRef = collection(db, NOTES_COLLECTION);
-  const q = query(notesRef, orderBy('date', 'desc'));
+  const q = query(notesRef, orderBy('date', 'asc'));
 
   let hasSeeded = false;
 
@@ -78,12 +78,12 @@ export function subscribeToNotes(callback: (notes: Note[]) => void): () => void 
         });
       });
 
-      // Sort by date descending, or secondary by time
+      // Sort by date ascending, or secondary by time
       notes.sort((a, b) => {
         if (a.date === b.date) {
           return (a.time || '').localeCompare(b.time || '');
         }
-        return b.date.localeCompare(a.date);
+        return a.date.localeCompare(b.date);
       });
 
       callback(notes);
