@@ -6,11 +6,9 @@ import {
   deleteDoc,
   onSnapshot,
   query,
-  orderBy,
-  serverTimestamp,
-  getDocs
+  orderBy
 } from 'firebase/firestore';
-import { db, ADMIN_EMAIL, isUserAdmin } from '../firebase';
+import { db, ADMIN_EMAIL } from '../firebase';
 import { Note } from '../types';
 import { INITIAL_NOTES } from '../data/initialNotes';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
@@ -36,7 +34,6 @@ export function subscribeToNotes(callback: (notes: Note[]) => void): () => void 
 
         if (!hasSeeded) {
           hasSeeded = true;
-          console.log('Firebase notes collection is empty. Seeding initial notes...');
           try {
             for (const note of INITIAL_NOTES) {
               const cleaned = removeUndefinedFields({
@@ -140,31 +137,4 @@ export async function updateFirestoreNote(
 export async function deleteFirestoreNote(noteId: string): Promise<void> {
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
   await deleteDoc(noteDocRef);
-}
-
-/**
- * Save or update user profile upon login
- */
-export async function saveUserProfile(user: {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-}): Promise<void> {
-  if (!user.uid) return;
-  const userDocRef = doc(db, 'users', user.uid);
-  const isAdmin = isUserAdmin(user.email);
-
-  await setDoc(
-    userDocRef,
-    removeUndefinedFields({
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      role: isAdmin ? 'admin' : 'member',
-      lastLogin: new Date().toISOString()
-    }),
-    { merge: true }
-  );
 }

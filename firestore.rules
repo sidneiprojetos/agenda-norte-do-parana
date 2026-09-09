@@ -11,8 +11,7 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email.matches('(?i)imc\\.sidnei@.*') ||
-        request.auth.token.email == 'imc.sidnei@gmail.com' ||
-        request.auth.token.email == 'imc.sidnei@gamil.com'
+        request.auth.token.email == 'imc.sidnei@gmail.com'
       );
     }
     

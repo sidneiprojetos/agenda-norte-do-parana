@@ -159,14 +159,6 @@ export async function rejectUser(uid: string): Promise<void> {
 }
 
 /**
- * Update user role (admin or member)
- */
-export async function updateUserRole(uid: string, role: UserRole): Promise<void> {
-  const userDocRef = doc(db, USERS_COLLECTION, uid);
-  await updateDoc(userDocRef, { role });
-}
-
-/**
  * Update full user details from admin modal
  */
 export async function updateUserDetails(

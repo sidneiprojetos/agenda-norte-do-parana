@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Note, NoteCategory, AppUser, UserProfile } from './types';
+import { Note, NoteCategory, AppUser, UserProfile, CATEGORIES } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
 import { Calendar } from './components/Calendar';
 import { NoteForm } from './components/NoteForm';
@@ -28,8 +28,6 @@ import {
   subscribeToAllUsers
 } from './services/userService';
 
-const BACKUP_STORAGE_KEY = 'agenda_notes_backup_v2';
-
 export default function App() {
   // Authentication states
   const [authLoading, setAuthLoading] = useState(true);
@@ -43,9 +41,6 @@ export default function App() {
 
   // Notes state synchronized from Firebase Firestore
   const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
-
-  // Online / Realtime connection state
-  const [isOnline, setIsOnline] = useState<boolean>(true);
 
   // Calendar month view (defaults to today)
   const [viewDate, setViewDate] = useState<Date>(() => new Date());
@@ -173,13 +168,6 @@ export default function App() {
 
     const unsubscribe = subscribeToNotes((firestoreNotes) => {
       setNotes(firestoreNotes);
-      setIsOnline(true);
-      // Keep local backup
-      try {
-        localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(firestoreNotes));
-      } catch (e) {
-        // ignore
-      }
     });
 
     return () => unsubscribe();
@@ -336,7 +324,7 @@ export default function App() {
     try {
       await deleteFirestoreNote(targetId);
       showNotification(`Anotação "${title}" excluída com sucesso!`);
-    } catch (error: any) {
+    } catch {
       showNotification('Anotação removida da visualização.', 'error');
     }
   };
@@ -439,7 +427,7 @@ export default function App() {
   };
 
   // Filter notes for list display
-  const filteredNotes = notes.filter((n) => {
+  const filteredNotes = useMemo(() => notes.filter((n) => {
     if (filterByDate && n.date !== selectedDate) {
       return false;
     }
@@ -455,7 +443,7 @@ export default function App() {
       return matchTitle || matchContent || matchAuthor || matchLocation;
     }
     return true;
-  });
+  }), [notes, filterByDate, selectedDate, selectedCategory, searchQuery]);
 
   // If still checking authentication state, show branded loading splash
   if (authLoading) {
@@ -519,7 +507,6 @@ export default function App() {
         <AdminHeader
           currentUser={currentUser}
           totalNotes={notes.length}
-          isOnline={isOnline}
           onExportData={handleExportData}
           onImportData={handleImportData}
           onResetData={handleResetData}

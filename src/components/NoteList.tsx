@@ -7,8 +7,6 @@ import {
   Calendar as CalendarIcon,
   Search,
   FilterX,
-  Clock,
-  MapPin,
   Eye,
   ShieldCheck
 } from 'lucide-react';

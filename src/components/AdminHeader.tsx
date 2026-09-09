@@ -5,11 +5,7 @@ import {
   Upload,
   RotateCcw,
   Plus,
-  FileText,
-  LogIn,
   LogOut,
-  Wifi,
-  Sparkles,
   Users,
   BarChart3
 } from 'lucide-react';
@@ -19,7 +15,6 @@ import { loginWithGoogle, logoutUser } from '../firebase';
 interface AdminHeaderProps {
   currentUser: AppUser | null;
   totalNotes: number;
-  isOnline: boolean;
   onExportData: () => void;
   onImportData: (file: File) => void;
   onResetData: () => void;
@@ -33,7 +28,6 @@ interface AdminHeaderProps {
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   currentUser,
   totalNotes,
-  isOnline,
   onExportData,
   onImportData,
   onResetData,
@@ -58,9 +52,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     try {
       setIsLoggingIn(true);
       await loginWithGoogle();
-    } catch (err: any) {
-      console.error('Login error:', err);
-      // alert or notification is handled gracefully
+    } catch {
+      // error handled by loginWithGoogle
     } finally {
       setIsLoggingIn(false);
     }

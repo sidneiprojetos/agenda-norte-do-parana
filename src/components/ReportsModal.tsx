@@ -17,7 +17,7 @@ import {
   FilterX,
   CalendarX2
 } from 'lucide-react';
-import { Note, NoteCategory } from '../types';
+import { Note, NoteCategory, CATEGORIES } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
 import { Modal } from './Modal';
@@ -28,8 +28,6 @@ interface ReportsModalProps {
   onClose: () => void;
   onViewNote: (note: Note) => void;
 }
-
-const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Evento', 'Ação Social', 'Geral'];
 
 const CATEGORY_BAR: Record<NoteCategory, string> = {
   Reunião: 'bg-sky-500',

@@ -4,7 +4,6 @@ import {
   collection,
   doc,
   setDoc,
-  getDocs,
   onSnapshot,
   query,
   orderBy
@@ -36,7 +35,7 @@ export const app = initializeApp(activeFirebaseConfig);
 
 // Initialize Firestore (uses custom databaseId only if configured, otherwise standard default)
 const customDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || 
-  (!import.meta.env.VITE_FIREBASE_PROJECT_ID ? (firebaseConfig as Record<string, any>).firestoreDatabaseId : undefined);
+  (!import.meta.env.VITE_FIREBASE_PROJECT_ID ? (firebaseConfig as Record<string, string>).firestoreDatabaseId : undefined);
 
 export const db = customDbId
   ? getFirestore(app, customDbId)
@@ -52,7 +51,7 @@ googleProvider.setCustomParameters({
 });
 
 export const ADMIN_EMAIL = 'imc.sidnei@gmail.com';
-export const ADMIN_EMAILS = ['imc.sidnei@gmail.com', 'imc.sidnei@gamil.com'];
+export const ADMIN_EMAILS = ['imc.sidnei@gmail.com'];
 
 /**
  * Checks if an email is administrator with unrestricted access
@@ -60,10 +59,7 @@ export const ADMIN_EMAILS = ['imc.sidnei@gmail.com', 'imc.sidnei@gamil.com'];
 export function isUserAdmin(email?: string | null): boolean {
   if (!email) return false;
   const normalized = email.trim().toLowerCase();
-  return (
-    ADMIN_EMAILS.includes(normalized) ||
-    normalized.startsWith('imc.sidnei@')
-  );
+  return ADMIN_EMAILS.includes(normalized);
 }
 
 /**
@@ -73,12 +69,13 @@ export async function loginWithGoogle(): Promise<User | null> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
-  } catch (popupError: any) {
+  } catch (popupError: unknown) {
+    const err = popupError as { code?: string };
     console.warn('Popup blocked or error, trying redirect:', popupError);
     if (
-      popupError?.code === 'auth/popup-blocked' ||
-      popupError?.code === 'auth/popup-closed-by-user' ||
-      popupError?.code === 'auth/cancelled-popup-request'
+      err?.code === 'auth/popup-blocked' ||
+      err?.code === 'auth/popup-closed-by-user' ||
+      err?.code === 'auth/cancelled-popup-request'
     ) {
       // In iframes, popup might be blocked; if so, attempt redirect
       try {

@@ -10,7 +10,7 @@ import {
   Tag,
   LogIn
 } from 'lucide-react';
-import { Note, NoteCategory, AppUser } from '../types';
+import { Note, NoteCategory, AppUser, CATEGORIES } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
 import { loginWithGoogle } from '../firebase';
 import { getCategoryStyle } from '../utils/categoryStyles';
@@ -29,8 +29,6 @@ interface NoteFormProps {
   }) => Promise<void>;
   onCancelEdit: () => void;
 }
-
-const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Evento', 'Ação Social', 'Geral'];
 
 export const NoteForm: React.FC<NoteFormProps> = ({
   selectedDate,

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Users,
   UserCheck,
-  UserX,
   Shield,
   Clock,
   Search,
@@ -11,11 +10,9 @@ import {
   Edit2,
   Trash2,
   ArrowLeft,
-  Filter,
   AlertTriangle,
   MapPin,
-  Calendar,
-  Sparkles
+  Calendar
 } from 'lucide-react';
 import { UserProfile, UserRole, UserStatus } from '../types';
 import {
