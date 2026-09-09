@@ -271,6 +271,7 @@ export function UserManagementDashboard({
           <input
             id="search-users-input"
             type="text"
+            aria-label="Buscar por nome, e-mail ou cidade"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nome, e-mail ou cidade..."

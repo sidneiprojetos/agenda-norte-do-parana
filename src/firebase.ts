@@ -1,21 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  onSnapshot,
-  query,
-  orderBy
-} from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult,
   signOut,
-  onAuthStateChanged,
   User
 } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
@@ -94,4 +84,27 @@ export async function loginWithGoogle(): Promise<User | null> {
  */
 export async function logoutUser(): Promise<void> {
   await signOut(auth);
+}
+
+/**
+ * Maps Firebase Auth error codes to user-friendly pt-BR messages.
+ */
+export function getAuthErrorMessage(error: unknown): string {
+  const err = error as { code?: string; message?: string };
+  if (
+    err?.code === 'auth/unauthorized-domain' ||
+    err?.code === 'auth/operation-not-allowed'
+  ) {
+    return 'Este domínio precisa ser autorizado nas configurações de autenticação do Firebase.';
+  }
+  if (
+    err?.code === 'auth/popup-closed-by-user' ||
+    err?.code === 'auth/cancelled-popup-request'
+  ) {
+    return 'Login cancelado. Tente novamente.';
+  }
+  if (err?.code === 'auth/network-request-failed') {
+    return 'Falha de conexão com os servidores do Google. Verifique sua internet.';
+  }
+  return err?.message || 'Não foi possível autenticar com o Google. Tente novamente.';
 }

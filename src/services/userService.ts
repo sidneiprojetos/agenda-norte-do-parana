@@ -5,9 +5,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-  onSnapshot,
-  query,
-  orderBy
+  onSnapshot
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db, isUserAdmin } from '../firebase';

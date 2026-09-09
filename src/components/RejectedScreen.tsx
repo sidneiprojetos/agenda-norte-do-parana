@@ -1,4 +1,3 @@
-import React from 'react';
 import { ShieldX, LogOut } from 'lucide-react';
 import { UserProfile } from '../types';
 import { logoutUser } from '../firebase';

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { FC } from 'react';
 import {
   FileText,
   Calendar as CalendarIcon,
@@ -12,7 +13,6 @@ import {
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser, CATEGORIES } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
-import { loginWithGoogle } from '../firebase';
 import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface NoteFormProps {
@@ -30,7 +30,7 @@ interface NoteFormProps {
   onCancelEdit: () => void;
 }
 
-export const NoteForm: React.FC<NoteFormProps> = ({
+export const NoteForm: FC<NoteFormProps> = ({
   selectedDate,
   editingNote,
   currentUser,
@@ -142,6 +142,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({
           <input
             id="note-title-input"
             type="text"
+            aria-label="Título da anotação"
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
@@ -157,6 +158,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({
           <textarea
             id="note-content-input"
             rows={3}
+            aria-label="Descrição da anotação"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Escreva o texto da anotação..."
@@ -173,6 +175,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({
             <input
               id="note-date-input"
               type="date"
+              aria-label="Data da anotação"
               value={dateStr}
               onChange={(e) => setDateStr(e.target.value)}
               className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
@@ -186,6 +189,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({
             <input
               id="note-time-input"
               type="time"
+              aria-label="Horário da anotação"
               value={time}
               onChange={(e) => setTime(e.target.value)}
               placeholder="Horário (opcional)"
@@ -223,6 +227,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({
           <input
             id="note-location-input"
             type="text"
+            aria-label="Localização ou link da anotação"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="Localização / Link (opcional)"

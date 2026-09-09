@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Note, NoteCategory } from '../types';
@@ -21,7 +21,7 @@ interface CalendarProps {
   notes: Note[];
 }
 
-export const Calendar: React.FC<CalendarProps> = ({
+export const Calendar: FC<CalendarProps> = ({
   currentDate,
   selectedDate,
   onSelectDate,

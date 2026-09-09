@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import type { FC } from 'react';
 import {
   ShieldCheck,
   Download,
@@ -10,7 +11,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { AppUser } from '../types';
-import { loginWithGoogle, logoutUser } from '../firebase';
+import { loginWithGoogle, logoutUser, getAuthErrorMessage } from '../firebase';
 
 interface AdminHeaderProps {
   currentUser: AppUser | null;
@@ -25,7 +26,7 @@ interface AdminHeaderProps {
   isViewingUserManagement?: boolean;
 }
 
-export const AdminHeader: React.FC<AdminHeaderProps> = ({
+export const AdminHeader: FC<AdminHeaderProps> = ({
   currentUser,
   totalNotes,
   onExportData,
@@ -52,8 +53,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     try {
       setIsLoggingIn(true);
       await loginWithGoogle();
-    } catch {
-      // error handled by loginWithGoogle
+    } catch (err) {
+      console.error('Erro no login com Google:', getAuthErrorMessage(err));
     } finally {
       setIsLoggingIn(false);
     }

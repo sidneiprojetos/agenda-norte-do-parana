@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import type { FC } from 'react';
 import {
   BarChart3,
   CalendarDays,
@@ -148,7 +149,7 @@ interface GroupedNotesProps {
   onViewNote: (note: Note) => void;
 }
 
-const GroupedNotes: React.FC<GroupedNotesProps> = ({
+const GroupedNotes: FC<GroupedNotesProps> = ({
   groups,
   title,
   headerClass,
@@ -247,7 +248,7 @@ const GroupedNotes: React.FC<GroupedNotesProps> = ({
   );
 };
 
-export const ReportsModal: React.FC<ReportsModalProps> = ({
+export const ReportsModal: FC<ReportsModalProps> = ({
   notes,
   isOpen,
   onClose,
@@ -489,7 +490,6 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 14;
-    const contentWidth = pageWidth - margin * 2;
     const bottomLimit = pageHeight - 14;
 
     const drawColumnHeader = (y: number) => {
@@ -775,6 +775,7 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({
           <label className="relative lg:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
+              aria-label="Buscar título, descrição, autor ou local"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar título, descrição, autor ou local"

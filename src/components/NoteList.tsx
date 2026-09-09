@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { motion } from 'motion/react';
 import {
   FileText,
@@ -7,12 +7,11 @@ import {
   Calendar as CalendarIcon,
   Search,
   FilterX,
-  Eye,
-  ShieldCheck
+  Eye
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
-import { ADMIN_EMAIL, isUserAdmin } from '../firebase';
+import { isUserAdmin } from '../firebase';
 import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface NoteListProps {
@@ -39,7 +38,7 @@ const CATEGORIES: (NoteCategory | 'Todas')[] = [
   'Geral'
 ];
 
-export const NoteList: React.FC<NoteListProps> = ({
+export const NoteList: FC<NoteListProps> = ({
   notes,
   selectedDate,
   isDateFilterActive,
@@ -91,6 +90,7 @@ export const NoteList: React.FC<NoteListProps> = ({
           <input
             id="search-notes-input"
             type="text"
+            aria-label="Buscar anotações"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Buscar anotações..."
@@ -162,6 +162,15 @@ export const NoteList: React.FC<NoteListProps> = ({
                 <div
                   className="flex items-start gap-3.5 cursor-pointer flex-1"
                   onClick={() => onViewNote(note)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ver detalhes de ${note.title}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onViewNote(note);
+                    }
+                  }}
                   title="Clique para ver detalhes completos"
                 >
                   <div className="flex flex-col min-w-0">

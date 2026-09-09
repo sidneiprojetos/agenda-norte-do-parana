@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { Note } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
@@ -11,7 +11,7 @@ interface DeleteConfirmModalProps {
   onConfirm: () => void;
 }
 
-export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
+export const DeleteConfirmModal: FC<DeleteConfirmModalProps> = ({
   note,
   isOpen,
   onClose,

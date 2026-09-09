@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  LogIn,
   ShieldCheck,
   AlertCircle,
   Copy,
@@ -8,7 +7,7 @@ import {
   ExternalLink,
   ShieldAlert
 } from 'lucide-react';
-import { loginWithGoogle } from '../firebase';
+import { loginWithGoogle, getAuthErrorMessage } from '../firebase';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -29,26 +28,14 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       if (user && onLoginSuccess) {
         onLoginSuccess();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
-      if (err?.code === 'auth/unauthorized-domain') {
+      const error = err as { code?: string };
+      if (error?.code === 'auth/unauthorized-domain') {
         const currentHost = window.location.hostname;
         setUnauthorizedDomain(currentHost);
-        setErrorMessage(
-          'Este domínio precisa ser autorizado nas configurações de autenticação do Firebase.'
-        );
-      } else if (
-        err?.code === 'auth/popup-closed-by-user' ||
-        err?.code === 'auth/cancelled-popup-request'
-      ) {
-        setErrorMessage('Login cancelado. Tente novamente.');
-      } else if (err?.code === 'auth/network-request-failed') {
-        setErrorMessage('Falha de conexão com os servidores do Google. Verifique sua internet.');
-      } else {
-        setErrorMessage(
-          err?.message || 'Não foi possível autenticar com o Google. Tente novamente.'
-        );
       }
+      setErrorMessage(getAuthErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

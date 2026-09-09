@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CheckCircle2, XCircle, Info, X } from 'lucide-react';
 
@@ -42,7 +42,7 @@ const STYLES: Record<
   }
 };
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
+export const ToastContainer: FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-[70] flex flex-col items-end gap-2">
       <AnimatePresence>

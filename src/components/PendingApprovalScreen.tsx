@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Clock, RefreshCw, LogOut, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { logoutUser } from '../firebase';

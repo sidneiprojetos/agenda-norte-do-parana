@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import {
   FileText,
   Calendar as CalendarIcon,
@@ -23,7 +23,7 @@ interface ViewNoteModalProps {
   onDelete: (note: Note) => void;
 }
 
-export const ViewNoteModal: React.FC<ViewNoteModalProps> = ({
+export const ViewNoteModal: FC<ViewNoteModalProps> = ({
   note,
   isOpen,
   currentUser,

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import type { FC } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 
@@ -13,7 +14,7 @@ interface ModalProps {
   showCloseButton?: boolean;
 }
 
-export const Modal: React.FC<ModalProps> = ({
+export const Modal: FC<ModalProps> = ({
   isOpen,
   onClose,
   children,

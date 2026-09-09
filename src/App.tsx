@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Note, NoteCategory, AppUser, UserProfile, CATEGORIES } from './types';
+import { Note, NoteCategory, AppUser, UserProfile } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
 import { Calendar } from './components/Calendar';
 import { NoteForm } from './components/NoteForm';
@@ -63,17 +63,17 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [filterByDate, setFilterByDate] = useState(false);
 
-  const showNotification = (msg: string, type: ToastType = 'success') => {
+  const showNotification = useCallback((msg: string, type: ToastType = 'success') => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message: msg, type }]);
     window.setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
-  };
+  }, []);
 
-  const dismissToast = (id: number) => {
+  const dismissToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   // Safety watchdog: ensure authLoading is never stuck permanently
   useEffect(() => {
@@ -173,36 +173,36 @@ export default function App() {
     return () => unsubscribe();
   }, [currentUser?.isAdmin, userProfile?.status]);
 
-  const handleRefreshProfile = async () => {
+  const handleRefreshProfile = useCallback(async () => {
     if (auth.currentUser) {
       const profile = await syncUserProfile(auth.currentUser);
       setUserProfile(profile);
     }
-  };
+  }, []);
 
   // Calendar navigation
-  const handleChangeMonth = (increment: number) => {
+  const handleChangeMonth = useCallback((increment: number) => {
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + increment, 1));
-  };
+  }, []);
 
-  const handleChangeYear = (increment: number) => {
+  const handleChangeYear = useCallback((increment: number) => {
     setViewDate((prev) => new Date(prev.getFullYear() + increment, prev.getMonth(), 1));
-  };
+  }, []);
 
-  const handleGoToToday = () => {
+  const handleGoToToday = useCallback(() => {
     const today = new Date();
     setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
     const todayISO = formatDateToISO(today);
     setSelectedDate(todayISO);
-  };
+  }, []);
 
-  const handleSelectDate = (dateStr: string) => {
+  const handleSelectDate = useCallback((dateStr: string) => {
     setSelectedDate(dateStr);
     setFilterByDate(false);
-  };
+  }, []);
 
   // CRUD - Create & Update with Firebase
-  const handleSaveNote = async (data: {
+  const handleSaveNote = useCallback(async (data: {
     title: string;
     content: string;
     date: string;
@@ -303,10 +303,10 @@ export default function App() {
       setNotes((prev) => prev.map((n) => (n.id === tempId ? { ...n, id: realId } : n)));
       showNotification(`Anotação "${data.title}" publicada online!`);
     }
-  };
+  }, [currentUser, editingNote, showNotification]);
 
   // CRUD - Delete with Firebase
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deletingNote) return;
     const title = deletingNote.title;
     const targetId = deletingNote.id;
@@ -327,10 +327,10 @@ export default function App() {
     } catch {
       showNotification('Anotação removida da visualização.', 'error');
     }
-  };
+  }, [deletingNote, editingNote, viewingNote, showNotification]);
 
   // CRUD - Start Edit
-  const handleStartEdit = (note: Note) => {
+  const handleStartEdit = useCallback((note: Note) => {
     setViewingNote(null);
     setEditingNote(note);
     setSelectedDate(note.date);
@@ -338,10 +338,10 @@ export default function App() {
       behavior: 'smooth',
       block: 'center'
     });
-  };
+  }, []);
 
   // Admin: Export backup
-  const handleExportData = () => {
+  const handleExportData = useCallback(() => {
     try {
       const dataStr =
         'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(notes, null, 2));
@@ -358,10 +358,10 @@ export default function App() {
     } catch (e) {
       showNotification('Erro ao exportar backup da agenda.', 'error');
     }
-  };
+  }, [notes, showNotification]);
 
   // Admin: Import backup to Firestore
-  const handleImportData = async (file: File) => {
+  const handleImportData = useCallback(async (file: File) => {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
@@ -396,10 +396,10 @@ export default function App() {
       }
     };
     reader.readAsText(file);
-  };
+  }, [currentUser, showNotification]);
 
   // Admin: Reset to default in Firestore
-  const handleResetData = async () => {
+  const handleResetData = useCallback(async () => {
     if (
       window.confirm(
         'Deseja restaurar as anotações padrão no Firebase? Isso adicionará os registros iniciais.'
@@ -415,16 +415,16 @@ export default function App() {
       }
       showNotification('Anotações padrão reinseridas no Firebase!');
     }
-  };
+  }, [showNotification]);
 
-  const handleOpenCreateForm = () => {
+  const handleOpenCreateForm = useCallback(() => {
     setEditingNote(null);
     document.getElementById('note-title-input')?.focus();
     document.getElementById('note-form-container')?.scrollIntoView({
       behavior: 'smooth',
       block: 'center'
     });
-  };
+  }, []);
 
   // Filter notes for list display
   const filteredNotes = useMemo(() => notes.filter((n) => {
