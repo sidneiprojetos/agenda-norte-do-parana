@@ -166,11 +166,6 @@ export const NoteList: React.FC<NoteListProps> = ({
                   onClick={() => onViewNote(note)}
                   title="Clique para ver detalhes completos"
                 >
-                  {/* Note Icon Box */}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/20 border border-amber-500/30 text-amber-500 group-hover:scale-105 transition-transform">
-                    <FileText className="h-5 w-5" />
-                  </div>
-
                   <div className="flex flex-col min-w-0">
                     {/* Title and Date Badge */}
                     <div className="flex flex-wrap items-center gap-2">
@@ -181,8 +176,7 @@ export const NoteList: React.FC<NoteListProps> = ({
                         {formatDateToBR(note.date)}
                       </span>
                       {note.time && (
-                        <span className="flex items-center gap-1 rounded-md bg-slate-800/80 px-2 py-0.5 text-[11px] text-slate-300">
-                          <Clock className="h-3 w-3 text-slate-400" />
+                        <span className="rounded-md bg-slate-800/80 px-2 py-0.5 text-[11px] text-slate-300">
                           {note.time}h
                         </span>
                       )}
@@ -201,8 +195,7 @@ export const NoteList: React.FC<NoteListProps> = ({
                     )}
 
                     {note.location && (
-                      <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                        <MapPin className="h-3 w-3 text-amber-500/80" />
+                      <p className="mt-1 text-xs text-slate-400">
                         <span>{note.location}</span>
                       </p>
                     )}
