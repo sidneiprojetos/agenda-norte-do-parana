@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Note, NoteCategory, AppUser, UserProfile } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
@@ -7,7 +7,6 @@ import { NoteForm } from './components/NoteForm';
 import { AdminHeader } from './components/AdminHeader';
 import { ViewNoteModal } from './components/ViewNoteModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
-import { LoginScreen } from './components/LoginScreen';
 import { PendingApprovalScreen } from './components/PendingApprovalScreen';
 import { RejectedScreen } from './components/RejectedScreen';
 import { UserManagementDashboard } from './components/UserManagementDashboard';
@@ -28,6 +27,11 @@ import {
   subscribeToUserProfile,
   subscribeToAllUsers
 } from './services/userService';
+
+// Lazy-load the login screen: large standalone asset, only fetched when not authenticated
+const LoginScreen = lazy(() =>
+  import('./components/LoginScreen').then((m) => ({ default: m.LoginScreen }))
+);
 
 export default function App() {
   // Authentication states
@@ -112,7 +116,7 @@ export default function App() {
           setCurrentUser(appUser);
 
           // Real-time listener for profile updates (so if admin approves in real-time, user unlocks immediately)
-          profileUnsub = subscribeToUserProfile(fbUser.uid, (updated) => {
+          profileUnsub = await subscribeToUserProfile(fbUser.uid, (updated) => {
             if (updated) {
               setUserProfile(updated);
               const isStillAdmin = isUserAdmin(updated.email) || updated.role === 'admin';
@@ -150,11 +154,22 @@ export default function App() {
   // For Admin: subscribe to user list to update pending count badge in real time
   useEffect(() => {
     if (currentUser?.isAdmin) {
-      const unsubUsers = subscribeToAllUsers((userList) => {
+      let cancelled = false;
+      let unsubUsers: (() => void) | null = null;
+      subscribeToAllUsers((userList) => {
         const pending = userList.filter((u) => u.status === 'pending').length;
         setPendingUsersCount(pending);
+      }).then((unsub) => {
+        if (cancelled) {
+          unsub();
+          return;
+        }
+        unsubUsers = unsub;
       });
-      return () => unsubUsers();
+      return () => {
+        cancelled = true;
+        if (unsubUsers) unsubUsers();
+      };
     }
   }, [currentUser?.isAdmin]);
 
@@ -165,11 +180,22 @@ export default function App() {
       return;
     }
 
-    const unsubscribe = subscribeToNotes((firestoreNotes) => {
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    subscribeToNotes((firestoreNotes) => {
       setNotes(firestoreNotes);
+    }).then((unsub) => {
+      if (cancelled) {
+        unsub();
+        return;
+      }
+      unsubscribe = unsub;
     });
 
-    return () => unsubscribe();
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
   }, [currentUser?.isAdmin, userProfile?.status]);
 
   const handleRefreshProfile = useCallback(async () => {
@@ -450,12 +476,20 @@ export default function App() {
   // 1. Mandatory Google Authentication Gate before showing any app screens
   if (!currentUser) {
     return (
-      <LoginScreen
-        onLoginSuccess={() => {
-          setAuthLoading(true);
-          setTimeout(() => setAuthLoading(false), 1500);
-        }}
-      />
+      <Suspense
+        fallback={
+          <div className="flex min-h-screen w-full items-center justify-center bg-[#09090b]">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+          </div>
+        }
+      >
+        <LoginScreen
+          onLoginSuccess={() => {
+            setAuthLoading(true);
+            setTimeout(() => setAuthLoading(false), 1500);
+          }}
+        />
+      </Suspense>
     );
   }
 

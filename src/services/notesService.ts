@@ -1,25 +1,33 @@
-import {
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy
-} from 'firebase/firestore';
-import { db, ADMIN_EMAIL } from '../firebase';
+import { getDb, ADMIN_EMAIL } from '../firebase';
 import { Note } from '../types';
 import { INITIAL_NOTES } from '../data/initialNotes';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
 
 const NOTES_COLLECTION = 'notes';
 
+async function firestore() {
+  const db = await getDb();
+  const { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } =
+    await import('firebase/firestore');
+  return {
+    db,
+    collection,
+    doc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    onSnapshot,
+    query,
+    orderBy
+  };
+}
+
 /**
  * Realtime listener for agenda notes from Firebase Firestore.
  * Automatically seeds the collection with INITIAL_NOTES if empty.
  */
-export function subscribeToNotes(callback: (notes: Note[]) => void): () => void {
+export async function subscribeToNotes(callback: (notes: Note[]) => void): Promise<() => void> {
+  const { db, collection, query, orderBy, onSnapshot, setDoc, doc } = await firestore();
   const notesRef = collection(db, NOTES_COLLECTION);
   const q = query(notesRef, orderBy('date', 'asc'));
 
@@ -98,6 +106,7 @@ export function subscribeToNotes(callback: (notes: Note[]) => void): () => void 
  * Create a new note in Firestore
  */
 export async function createFirestoreNote(noteData: Omit<Note, 'id'>): Promise<string> {
+  const { db, collection, doc, setDoc } = await firestore();
   const notesRef = collection(db, NOTES_COLLECTION);
   const newDocRef = doc(notesRef);
   const noteId = newDocRef.id;
@@ -123,6 +132,7 @@ export async function updateFirestoreNote(
   noteId: string,
   updates: Partial<Omit<Note, 'id'>>
 ): Promise<void> {
+  const { db, doc, updateDoc } = await firestore();
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
   const rawUpdates = {
     ...updates,
@@ -135,6 +145,7 @@ export async function updateFirestoreNote(
  * Delete a note from Firestore
  */
 export async function deleteFirestoreNote(noteId: string): Promise<void> {
+  const { db, doc, deleteDoc } = await firestore();
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
   await deleteDoc(noteDocRef);
 }

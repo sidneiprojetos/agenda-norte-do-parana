@@ -1,18 +1,25 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot
-} from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { db, isUserAdmin } from '../firebase';
+import { getDb, isUserAdmin } from '../firebase';
 import { UserProfile, UserRole, UserStatus } from '../types';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
 
 const USERS_COLLECTION = 'users';
+
+async function firestore() {
+  const db = await getDb();
+  const { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } =
+    await import('firebase/firestore');
+  return {
+    db,
+    collection,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    onSnapshot
+  };
+}
 
 /**
  * Synchronize and ensure user profile document in Firestore upon Google Login.
@@ -41,6 +48,7 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
   };
 
   try {
+    const { db, doc, getDoc, setDoc } = await firestore();
     const userDocRef = doc(db, USERS_COLLECTION, fbUser.uid);
     
     // Wrap getDoc with a 2.5-second timeout so it never blocks or hangs
@@ -85,10 +93,11 @@ export async function syncUserProfile(fbUser: User): Promise<UserProfile> {
  * Subscribe to a specific user's profile in real-time.
  * If status is updated to 'approved' by admin, the client will immediately unlock.
  */
-export function subscribeToUserProfile(
+export async function subscribeToUserProfile(
   uid: string,
   callback: (profile: UserProfile | null) => void
-): () => void {
+): Promise<() => void> {
+  const { db, doc, onSnapshot } = await firestore();
   const userDocRef = doc(db, USERS_COLLECTION, uid);
   return onSnapshot(
     userDocRef,
@@ -109,9 +118,10 @@ export function subscribeToUserProfile(
 /**
  * Subscribe to all users for the Admin Dashboard.
  */
-export function subscribeToAllUsers(
+export async function subscribeToAllUsers(
   callback: (users: UserProfile[]) => void
-): () => void {
+): Promise<() => void> {
+  const { db, collection, onSnapshot } = await firestore();
   const usersRef = collection(db, USERS_COLLECTION);
   return onSnapshot(
     usersRef,
@@ -138,6 +148,7 @@ export function subscribeToAllUsers(
  * Approve user request
  */
 export async function approveUser(uid: string, approverEmail: string): Promise<void> {
+  const { db, doc, updateDoc } = await firestore();
   const userDocRef = doc(db, USERS_COLLECTION, uid);
   await updateDoc(userDocRef, {
     status: 'approved',
@@ -150,6 +161,7 @@ export async function approveUser(uid: string, approverEmail: string): Promise<v
  * Reject / Block user request
  */
 export async function rejectUser(uid: string): Promise<void> {
+  const { db, doc, updateDoc } = await firestore();
   const userDocRef = doc(db, USERS_COLLECTION, uid);
   await updateDoc(userDocRef, {
     status: 'rejected'
@@ -169,6 +181,7 @@ export async function updateUserDetails(
     notes?: string;
   }
 ): Promise<void> {
+  const { db, doc, updateDoc } = await firestore();
   const userDocRef = doc(db, USERS_COLLECTION, uid);
   await updateDoc(
     userDocRef,
@@ -183,6 +196,7 @@ export async function updateUserDetails(
  * Permanently delete a user profile
  */
 export async function deleteUser(uid: string): Promise<void> {
+  const { db, doc, deleteDoc } = await firestore();
   const userDocRef = doc(db, USERS_COLLECTION, uid);
   await deleteDoc(userDocRef);
 }

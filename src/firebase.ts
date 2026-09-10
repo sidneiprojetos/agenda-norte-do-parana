@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import type { Firestore } from 'firebase/firestore';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -23,13 +23,22 @@ export const activeFirebaseConfig = {
 // Initialize Firebase App
 export const app = initializeApp(activeFirebaseConfig);
 
-// Initialize Firestore (uses custom databaseId only if configured, otherwise standard default)
-const customDbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || 
-  (!import.meta.env.VITE_FIREBASE_PROJECT_ID ? (firebaseConfig as Record<string, string>).firestoreDatabaseId : undefined);
+// Lazy Firestore client: only loads 'firebase/firestore' when first needed (after login)
+let firestorePromise: Promise<Firestore> | null = null;
 
-export const db = customDbId
-  ? getFirestore(app, customDbId)
-  : getFirestore(app);
+export function getDb(): Promise<Firestore> {
+  if (!firestorePromise) {
+    firestorePromise = import('firebase/firestore').then(({ getFirestore }) => {
+      const customDbId =
+        import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID ||
+        (!import.meta.env.VITE_FIREBASE_PROJECT_ID
+          ? (firebaseConfig as Record<string, string>).firestoreDatabaseId
+          : undefined);
+      return customDbId ? getFirestore(app, customDbId) : getFirestore(app);
+    });
+  }
+  return firestorePromise;
+}
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);

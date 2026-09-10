@@ -51,10 +51,21 @@ export function UserManagementDashboard({
 
   // Subscribe to real-time users from Firestore
   useEffect(() => {
-    const unsubscribe = subscribeToAllUsers((userList) => {
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    subscribeToAllUsers((userList) => {
       setUsers(userList);
+    }).then((unsub) => {
+      if (cancelled) {
+        unsub();
+        return;
+      }
+      unsubscribe = unsub;
     });
-    return () => unsubscribe();
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // Quick Approve
