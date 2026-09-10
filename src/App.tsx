@@ -13,6 +13,7 @@ import { RejectedScreen } from './components/RejectedScreen';
 import { UserManagementDashboard } from './components/UserManagementDashboard';
 import { ReportsModal } from './components/ReportsModal';
 import { ViewScheduleScreen } from './components/ViewScheduleScreen';
+import { DayEventsModal } from './components/DayEventsModal';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
@@ -55,6 +56,8 @@ export default function App() {
   // Modal states for Read & Delete operations
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
+  const [dayEventsDate, setDayEventsDate] = useState<string | null>(null);
+  const [isDayEventsOpen, setIsDayEventsOpen] = useState(false);
 
   // Notification toasts with type (success/error/info)
   const [toasts, setToasts] = useState<ToastData[]>([]);
@@ -194,7 +197,12 @@ export default function App() {
 
   const handleSelectDate = useCallback((dateStr: string) => {
     setSelectedDate(dateStr);
-  }, []);
+    const notesForDate = notes.filter((note) => note.date === dateStr);
+    if (notesForDate.length > 0) {
+      setDayEventsDate(dateStr);
+      setIsDayEventsOpen(true);
+    }
+  }, [notes]);
 
   // CRUD - Create & Update with Firebase
   const handleSaveNote = useCallback(async (data: {
@@ -567,6 +575,21 @@ export default function App() {
         onClose={() => setIsReportsOpen(false)}
         onViewNote={(note) => {
           setIsReportsOpen(false);
+          setViewingNote(note);
+        }}
+      />
+
+      <DayEventsModal
+        date={dayEventsDate}
+        notes={notes}
+        isOpen={isDayEventsOpen}
+        currentUser={currentUser}
+        onClose={() => {
+          setIsDayEventsOpen(false);
+          setDayEventsDate(null);
+        }}
+        onViewNote={(note) => {
+          setIsDayEventsOpen(false);
           setViewingNote(note);
         }}
       />

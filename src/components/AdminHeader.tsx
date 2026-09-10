@@ -207,7 +207,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
             </button>
           )}
 
-          {currentUser?.isAdmin && onOpenReports && (
+          {onOpenReports && (
             <button
               id="admin-reports-btn"
               onClick={onOpenReports}
