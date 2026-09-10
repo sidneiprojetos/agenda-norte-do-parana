@@ -123,6 +123,13 @@ async function drawReportHeader(pdf: import('jspdf').jsPDF, pageWidth: number) {
   pdf.line(margin, 19, pageWidth - margin, 19);
 }
 
+function drawReportFooter(pdf: import('jspdf').jsPDF, pageWidth: number, pageHeight: number) {
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text('Gerado por Siluar Core', pageWidth / 2, pageHeight - 8, { align: 'center' });
+}
+
 function buildGroups(
   notes: Note[],
   keyOf: (note: Note) => string,
@@ -515,6 +522,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     };
 
     await drawReportHeader(pdf, pageWidth);
+    drawReportFooter(pdf, pageWidth, pageHeight);
 
     let y = 29;
 
@@ -534,6 +542,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           lastMonthKey = monthKey;
           if (y + 9 > bottomLimit) {
             pdf.addPage();
+            drawReportFooter(pdf, pageWidth, pageHeight);
             y = 24;
             drawColumnHeader(y);
             y += 11;
@@ -562,6 +571,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
         if (y + rowHeight > bottomLimit) {
           pdf.addPage();
+          drawReportFooter(pdf, pageWidth, pageHeight);
           y = 24;
           drawColumnHeader(y);
           y += 11;
@@ -620,6 +630,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       // Totals line (thin rule + bold text, no heavy fill)
       if (y + 8 > bottomLimit) {
         pdf.addPage();
+        drawReportFooter(pdf, pageWidth, pageHeight);
         y = 24;
       }
       pdf.setDrawColor(60, 60, 60);
@@ -649,6 +660,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     const contentWidth = pageWidth - margin * 2;
 
     await drawReportHeader(pdf, pageWidth);
+    drawReportFooter(pdf, pageWidth, pageHeight);
 
     let y = 32;
     const line = () => {
@@ -735,6 +747,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     drawBarSection('Distribuição por categoria', categoryRows, Math.max(1, ...categoryRows.map((r) => r.value)));
     if (y + 20 > bottomLimit) {
       pdf.addPage();
+      drawReportFooter(pdf, pageWidth, pageHeight);
       y = 24;
     }
 
@@ -747,6 +760,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     drawBarSection('Distribuição por autor', authorRows, Math.max(1, ...authorRows.map((r) => r.value)));
     if (y + 20 > bottomLimit) {
       pdf.addPage();
+      drawReportFooter(pdf, pageWidth, pageHeight);
       y = 24;
     }
 
