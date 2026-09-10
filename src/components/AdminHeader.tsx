@@ -78,32 +78,31 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
       {/* Top row: Title and Authentication / Profile status */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Brand and Subtitle */}
-        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-          <div className="flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-amber-500/40 p-1 shadow-inner">
-            <img
-              src="/insanos.png"
-              alt="Siluar Core"
-              className="h-full w-full object-contain filter drop-shadow"
-            />
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white truncate">
-                Agenda Norte do Paraná
-              </h1>
-              {currentUser?.isAdmin && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-400">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  PAINEL ADM
-                </span>
-              )}
-              {/* Realtime sync badge */}
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Firestore Tempo Real
-              </span>
+        <div className="flex flex-col gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-amber-500/40 p-1 shadow-inner">
+              <img
+                src="/insanos.png"
+                alt="Siluar Core"
+                className="h-full w-full object-contain filter drop-shadow"
+              />
             </div>
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white truncate">
+              Agenda Norte do Paraná
+            </h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {currentUser?.isAdmin && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-400">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                PAINEL ADM
+              </span>
+            )}
+            {/* Realtime sync badge */}
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Firestore Tempo Real
+            </span>
           </div>
         </div>
 
