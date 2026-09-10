@@ -492,6 +492,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     const margin = 14;
     const bottomLimit = pageHeight - 14;
 
+    const colData = margin + 4;
+    const colHora = margin + 27;
+    const colEvento = margin + 45;
+    const colPrioridade = margin + 82;
+    const colCategoria = margin + 110;
+    const colLocalAutor = pageWidth - margin - 40;
+
     const drawColumnHeader = (y: number) => {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8);
@@ -499,7 +506,8 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       pdf.text('DATA', margin + 4, y + 5);
       pdf.text('HORA', margin + 27, y + 5);
       pdf.text('EVENTO', margin + 45, y + 5);
-      pdf.text('CATEGORIA', pageWidth - margin - 102, y + 5);
+      pdf.text('PRIOR.', colPrioridade - 4, y + 5);
+      pdf.text('CATEGORIA', colCategoria + 6, y + 5);
       pdf.text('LOCAL / AUTOR', pageWidth - margin - 40, y + 5);
       pdf.setDrawColor(80, 80, 80);
       pdf.setLineWidth(0.3);
@@ -512,12 +520,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
     drawColumnHeader(y);
     y += 11;
-
-    const colData = margin + 4;
-    const colHora = margin + 27;
-    const colEvento = margin + 45;
-    const colCategoria = pageWidth - margin - 102;
-    const colLocalAutor = pageWidth - margin - 40;
 
     if (filteredNotes.length === 0) {
       pdf.setFont('helvetica', 'normal');
@@ -549,7 +551,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         const category = note.category || 'Geral';
         const titleLines = pdf.splitTextToSize(
           note.title,
-          colCategoria - colEvento - 6
+          colPrioridade - colEvento - 6
         ) as string[];
         const rowHeight = Math.max(9, titleLines.length * 5 + 2);
 
@@ -572,6 +574,16 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         // Evento
         pdf.setTextColor(30, 41, 59);
         pdf.text(titleLines, colEvento, y + 2);
+        // Prioridade
+        const isHighPriority = note.priority === 'alta';
+        pdf.setFont('helvetica', isHighPriority ? 'bold' : 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(
+          isHighPriority ? 185 : 100,
+          isHighPriority ? 28 : 116,
+          isHighPriority ? 28 : 139
+        );
+        pdf.text(isHighPriority ? 'ALTA' : 'Normal', colPrioridade, y + 2);
         // Categoria (borda colorida sem preenchimento para economizar tinta)
         const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[category];
         pdf.setDrawColor(cRed, cGreen, cBlue);
