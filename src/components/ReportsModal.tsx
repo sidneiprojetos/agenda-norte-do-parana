@@ -553,7 +553,12 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           note.title,
           colPrioridade - colEvento - 6
         ) as string[];
-        const rowHeight = Math.max(9, titleLines.length * 5 + 2);
+        const contentLines = note.content
+          ? (pdf.splitTextToSize(note.content, pageWidth - margin - colEvento) as string[])
+          : [];
+        const titleBlock = titleLines.length * 5 + 2;
+        const contentBlock = contentLines.length * 4;
+        const rowHeight = Math.max(9, titleBlock + contentBlock);
 
         if (y + rowHeight > bottomLimit) {
           pdf.addPage();
@@ -601,6 +606,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           colLocalAutor,
           y + 2
         );
+        // Descrição da anotação
+        if (contentLines.length > 0) {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(100, 116, 139);
+          pdf.text(contentLines, colEvento, y + titleLines.length * 5 + 3);
+        }
 
         y += rowHeight;
       }
