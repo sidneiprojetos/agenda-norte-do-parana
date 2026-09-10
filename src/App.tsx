@@ -557,11 +557,13 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 mx-auto mt-6 max-w-5xl flex flex-col items-center gap-2 pb-4">
-        <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-black border border-zinc-700 shadow-lg">
+      <footer className="relative z-10 mx-auto mt-6 max-w-5xl flex flex-row items-center justify-center gap-3 pb-4">
+        <span className="flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black border border-zinc-700 shadow-lg">
           <img src="/siluar.jpg" alt="Siluar Core" className="h-full w-full object-cover" />
         </span>
-        <p className="text-xs sm:text-sm text-zinc-400 tracking-wide">Siluar Core</p>
+        <p className="text-sm sm:text-base text-zinc-400 tracking-wide whitespace-nowrap">
+          Desenvolvido por <span className="font-semibold text-zinc-200">Siluar Core</span>
+        </p>
       </footer>
 
       {/* Modal: View Details (Read) */}
