@@ -577,17 +577,19 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           y += 11;
         }
 
+        const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[category];
+
         // Data
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8.5);
-        pdf.setTextColor(30, 41, 59);
+        pdf.setTextColor(cRed, cGreen, cBlue);
         pdf.text(formatDateToBR(note.date), colData, y + 2);
         // Hora
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(90, 90, 90);
         pdf.text(note.time || '—', colHora, y + 2);
         // Evento
-        pdf.setTextColor(30, 41, 59);
+        pdf.setTextColor(cRed, cGreen, cBlue);
         pdf.text(titleLines, colEvento, y + 2);
         // Prioridade
         const isHighPriority = note.priority === 'alta';
@@ -600,7 +602,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         );
         pdf.text(isHighPriority ? 'ALTA' : 'Normal', colPrioridade, y + 2);
         // Categoria (borda colorida sem preenchimento para economizar tinta)
-        const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[category];
         pdf.setDrawColor(cRed, cGreen, cBlue);
         pdf.setLineWidth(0.45);
         pdf.roundedRect(colCategoria - 1, y - 2, 30, 6, 2, 2, 'S');
@@ -610,7 +611,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.text(category, colCategoria + 14, y + 2, { align: 'center' });
         // Local/Autor
         pdf.setFontSize(7);
-        pdf.setTextColor(120, 120, 120);
+        pdf.setTextColor(cRed, cGreen, cBlue);
         pdf.text(
           [note.location || '', noteAuthor(note)].filter(Boolean).join(' • ').slice(0, 38) || '—',
           colLocalAutor,
@@ -620,7 +621,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         if (contentLines.length > 0) {
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7.5);
-          pdf.setTextColor(100, 116, 139);
+          pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(contentLines, colEvento, y + titleLines.length * 5 + 3);
         }
 
