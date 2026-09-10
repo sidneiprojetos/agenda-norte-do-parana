@@ -105,7 +105,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
               </span>
             </div>
             <p className="flex items-center gap-1.5 text-xs sm:text-sm text-zinc-400 truncate">
-              <img src="/siluar.jpg" alt="" className="h-5 w-5 object-contain" />
+              <img src="/siluar.jpg" alt="" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover" />
               Siluar Core
             </p>
           </div>
