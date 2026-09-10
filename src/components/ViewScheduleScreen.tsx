@@ -1,25 +1,26 @@
 import { useState, useMemo, type FC } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   ArrowLeft,
-  Calendar as CalendarIcon,
-  Clock,
-  MapPin,
+  FileText,
+  Pencil,
+  Trash2,
   Search,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  Eye
+  Eye,
+  CalendarDays
 } from 'lucide-react';
-import { Note, NoteCategory } from '../types';
+import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
 import { isUserAdmin } from '../firebase';
 
 interface ViewScheduleScreenProps {
   notes: Note[];
+  currentUser: AppUser | null;
   onBack: () => void;
   onViewNote: (note: Note) => void;
+  onEditNote: (note: Note) => void;
+  onDeleteNote: (note: Note) => void;
 }
 
 const CATEGORIES: (NoteCategory | 'Todas')[] = [
@@ -31,94 +32,46 @@ const CATEGORIES: (NoteCategory | 'Todas')[] = [
   'Geral'
 ];
 
-const PRIORITIES = ['Todas', 'alta', 'normal'] as const;
-
 export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
   notes,
+  currentUser,
   onBack,
-  onViewNote
+  onViewNote,
+  onEditNote,
+  onDeleteNote
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<NoteCategory | 'Todas'>('Todas');
-  const [selectedPriority, setSelectedPriority] = useState<string>('Todas');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
   const filteredNotes = useMemo(() => {
-    let result = [...notes];
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (n) =>
-          n.title.toLowerCase().includes(q) ||
-          n.content.toLowerCase().includes(q) ||
-          n.location?.toLowerCase().includes(q) ||
-          (n.authorName || n.authorEmail || '').toLowerCase().includes(q)
-      );
-    }
-
-    if (selectedCategory !== 'Todas') {
-      result = result.filter((n) => n.category === selectedCategory);
-    }
-
-    if (selectedPriority !== 'Todas') {
-      result = result.filter((n) => n.priority === selectedPriority);
-    }
-
-    result.sort((a, b) => {
-      const dateA = a.date + (a.time || '99:99');
-      const dateB = b.date + (b.time || '99:99');
-      return sortOrder === 'asc' ? dateA.localeCompare(dateB) : dateB.localeCompare(dateA);
-    });
-
-    return result;
-  }, [notes, searchQuery, selectedCategory, selectedPriority, sortOrder]);
-
-  const groupedByDate = useMemo(() => {
-    const groups: Record<string, Note[]> = {};
-    for (const note of filteredNotes) {
-      if (!groups[note.date]) {
-        groups[note.date] = [];
+    return notes.filter((n) => {
+      if (selectedCategory !== 'Todas' && n.category !== selectedCategory) {
+        return false;
       }
-      groups[note.date].push(note);
-    }
-    return groups;
-  }, [filteredNotes]);
-
-  const toggleDate = (date: string) => {
-    setExpandedDates((prev) => {
-      const next = new Set(prev);
-      if (next.has(date)) {
-        next.delete(date);
-      } else {
-        next.add(date);
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = n.title.toLowerCase().includes(q);
+        const matchContent = n.content.toLowerCase().includes(q);
+        const matchAuthor = (n.authorName || n.authorEmail || n.createdBy || '').toLowerCase().includes(q);
+        const matchLocation = n.location?.toLowerCase().includes(q) || false;
+        return matchTitle || matchContent || matchAuthor || matchLocation;
       }
-      return next;
+      return true;
     });
-  };
+  }, [notes, searchQuery, selectedCategory]);
 
-  const expandAll = () => {
-    setExpandedDates(new Set(Object.keys(groupedByDate)));
+  const canModify = (note: Note): boolean => {
+    if (!currentUser) return true;
+    if (currentUser.isAdmin) return true;
+    if (currentUser.email && note.authorEmail === currentUser.email) return true;
+    if (currentUser.uid && note.authorId === currentUser.uid) return true;
+    return false;
   };
-
-  const collapseAll = () => {
-    setExpandedDates(new Set());
-  };
-
-  const totalByCategory = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const note of notes) {
-      const cat = note.category || 'Geral';
-      counts[cat] = (counts[cat] || 0) + 1;
-    }
-    return counts;
-  }, [notes]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -128,227 +81,183 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
             Voltar
           </button>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-amber-400" />
-              Visualizar Agenda
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-400">
+              <CalendarDays className="h-4 w-4 text-emerald-400" />
+              VISUALIZAR AGENDA
             </h2>
-            <p className="text-xs text-zinc-400">
+            <p className="text-[11px] text-zinc-400">
               {filteredNotes.length} de {notes.length} anotações
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={expandAll}
-            className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800/60 px-2.5 py-1.5 text-[11px] text-zinc-400 transition hover:bg-zinc-700 hover:text-zinc-200"
-          >
-            <ChevronDown className="h-3 w-3" />
-            Expandir
-          </button>
-          <button
-            onClick={collapseAll}
-            className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800/60 px-2.5 py-1.5 text-[11px] text-zinc-400 transition hover:bg-zinc-700 hover:text-zinc-200"
-          >
-            <ChevronUp className="h-3 w-3" />
-            Recolher
-          </button>
-          <button
-            onClick={() => setSortOrder((p) => (p === 'asc' ? 'desc' : 'asc'))}
-            className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800/60 px-2.5 py-1.5 text-[11px] text-zinc-400 transition hover:bg-zinc-700 hover:text-zinc-200"
-          >
-            <Filter className="h-3 w-3" />
-            {sortOrder === 'asc' ? 'Mais antigo primeiro' : 'Mais recente primeiro'}
-          </button>
-        </div>
-      </div>
-
-      {/* Summary badges */}
-      <div className="flex flex-wrap gap-2">
-        {CATEGORIES.filter((c) => c !== 'Todas').map((cat) => (
-          <span
-            key={cat}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-medium ${getCategoryStyle(cat).badge}`}
-          >
-            {cat}
-            <span className="font-bold">{totalByCategory[cat] || 0}</span>
-          </span>
-        ))}
-        <span className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-2.5 py-1 text-[11px] font-medium text-zinc-300">
-          Total: <span className="font-bold">{notes.length}</span>
-        </span>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+        {/* Quick Search */}
+        <div className="relative w-full sm:w-64">
           <Search className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 h-3.5 w-3.5 text-zinc-400 my-auto" />
           <input
             type="text"
+            aria-label="Buscar anotações"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por título, conteúdo, local ou autor..."
-            className="w-full rounded-xl border border-zinc-700/60 bg-[#1a1a1e] py-2 pl-8 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition"
+            placeholder="Buscar anotações..."
+            className="w-full rounded-xl border border-zinc-700/60 bg-[#1a1a1e] py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition"
           />
         </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition ${
-                selectedCategory === cat
-                  ? cat === 'Todas'
-                    ? 'border-amber-500 bg-amber-600 text-white'
-                    : `${getCategoryStyle(cat).active} font-semibold`
-                  : 'border-transparent bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <select
-          value={selectedPriority}
-          onChange={(e) => setSelectedPriority(e.target.value)}
-          className="rounded-xl border border-zinc-700/60 bg-[#1a1a1e] px-3 py-1.5 text-[11px] text-zinc-300 focus:border-amber-500 focus:outline-none"
-        >
-          {PRIORITIES.map((p) => (
-            <option key={p} value={p}>
-              {p === 'Todas' ? 'Todas prioridades' : p === 'alta' ? 'Alta prioridade' : 'Normal'}
-            </option>
-          ))}
-        </select>
       </div>
 
-      {/* Notes grouped by date */}
-      {Object.keys(groupedByDate).length === 0 ? (
+      {/* Category filter pills */}
+      <div className="flex flex-wrap items-center gap-1.5 px-1">
+        <span className="text-[11px] font-medium text-zinc-400 mr-1">Filtrar:</span>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
+              selectedCategory === cat
+                ? cat === 'Todas'
+                  ? 'border-amber-500 bg-amber-600 text-white shadow-sm font-semibold'
+                  : `${getCategoryStyle(cat).active} font-semibold`
+                : 'border-transparent bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* List Cards */}
+      {filteredNotes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-800/80 bg-[#141416]/50 p-8 text-center">
-          <CalendarIcon className="mx-auto h-10 w-10 text-zinc-600 mb-3" />
+          <FileText className="mx-auto h-8 w-8 text-zinc-600 mb-2" />
           <p className="text-sm font-medium text-zinc-300">Nenhuma anotação encontrada</p>
-          <p className="text-xs text-zinc-500 mt-1">Ajuste os filtros ou crie uma nova anotação.</p>
+          <p className="text-xs text-zinc-500 mt-1">Ajuste os filtros para encontrar anotações.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {Object.entries(groupedByDate)
-            .sort(([a], [b]) =>
-              sortOrder === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
-            )
-            .map(([date, dateNotes]) => {
-              const isExpanded = expandedDates.has(date);
-              return (
-                <motion.div
-                  key={date}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="rounded-2xl border border-zinc-800/80 bg-[#141416]/80 overflow-hidden"
+        <div className="flex flex-col gap-2.5">
+          {filteredNotes.map((note) => {
+            const hasPermission = canModify(note);
+            const isNoteByAdmin = isUserAdmin(note.authorEmail) || isUserAdmin(note.createdBy);
+
+            return (
+              <motion.div
+                key={note.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.24, ease: 'easeOut' }}
+                id={`schedule-note-card-${note.id}`}
+                className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-zinc-800/80 bg-[#161619]/80 p-4 transition-all hover:border-zinc-700 hover:bg-[#1f1f23]"
+              >
+                {/* Note Content & Details */}
+                <div
+                  className="flex items-start gap-3.5 cursor-pointer flex-1"
+                  onClick={() => onViewNote(note)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ver detalhes de ${note.title}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onViewNote(note);
+                    }
+                  }}
+                  title="Clique para ver detalhes completos"
                 >
-                  {/* Date Header */}
-                  <button
-                    onClick={() => toggleDate(date)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 bg-[#18181b]/80 hover:bg-[#1f1f23] transition text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-500/30">
-                        <CalendarIcon className="h-4 w-4 text-amber-400" />
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-white">{formatDateToBR(date)}</span>
-                        <span className="ml-2 text-[11px] text-zinc-400">
-                          {dateNotes.length} anotação{dateNotes.length !== 1 ? 'ões' : ''}
+                  <div className="flex flex-col min-w-0 w-full">
+                    {/* Title and Badges */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-slate-100 group-hover:text-amber-400 transition-colors">
+                        {note.title}
+                      </h3>
+                      <span className="rounded-full bg-amber-600 px-2.5 py-0.5 text-xs font-medium text-white shadow-sm">
+                        {formatDateToBR(note.date)}
+                      </span>
+                      {note.time && (
+                        <span className="rounded-md bg-slate-800/80 px-2 py-0.5 text-[11px] text-slate-300">
+                          {note.time}h
                         </span>
-                      </div>
+                      )}
+                      {note.category && (
+                        <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getCategoryStyle(note.category).badge}`}>
+                          {note.category}
+                        </span>
+                      )}
+                      {note.priority === 'alta' && (
+                        <span className="rounded-md border border-red-500/40 bg-red-950/40 px-2 py-0.5 text-[10px] font-bold text-red-300">
+                          ALTA
+                        </span>
+                      )}
                     </div>
-                    <ChevronDown
-                      className={`h-4 w-4 text-zinc-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                    />
+
+                    {/* Full content */}
+                    {note.content && (
+                      <p className="mt-1.5 text-xs sm:text-sm text-slate-200 whitespace-pre-wrap break-words">
+                        {note.content}
+                      </p>
+                    )}
+
+                    {note.location && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        <span>📍 {note.location}</span>
+                      </p>
+                    )}
+
+                    {/* Author and Timestamp with ADM tag */}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+                      <span>Criado em {formatDateTimeBR(note.createdAt)} por</span>
+                      <span className="text-slate-200 font-medium">
+                        {note.authorName || note.authorEmail || note.createdBy}
+                      </span>
+                      {isNoteByAdmin && (
+                        <span className="rounded bg-amber-500/20 text-amber-300 px-1 py-0.2 text-[9px] font-bold">
+                          ADM
+                        </span>
+                      )}
+                      {note.updatedAt && (
+                        <span className="text-slate-500 ml-1">
+                          (Editado em {formatDateTimeBR(note.updatedAt)})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
+                  <button
+                    onClick={() => onViewNote(note)}
+                    className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+                    title="Ver detalhes da anotação"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    <span className="hidden md:inline">Ver</span>
                   </button>
 
-                  {/* Notes for this date */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
+                  {hasPermission && (
+                    <>
+                      <button
+                        onClick={() => onEditNote(note)}
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-slate-800 hover:text-amber-400"
+                        title="Editar esta anotação"
                       >
-                        <div className="flex flex-col divide-y divide-zinc-800/60">
-                          {dateNotes.map((note) => {
-                            const isNoteAdmin = isUserAdmin(note.authorEmail) || isUserAdmin(note.createdBy);
-                            return (
-                              <div
-                                key={note.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 hover:bg-[#1a1a1e]/60 transition"
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="text-sm font-semibold text-slate-100">
-                                      {note.title}
-                                    </h3>
-                                    {note.time && (
-                                      <span className="inline-flex items-center gap-1 rounded-md bg-slate-800/80 px-2 py-0.5 text-[11px] text-slate-300">
-                                        <Clock className="h-3 w-3" />
-                                        {note.time}h
-                                      </span>
-                                    )}
-                                    {note.category && (
-                                      <span
-                                        className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getCategoryStyle(note.category).badge}`}
-                                      >
-                                        {note.category}
-                                      </span>
-                                    )}
-                                    {note.priority === 'alta' && (
-                                      <span className="rounded-md border border-red-500/40 bg-red-950/40 px-2 py-0.5 text-[10px] font-bold text-red-300">
-                                        ALTA
-                                      </span>
-                                    )}
-                                    {isNoteAdmin && (
-                                      <span className="rounded bg-amber-500/20 text-amber-300 px-1.5 py-0.2 text-[9px] font-bold">
-                                        ADM
-                                      </span>
-                                    )}
-                                  </div>
-                                  {note.content && (
-                                    <p className="mt-1 text-xs text-slate-400 line-clamp-2">{note.content}</p>
-                                  )}
-                                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                                    {note.location && (
-                                      <span className="inline-flex items-center gap-1">
-                                        <MapPin className="h-3 w-3" />
-                                        {note.location}
-                                      </span>
-                                    )}
-                                    <span>
-                                      {note.authorName || note.authorEmail || note.createdBy}
-                                    </span>
-                                    <span>{formatDateTimeBR(note.createdAt)}</span>
-                                  </div>
-                                </div>
+                        <Pencil className="h-3.5 w-3.5" />
+                        <span>Editar</span>
+                      </button>
 
-                                <button
-                                  onClick={() => onViewNote(note)}
-                                  className="flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-3 py-1.5 text-[11px] font-medium text-zinc-300 transition hover:bg-zinc-700 hover:text-white active:scale-95"
-                                >
-                                  <Eye className="h-3.5 w-3.5" />
-                                  Detalhes
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+                      <button
+                        onClick={() => onDeleteNote(note)}
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-rose-950/40 hover:text-rose-400"
+                        title="Excluir esta anotação"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Excluir</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>

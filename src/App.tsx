@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Note, NoteCategory, AppUser, UserProfile } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
 import { Calendar } from './components/Calendar';
 import { NoteForm } from './components/NoteForm';
-import { NoteList } from './components/NoteList';
 import { AdminHeader } from './components/AdminHeader';
 import { ViewNoteModal } from './components/ViewNoteModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
@@ -59,11 +58,6 @@ export default function App() {
 
   // Notification toasts with type (success/error/info)
   const [toasts, setToasts] = useState<ToastData[]>([]);
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todas');
-  const [filterByDate, setFilterByDate] = useState(false);
 
   const showNotification = useCallback((msg: string, type: ToastType = 'success') => {
     const id = Date.now() + Math.random();
@@ -200,7 +194,6 @@ export default function App() {
 
   const handleSelectDate = useCallback((dateStr: string) => {
     setSelectedDate(dateStr);
-    setFilterByDate(false);
   }, []);
 
   // CRUD - Create & Update with Firebase
@@ -431,25 +424,6 @@ export default function App() {
     });
   }, []);
 
-  // Filter notes for list display
-  const filteredNotes = useMemo(() => notes.filter((n) => {
-    if (filterByDate && n.date !== selectedDate) {
-      return false;
-    }
-    if (selectedCategory !== 'Todas' && n.category !== selectedCategory) {
-      return false;
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = n.title.toLowerCase().includes(q);
-      const matchContent = n.content.toLowerCase().includes(q);
-      const matchAuthor = (n.authorName || n.authorEmail || n.createdBy || '').toLowerCase().includes(q);
-      const matchLocation = n.location?.toLowerCase().includes(q) || false;
-      return matchTitle || matchContent || matchAuthor || matchLocation;
-    }
-    return true;
-  }), [notes, filterByDate, selectedDate, selectedCategory, searchQuery]);
-
   // If still checking authentication state, show branded loading splash
   if (authLoading) {
     return (
@@ -534,11 +508,17 @@ export default function App() {
         ) : isViewingSchedule ? (
           <ViewScheduleScreen
             notes={notes}
+            currentUser={currentUser}
             onBack={() => setIsViewingSchedule(false)}
             onViewNote={(note) => {
               setIsViewingSchedule(false);
               setViewingNote(note);
             }}
+            onEditNote={(note) => {
+              setIsViewingSchedule(false);
+              handleStartEdit(note);
+            }}
+            onDeleteNote={(note) => setDeletingNote(note)}
           />
         ) : (
           <>
@@ -564,23 +544,6 @@ export default function App() {
                 onCancelEdit={() => setEditingNote(null)}
               />
             </div>
-
-            {/* Bottom Section: Shared Notes List */}
-            <NoteList
-              notes={filteredNotes}
-              selectedDate={selectedDate}
-              isDateFilterActive={filterByDate}
-              searchQuery={searchQuery}
-              selectedCategory={selectedCategory}
-              currentUser={currentUser}
-              onSearchChange={setSearchQuery}
-              onCategoryChange={setSelectedCategory}
-              onClearDateFilter={() => setFilterByDate(false)}
-              onViewNote={(note) => setViewingNote(note)}
-              onEditNote={handleStartEdit}
-              onDeleteNote={(note) => setDeletingNote(note)}
-              onViewSchedule={() => setIsViewingSchedule(true)}
-            />
           </>
         )}
       </main>
