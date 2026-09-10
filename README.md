@@ -1,6 +1,6 @@
-# Agenda Norte do Paraná — Insanos Moto Clube Brasil
+# Agenda Norte do Paraná — Siluar Core
 
-Aplicativo oficial de gerenciamento e compartilhamento de datas, eventos, reuniões e passeios da divisão **Norte do Paraná** do **Insanos MC**.
+Aplicativo oficial de gerenciamento e compartilhamento de datas, eventos, reuniões e passeios da divisão **Norte do Paraná** da **Siluar Core**.
 
 ## 🛠 Tecnologias
 - **React 19** + **TypeScript** + **Vite**

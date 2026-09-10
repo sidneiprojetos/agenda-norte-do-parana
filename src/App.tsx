@@ -437,7 +437,7 @@ export default function App() {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#09090b] text-zinc-100 p-4 font-sans text-center">
         <div className="h-20 w-20 mb-4 animate-pulse">
-          <img src="/insanos.png" alt="Insanos MC Brasil" className="h-full w-full object-contain" />
+          <img src="/insanos.png" alt="Siluar Core" className="h-full w-full object-contain" />
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-400">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
@@ -471,14 +471,14 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen w-full bg-[#09090b] px-3 py-6 sm:px-6 md:py-10 text-zinc-100 antialiased font-sans selection:bg-amber-500 selection:text-black">
-      {/* Insanos MC Brasil Background Emblem */}
+      {/* Siluar Core Background Emblem */}
       <div
         className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden"
         aria-hidden="true"
       >
         <img
           src="/insanos.png"
-          alt="Insanos MC Brasil Background"
+          alt="Siluar Core Background"
           className="max-h-[85vh] max-w-[90vw] object-contain opacity-35 filter contrast-125 drop-shadow-[0_0_50px_rgba(0,0,0,0.9)]"
         />
         {/* Dark radial gradient vignette in pure neutral black - NO BLUE */}

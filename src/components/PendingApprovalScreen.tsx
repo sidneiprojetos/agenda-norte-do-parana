@@ -30,11 +30,11 @@ export function PendingApprovalScreen({
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#09090b] px-4 py-8 text-zinc-100 font-sans selection:bg-amber-500 selection:text-black">
-      {/* Background Insanos MC Emblem */}
+      {/* Background Siluar Core Emblem */}
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
         <img
           src="/insanos.png"
-          alt="Insanos MC Brasil"
+          alt="Siluar Core"
           className="max-h-[85vh] max-w-[90vw] object-contain opacity-25 filter contrast-125 drop-shadow-[0_0_50px_rgba(0,0,0,0.9)]"
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#09090b_85%)]" />
@@ -45,11 +45,11 @@ export function PendingApprovalScreen({
         id="pending-approval-card"
         className="relative z-10 w-full max-w-lg rounded-3xl border border-amber-500/40 bg-[#121215]/95 p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center"
       >
-        {/* Insanos Mini Badge */}
+        {/* Siluar Core Mini Badge */}
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 p-2 shadow-inner">
           <img
             src="/insanos.png"
-            alt="Insanos MC Brasil"
+            alt="Siluar Core"
             className="h-full w-full object-contain filter contrast-125"
           />
         </div>
@@ -64,7 +64,7 @@ export function PendingApprovalScreen({
           Solicitação Recebida
         </h1>
         <p className="mt-1 text-xs text-zinc-400">
-          Agenda Norte do Paraná • Insanos Moto Clube
+          Agenda Norte do Paraná • Siluar Core
         </p>
 
         {/* User Card */}

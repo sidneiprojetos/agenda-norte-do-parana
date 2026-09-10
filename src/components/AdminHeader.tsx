@@ -82,7 +82,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
           <div className="flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-600/30 to-amber-700/10 border border-amber-500/40 p-1 shadow-inner">
             <img
               src="/insanos.png"
-              alt="Insanos MC Brasil"
+              alt="Siluar Core"
               className="h-full w-full object-contain filter drop-shadow"
             />
           </div>
@@ -105,7 +105,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
               </span>
             </div>
             <p className="text-xs sm:text-sm text-zinc-400 truncate">
-              Insanos MC • Crie, agende e gerencie anotações compartilhadas
+              Siluar Core
             </p>
           </div>
         </div>

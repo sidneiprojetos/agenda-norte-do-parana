@@ -26,7 +26,7 @@ export function RejectedScreen({ userProfile }: RejectedScreenProps) {
           Acesso Não Autorizado
         </h1>
         <p className="mt-1 text-xs text-zinc-400">
-          Agenda Norte do Paraná • Insanos Moto Clube
+          Agenda Norte do Paraná • Siluar Core
         </p>
 
         <div className="my-5 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-3.5 text-left text-xs">
@@ -38,7 +38,7 @@ export function RejectedScreen({ userProfile }: RejectedScreenProps) {
         </div>
 
         <p className="mb-6 text-xs text-zinc-400 leading-relaxed">
-          Caso considere que isto é um engano, entre em contato diretamente com a diretoria do motoclube pelo e-mail <strong className="text-zinc-200">imc.sidnei@gmail.com</strong>.
+          Caso considere que isto é um engano, entre em contato diretamente com a administração pelo e-mail <strong className="text-zinc-200">imc.sidnei@gmail.com</strong>.
         </p>
 
         <button
