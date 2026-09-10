@@ -11,11 +11,10 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-    server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+server: {
+      // HMR pode ser desabilitado via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
+      // Desabilita o file watching quando DISABLE_HMR é true (economiza recursos da máquina).
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
     build: {

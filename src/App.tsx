@@ -209,6 +209,7 @@ export default function App() {
     time?: string;
     location?: string;
     category?: NoteCategory;
+    priority?: 'normal' | 'alta';
   }) => {
     const userEmail = currentUser?.email || ADMIN_EMAIL;
     const userName = currentUser?.displayName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Sidnei (ADM)');
@@ -229,6 +230,7 @@ export default function App() {
                 time: data.time,
                 location: data.location,
                 category: data.category || n.category,
+                priority: data.priority || n.priority || 'normal',
                 updatedAt: new Date().toISOString()
               }
             : n
@@ -243,6 +245,7 @@ export default function App() {
           time: data.time,
           location: data.location,
           category: data.category || editingNote.category,
+          priority: data.priority || editingNote.priority || 'normal',
           updatedAt: new Date().toISOString()
         });
       } catch (error) {
@@ -263,7 +266,7 @@ export default function App() {
         time: data.time,
         location: data.location,
         category: data.category || 'Geral',
-        priority: 'normal',
+        priority: data.priority || 'normal',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         createdBy: userEmail,
@@ -284,7 +287,7 @@ export default function App() {
           time: data.time,
           location: data.location,
           category: data.category || 'Geral',
-          priority: 'normal',
+          priority: data.priority || 'normal',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           createdBy: userEmail,

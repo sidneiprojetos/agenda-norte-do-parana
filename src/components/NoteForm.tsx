@@ -9,7 +9,8 @@ import {
   Clock,
   MapPin,
   Tag,
-  LogIn
+  LogIn,
+  AlertTriangle
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser, CATEGORIES } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
@@ -26,6 +27,7 @@ interface NoteFormProps {
     time?: string;
     location?: string;
     category?: NoteCategory;
+    priority?: 'normal' | 'alta';
   }) => Promise<void>;
   onCancelEdit: () => void;
 }
@@ -43,6 +45,7 @@ export const NoteForm: FC<NoteFormProps> = ({
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState<NoteCategory>('Geral');
+  const [priority, setPriority] = useState<'normal' | 'alta'>('normal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,12 +58,14 @@ export const NoteForm: FC<NoteFormProps> = ({
       setTime(editingNote.time || '');
       setLocation(editingNote.location || '');
       setCategory(editingNote.category || 'Geral');
+      setPriority(editingNote.priority || 'normal');
     } else {
       setTitle('');
       setContent('');
       setTime('');
       setLocation('');
       setCategory('Geral');
+      setPriority('normal');
       if (selectedDate) {
         setDateStr(selectedDate);
       }
@@ -87,7 +92,8 @@ export const NoteForm: FC<NoteFormProps> = ({
         date: dateStr,
         time: time.trim() || undefined,
         location: location.trim() || undefined,
-        category
+        category,
+        priority
       });
 
       if (!editingNote) {
@@ -217,6 +223,35 @@ export const NoteForm: FC<NoteFormProps> = ({
               {cat}
             </button>
           ))}
+        </div>
+
+        {/* Priority selector */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-semibold text-zinc-400 mr-1 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" /> Prioridade:
+          </span>
+          <button
+            type="button"
+            onClick={() => setPriority('normal')}
+            className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition ${
+              priority === 'normal'
+                ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-300 font-semibold'
+                : 'border-transparent bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+            }`}
+          >
+            Normal
+          </button>
+          <button
+            type="button"
+            onClick={() => setPriority('alta')}
+            className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition ${
+              priority === 'alta'
+                ? 'border-red-500/60 bg-red-500/20 text-red-300 font-semibold'
+                : 'border-transparent bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+            }`}
+          >
+            Alta
+          </button>
         </div>
 
         {/* Location input (Optional) */}
