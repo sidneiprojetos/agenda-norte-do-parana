@@ -79,7 +79,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Brand and Subtitle */}
         <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-          <div className="flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-600/30 to-amber-700/10 border border-amber-500/40 p-1 shadow-inner">
+          <div className="flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-amber-500/40 p-1 shadow-inner">
             <img
               src="/insanos.png"
               alt="Siluar Core"
@@ -105,7 +105,9 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
               </span>
             </div>
             <p className="flex items-center gap-1.5 text-xs sm:text-sm text-zinc-400 truncate">
-              <img src="/siluar.jpg" alt="" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover" />
+              <span className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black border border-zinc-700">
+                <img src="/siluar.jpg" alt="" className="h-full w-full object-cover" />
+              </span>
               Siluar Core
             </p>
           </div>
