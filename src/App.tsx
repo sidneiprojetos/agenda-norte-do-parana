@@ -13,6 +13,7 @@ import { PendingApprovalScreen } from './components/PendingApprovalScreen';
 import { RejectedScreen } from './components/RejectedScreen';
 import { UserManagementDashboard } from './components/UserManagementDashboard';
 import { ReportsModal } from './components/ReportsModal';
+import { ViewScheduleScreen } from './components/ViewScheduleScreen';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
@@ -37,6 +38,7 @@ export default function App() {
   // Admin User Management dashboard view toggle
   const [isViewingUserManagement, setIsViewingUserManagement] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
+  const [isViewingSchedule, setIsViewingSchedule] = useState(false);
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
   // Notes state synchronized from Firebase Firestore
@@ -516,8 +518,10 @@ export default function App() {
           onOpenCreateForm={handleOpenCreateForm}
           onOpenReports={() => setIsReportsOpen(true)}
           onOpenUserManagement={() => setIsViewingUserManagement((prev) => !prev)}
+          onViewSchedule={() => setIsViewingSchedule((prev) => !prev)}
           pendingUsersCount={pendingUsersCount}
           isViewingUserManagement={isViewingUserManagement}
+          isViewingSchedule={isViewingSchedule}
         />
 
         {/* Conditional View: Admin User Management Dashboard OR Normal Agenda */}
@@ -526,6 +530,15 @@ export default function App() {
             currentAdminEmail={currentUser.email || ADMIN_EMAIL}
             onBackToAgenda={() => setIsViewingUserManagement(false)}
             onShowToast={showNotification}
+          />
+        ) : isViewingSchedule ? (
+          <ViewScheduleScreen
+            notes={notes}
+            onBack={() => setIsViewingSchedule(false)}
+            onViewNote={(note) => {
+              setIsViewingSchedule(false);
+              setViewingNote(note);
+            }}
           />
         ) : (
           <>
@@ -566,6 +579,7 @@ export default function App() {
               onViewNote={(note) => setViewingNote(note)}
               onEditNote={handleStartEdit}
               onDeleteNote={(note) => setDeletingNote(note)}
+              onViewSchedule={() => setIsViewingSchedule(true)}
             />
           </>
         )}

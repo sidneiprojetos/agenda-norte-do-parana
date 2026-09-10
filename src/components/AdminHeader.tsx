@@ -8,7 +8,8 @@ import {
   Plus,
   LogOut,
   Users,
-  BarChart3
+  BarChart3,
+  CalendarDays
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { loginWithGoogle, logoutUser, getAuthErrorMessage } from '../firebase';
@@ -22,8 +23,10 @@ interface AdminHeaderProps {
   onOpenCreateForm: () => void;
   onOpenReports?: () => void;
   onOpenUserManagement?: () => void;
+  onViewSchedule?: () => void;
   pendingUsersCount?: number;
   isViewingUserManagement?: boolean;
+  isViewingSchedule?: boolean;
 }
 
 export const AdminHeader: FC<AdminHeaderProps> = ({
@@ -35,8 +38,10 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
   onOpenCreateForm,
   onOpenReports,
   onOpenUserManagement,
+  onViewSchedule,
   pendingUsersCount = 0,
-  isViewingUserManagement = false
+  isViewingUserManagement = false,
+  isViewingSchedule = false
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -211,6 +216,22 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
             >
               <BarChart3 className="h-3.5 w-3.5" />
               <span>Relatórios</span>
+            </button>
+          )}
+
+          {onViewSchedule && (
+            <button
+              id="view-schedule-btn"
+              onClick={onViewSchedule}
+              title="Visualizar toda a agenda"
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-95 ${
+                isViewingSchedule
+                  ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
+                  : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+              }`}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span>Visualizar Agenda</span>
             </button>
           )}
 

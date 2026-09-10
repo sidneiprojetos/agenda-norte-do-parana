@@ -7,7 +7,8 @@ import {
   Calendar as CalendarIcon,
   Search,
   FilterX,
-  Eye
+  Eye,
+  CalendarDays
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
@@ -27,6 +28,7 @@ interface NoteListProps {
   onViewNote: (note: Note) => void;
   onEditNote: (note: Note) => void;
   onDeleteNote: (note: Note) => void;
+  onViewSchedule?: () => void;
 }
 
 const CATEGORIES: (NoteCategory | 'Todas')[] = [
@@ -50,7 +52,8 @@ export const NoteList: FC<NoteListProps> = ({
   onClearDateFilter,
   onViewNote,
   onEditNote,
-  onDeleteNote
+  onDeleteNote,
+  onViewSchedule
 }) => {
   const canModify = (note: Note): boolean => {
     if (!currentUser) return true; // Allows local guest interaction fallback
@@ -69,6 +72,16 @@ export const NoteList: FC<NoteListProps> = ({
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
             AGENDA COMPARTILHADA ({notes.length})
           </h2>
+
+          {onViewSchedule && (
+            <button
+              onClick={onViewSchedule}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-400 transition hover:bg-emerald-500/20 active:scale-95"
+            >
+              <CalendarDays className="h-3 w-3" />
+              Visualizar
+            </button>
+          )}
 
           {isDateFilterActive && (
             <div className="flex items-center gap-1.5 rounded-lg bg-amber-950/40 border border-amber-800/50 px-2.5 py-0.5 text-xs text-amber-300">
