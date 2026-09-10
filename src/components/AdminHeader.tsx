@@ -104,7 +104,8 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
                 Firestore Tempo Real
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-zinc-400 truncate">
+            <p className="flex items-center gap-1.5 text-xs sm:text-sm text-zinc-400 truncate">
+              <img src="/siluar.jpg" alt="" className="h-5 w-5 object-contain" />
               Siluar Core
             </p>
           </div>
