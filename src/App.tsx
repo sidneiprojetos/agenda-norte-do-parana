@@ -556,6 +556,14 @@ export default function App() {
         )}
       </main>
 
+      {/* Footer */}
+      <footer className="relative z-10 mx-auto mt-6 max-w-5xl flex flex-col items-center gap-2 pb-4">
+        <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-black border border-zinc-700 shadow-lg">
+          <img src="/siluar.jpg" alt="Siluar Core" className="h-full w-full object-cover" />
+        </span>
+        <p className="text-xs sm:text-sm text-zinc-400 tracking-wide">Siluar Core</p>
+      </footer>
+
       {/* Modal: View Details (Read) */}
       <ViewNoteModal
         note={viewingNote}
@@ -583,7 +591,6 @@ export default function App() {
         date={dayEventsDate}
         notes={notes}
         isOpen={isDayEventsOpen}
-        currentUser={currentUser}
         onClose={() => {
           setIsDayEventsOpen(false);
           setDayEventsDate(null);

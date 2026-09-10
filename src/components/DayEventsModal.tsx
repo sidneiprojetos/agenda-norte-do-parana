@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, Eye } from 'lucide-react';
-import { Note, AppUser } from '../types';
+import { Note } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
 import { Modal } from './Modal';
@@ -9,7 +9,6 @@ interface DayEventsModalProps {
   date: string | null;
   notes: Note[];
   isOpen: boolean;
-  currentUser: AppUser | null;
   onClose: () => void;
   onViewNote: (note: Note) => void;
 }
@@ -18,7 +17,6 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
   date,
   notes,
   isOpen,
-  currentUser,
   onClose,
   onViewNote
 }) => {
