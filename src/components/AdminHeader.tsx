@@ -80,13 +80,6 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
         {/* Brand and Subtitle */}
         <div className="flex flex-col gap-2 min-w-0">
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-amber-500/40 p-1 shadow-inner">
-              <img
-                src="/insanos.png"
-                alt="Siluar Core"
-                className="h-full w-full object-contain filter drop-shadow"
-              />
-            </div>
             <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white truncate">
               Agenda Norte do Paraná
             </h1>

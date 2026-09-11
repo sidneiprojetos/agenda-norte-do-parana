@@ -462,9 +462,7 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#09090b] text-zinc-100 p-4 font-sans text-center">
-        <div className="h-20 w-20 mb-4 animate-pulse">
-          <img src="/insanos.png" alt="Siluar Core" className="h-full w-full object-contain" />
-        </div>
+
         <div className="flex items-center gap-2 text-sm text-zinc-400">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
           <span>Verificando autenticação Google...</span>
@@ -505,19 +503,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen w-full bg-[#09090b] px-3 py-6 sm:px-6 md:py-10 text-zinc-100 antialiased font-sans selection:bg-amber-500 selection:text-black">
-      {/* Siluar Core Background Emblem */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden"
-        aria-hidden="true"
-      >
-        <img
-          src="/insanos.png"
-          alt="Siluar Core Background"
-          className="max-h-[85vh] max-w-[90vw] object-contain opacity-35 filter contrast-125 drop-shadow-[0_0_50px_rgba(0,0,0,0.9)]"
-        />
-        {/* Dark radial gradient vignette in pure neutral black - NO BLUE */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#09090b_85%)]" />
-      </div>
+
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
@@ -595,10 +581,8 @@ export default function App() {
         <p className="text-sm sm:text-base text-zinc-400 tracking-wide whitespace-nowrap">
           Desenvolvido por
         </p>
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black border border-zinc-700">
-          <img src="/siluar.jpg" alt="Siluar Core" className="h-full w-full object-cover" />
-        </span>
-        <span className="text-sm sm:text-base font-semibold text-zinc-200 tracking-wide whitespace-nowrap">
+
+        <span className="text-sm sm:text-base text-zinc-200 tracking-wide whitespace-nowrap">
           Siluar Core
         </span>
       </footer>

@@ -69,17 +69,6 @@ function noteAuthor(note: Note): string {
   return note.authorName || note.authorEmail || note.createdBy || 'Anônimo';
 }
 
-async function loadImageAsDataUrl(url: string): Promise<string> {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 type ReportView = 'geral' | 'categoria' | 'autor' | 'mes' | 'prioridade' | 'lista';
 
 const VIEW_OPTIONS: { id: ReportView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -102,13 +91,7 @@ async function drawReportHeader(pdf: import('jspdf').jsPDF, pageWidth: number) {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
   pdf.setTextColor(25, 25, 25);
-  try {
-    const logoDataUrl = await loadImageAsDataUrl('/insanos.png');
-    pdf.addImage(logoDataUrl, 'PNG', margin, 6, 10, 10);
-  } catch {
-    // ignore: report still works without the emblem
-  }
-  pdf.text('Agenda Norte do Paraná', margin + 12, 13);
+  pdf.text('Agenda Norte do Paraná', margin, 13);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(90, 90, 90);
