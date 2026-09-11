@@ -604,6 +604,7 @@ export default function App() {
         notes={notes}
         isOpen={isReportsOpen}
         onClose={() => setIsReportsOpen(false)}
+        notify={showNotification}
         onViewNote={(note) => {
           setIsReportsOpen(false);
           setViewingNote(note);
