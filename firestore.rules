@@ -43,5 +43,12 @@ service cloud.firestore {
       // Only the author or an admin can update or delete
       allow update, delete: if isAdmin() || isOwner(resource);
     }
+    
+    // Audit logs collection - append-only, readable only by administrators
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
   }
 }

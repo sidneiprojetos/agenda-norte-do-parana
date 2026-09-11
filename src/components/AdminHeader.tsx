@@ -9,7 +9,8 @@ import {
   LogOut,
   Users,
   BarChart3,
-  CalendarDays
+  CalendarDays,
+  ScrollText
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { loginWithGoogle, logoutUser, getAuthErrorMessage } from '../firebase';
@@ -24,9 +25,11 @@ interface AdminHeaderProps {
   onOpenReports?: () => void;
   onOpenUserManagement?: () => void;
   onViewSchedule?: () => void;
+  onOpenAudit?: () => void;
   pendingUsersCount?: number;
   isViewingUserManagement?: boolean;
   isViewingSchedule?: boolean;
+  isViewingAudit?: boolean;
 }
 
 export const AdminHeader: FC<AdminHeaderProps> = ({
@@ -39,9 +42,11 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
   onOpenReports,
   onOpenUserManagement,
   onViewSchedule,
+  onOpenAudit,
   pendingUsersCount = 0,
   isViewingUserManagement = false,
-  isViewingSchedule = false
+  isViewingSchedule = false,
+  isViewingAudit = false
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -193,6 +198,22 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
                   {pendingUsersCount}
                 </span>
               )}
+            </button>
+          )}
+
+          {currentUser?.isAdmin && onOpenAudit && (
+            <button
+              id="admin-audit-btn"
+              onClick={onOpenAudit}
+              title="Verificar quem criou, editou, excluiu e acessou as anotações"
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-95 ${
+                isViewingAudit
+                  ? 'border-violet-500 bg-violet-500/20 text-violet-300'
+                  : 'border-violet-500/40 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'
+              }`}
+            >
+              <ScrollText className="h-3.5 w-3.5" />
+              <span>Auditoria</span>
             </button>
           )}
 

@@ -13,6 +13,7 @@ import { UserManagementDashboard } from './components/UserManagementDashboard';
 import { ReportsModal } from './components/ReportsModal';
 import { ViewScheduleScreen } from './components/ViewScheduleScreen';
 import { DayEventsModal } from './components/DayEventsModal';
+import { AuditDashboard } from './components/AuditDashboard';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
@@ -22,6 +23,7 @@ import {
   updateFirestoreNote,
   deleteFirestoreNote
 } from './services/notesService';
+import { logAuditEntry } from './services/auditService';
 import {
   syncUserProfile,
   subscribeToUserProfile,
@@ -43,6 +45,7 @@ export default function App() {
   const [isViewingUserManagement, setIsViewingUserManagement] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isViewingSchedule, setIsViewingSchedule] = useState(false);
+  const [isViewingAudit, setIsViewingAudit] = useState(false);
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
   // Notes state synchronized from Firebase Firestore
@@ -114,6 +117,16 @@ export default function App() {
             division: profile.division
           };
           setCurrentUser(appUser);
+
+          // Audit: log user access to the system
+          logAuditEntry({
+            action: 'login',
+            entityType: 'auth',
+            actorUid: fbUser.uid,
+            actorName: profile.displayName || fbUser.displayName || undefined,
+            actorEmail: profile.email || fbUser.email || undefined,
+            details: isAdmin ? 'Acesso ao sistema (ADM)' : 'Acesso ao sistema'
+          });
 
           // Real-time listener for profile updates (so if admin approves in real-time, user unlocks immediately)
           profileUnsub = await subscribeToUserProfile(fbUser.uid, (updated) => {
@@ -205,6 +218,43 @@ export default function App() {
     }
   }, []);
 
+  // Open a note's details and register the access in the audit log
+  const handleViewNote = useCallback(
+    (note: Note) => {
+      setViewingNote(note);
+      logAuditEntry({
+        action: 'view',
+        entityType: 'note',
+        entityId: note.id,
+        entityTitle: note.title,
+        actorUid: currentUser?.uid,
+        actorName: currentUser?.displayName,
+        actorEmail: currentUser?.email,
+        details: 'Visualizou os detalhes da anotação'
+      });
+    },
+    [currentUser]
+  );
+
+  // Mutually exclusive full-screen views (User Management / Audit / Schedule)
+  const handleToggleUserManagement = useCallback(() => {
+    setIsViewingSchedule(false);
+    setIsViewingAudit(false);
+    setIsViewingUserManagement((prev) => !prev);
+  }, []);
+
+  const handleToggleAudit = useCallback(() => {
+    setIsViewingSchedule(false);
+    setIsViewingUserManagement(false);
+    setIsViewingAudit((prev) => !prev);
+  }, []);
+
+  const handleToggleSchedule = useCallback(() => {
+    setIsViewingAudit(false);
+    setIsViewingUserManagement(false);
+    setIsViewingSchedule((prev) => !prev);
+  }, []);
+
   // Calendar navigation
   const handleChangeMonth = useCallback((increment: number) => {
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + increment, 1));
@@ -267,16 +317,24 @@ export default function App() {
       );
       // UPDATE in Firestore
       try {
-        await updateFirestoreNote(editingNote.id, {
-          title: data.title,
-          content: data.content,
-          date: data.date,
-          time: data.time,
-          location: data.location,
-          category: data.category || editingNote.category,
-          priority: data.priority || editingNote.priority || 'normal',
-          updatedAt: new Date().toISOString()
-        });
+        await updateFirestoreNote(
+          editingNote.id,
+          {
+            title: data.title,
+            content: data.content,
+            date: data.date,
+            time: data.time,
+            location: data.location,
+            category: data.category || editingNote.category,
+            priority: data.priority || editingNote.priority || 'normal',
+            updatedAt: new Date().toISOString()
+          },
+          {
+            title: data.title,
+            actor: { uid: userId, name: userName, email: userEmail },
+            details: 'Editou a anotação'
+          }
+        );
       } catch (error) {
         setNotes((prev) => prev.map((note) => (note.id === previousNote.id ? previousNote : note)));
         showNotification('Não foi possível salvar a alteração no Firebase.', 'error');
@@ -309,22 +367,28 @@ export default function App() {
       // CREATE in Firestore
       let realId: string;
       try {
-        realId = await createFirestoreNote({
-          title: data.title,
-          content: data.content,
-          date: data.date,
-          time: data.time,
-          location: data.location,
-          category: data.category || 'Geral',
-          priority: data.priority || 'normal',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: userEmail,
-          authorEmail: userEmail,
-          authorName: userName,
-          authorPhoto: userPhoto,
-          authorId: userId
-        });
+        realId = await createFirestoreNote(
+          {
+            title: data.title,
+            content: data.content,
+            date: data.date,
+            time: data.time,
+            location: data.location,
+            category: data.category || 'Geral',
+            priority: data.priority || 'normal',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            createdBy: userEmail,
+            authorEmail: userEmail,
+            authorName: userName,
+            authorPhoto: userPhoto,
+            authorId: userId
+          },
+          {
+            actor: { uid: userId, name: userName, email: userEmail },
+            details: 'Criou uma nova anotação'
+          }
+        );
       } catch (error) {
         setNotes((prev) => prev.filter((note) => note.id !== tempId));
         showNotification('Não foi possível publicar a anotação no Firebase.', 'error');
@@ -354,12 +418,20 @@ export default function App() {
     setDeletingNote(null);
 
     try {
-      await deleteFirestoreNote(targetId);
+      await deleteFirestoreNote(targetId, {
+        title,
+        actor: {
+          uid: currentUser?.uid,
+          name: currentUser?.displayName,
+          email: currentUser?.email
+        },
+        details: 'Excluiu a anotação'
+      });
       showNotification(`Anotação "${title}" excluída com sucesso!`);
     } catch {
       showNotification('Anotação removida da visualização.', 'error');
     }
-  }, [deletingNote, editingNote, viewingNote, showNotification]);
+  }, [deletingNote, editingNote, viewingNote, showNotification, currentUser]);
 
   // CRUD - Start Edit
   const handleStartEdit = useCallback((note: Note) => {
@@ -387,10 +459,18 @@ export default function App() {
       downloadAnchor.click();
       downloadAnchor.remove();
       showNotification('Backup da agenda exportado com sucesso!');
+      logAuditEntry({
+        action: 'export',
+        entityType: 'data',
+        actorUid: currentUser?.uid,
+        actorName: currentUser?.displayName,
+        actorEmail: currentUser?.email,
+        details: `Exportou backup com ${notes.length} anotações`
+      });
     } catch (e) {
       showNotification('Erro ao exportar backup da agenda.', 'error');
     }
-  }, [notes, showNotification]);
+  }, [notes, showNotification, currentUser]);
 
   // Admin: Import backup to Firestore
   const handleImportData = useCallback(async (file: File) => {
@@ -420,6 +500,14 @@ export default function App() {
             }
           }
           showNotification(`${parsed.length} anotações importadas com sucesso!`);
+          logAuditEntry({
+            action: 'import',
+            entityType: 'data',
+            actorUid: currentUser?.uid,
+            actorName: currentUser?.displayName,
+            actorEmail: currentUser?.email,
+            details: `Importou backup com ${parsed.length} anotações`
+          });
         } else {
           showNotification('Formato de arquivo inválido. Deve ser um array de anotações.', 'error');
         }
@@ -446,8 +534,16 @@ export default function App() {
         });
       }
       showNotification('Anotações padrão reinseridas no Firebase!');
+      logAuditEntry({
+        action: 'reset',
+        entityType: 'data',
+        actorUid: currentUser?.uid,
+        actorName: currentUser?.displayName,
+        actorEmail: currentUser?.email,
+        details: `Restaurou ${INITIAL_NOTES.length} anotações padrão`
+      });
     }
-  }, [showNotification]);
+  }, [showNotification, currentUser]);
 
   const handleOpenCreateForm = useCallback(() => {
     setEditingNote(null);
@@ -519,19 +615,25 @@ export default function App() {
           onResetData={handleResetData}
           onOpenCreateForm={handleOpenCreateForm}
           onOpenReports={() => setIsReportsOpen(true)}
-          onOpenUserManagement={() => setIsViewingUserManagement((prev) => !prev)}
-          onViewSchedule={() => setIsViewingSchedule((prev) => !prev)}
+          onOpenUserManagement={handleToggleUserManagement}
+          onViewSchedule={handleToggleSchedule}
+          onOpenAudit={handleToggleAudit}
           pendingUsersCount={pendingUsersCount}
           isViewingUserManagement={isViewingUserManagement}
           isViewingSchedule={isViewingSchedule}
+          isViewingAudit={isViewingAudit}
         />
 
-        {/* Conditional View: Admin User Management Dashboard OR Normal Agenda */}
+        {/* Conditional View: Admin User Management Dashboard OR Audit OR Schedule OR Normal Agenda */}
         {isViewingUserManagement && currentUser?.isAdmin ? (
           <UserManagementDashboard
             currentAdminEmail={currentUser.email || ADMIN_EMAIL}
             onBackToAgenda={() => setIsViewingUserManagement(false)}
             onShowToast={showNotification}
+          />
+        ) : isViewingAudit && currentUser?.isAdmin ? (
+          <AuditDashboard
+            onBackToAgenda={() => setIsViewingAudit(false)}
           />
         ) : isViewingSchedule ? (
           <ViewScheduleScreen
@@ -540,7 +642,7 @@ export default function App() {
             onBack={() => setIsViewingSchedule(false)}
             onViewNote={(note) => {
               setIsViewingSchedule(false);
-              setViewingNote(note);
+              handleViewNote(note);
             }}
             onEditNote={(note) => {
               setIsViewingSchedule(false);
@@ -607,7 +709,7 @@ export default function App() {
         notify={showNotification}
         onViewNote={(note) => {
           setIsReportsOpen(false);
-          setViewingNote(note);
+          handleViewNote(note);
         }}
       />
 
@@ -621,7 +723,7 @@ export default function App() {
         }}
         onViewNote={(note) => {
           setIsDayEventsOpen(false);
-          setViewingNote(note);
+          handleViewNote(note);
         }}
       />
 

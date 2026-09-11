@@ -1,7 +1,8 @@
 import { getDb, ADMIN_EMAIL } from '../firebase';
-import { Note } from '../types';
+import { Note, AuditActor, AuditAction } from '../types';
 import { INITIAL_NOTES } from '../data/initialNotes';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
+import { logAuditEntry } from './auditService';
 
 const NOTES_COLLECTION = 'notes';
 
@@ -20,6 +21,31 @@ async function firestore() {
     query,
     orderBy
   };
+}
+
+export interface NoteAuditInfo {
+  actor?: AuditActor;
+  title?: string;
+  details?: string;
+}
+
+async function logNoteAudit(
+  action: AuditAction,
+  audit: NoteAuditInfo | undefined,
+  entityId: string,
+  title: string
+): Promise<void> {
+  if (!audit) return;
+  await logAuditEntry({
+    action,
+    entityType: 'note',
+    entityId,
+    entityTitle: audit.title || title,
+    actorUid: audit.actor?.uid,
+    actorName: audit.actor?.name,
+    actorEmail: audit.actor?.email,
+    details: audit.details
+  });
 }
 
 /**
@@ -105,7 +131,10 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
 /**
  * Create a new note in Firestore
  */
-export async function createFirestoreNote(noteData: Omit<Note, 'id'>): Promise<string> {
+export async function createFirestoreNote(
+  noteData: Omit<Note, 'id'>,
+  audit?: NoteAuditInfo
+): Promise<string> {
   const { db, collection, doc, setDoc } = await firestore();
   const notesRef = collection(db, NOTES_COLLECTION);
   const newDocRef = doc(notesRef);
@@ -122,6 +151,8 @@ export async function createFirestoreNote(noteData: Omit<Note, 'id'>): Promise<s
 
   await setDoc(newDocRef, sanitized);
 
+  await logNoteAudit('create', audit, noteId, noteData.title);
+
   return noteId;
 }
 
@@ -130,7 +161,8 @@ export async function createFirestoreNote(noteData: Omit<Note, 'id'>): Promise<s
  */
 export async function updateFirestoreNote(
   noteId: string,
-  updates: Partial<Omit<Note, 'id'>>
+  updates: Partial<Omit<Note, 'id'>>,
+  audit?: NoteAuditInfo
 ): Promise<void> {
   const { db, doc, updateDoc } = await firestore();
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
@@ -139,13 +171,18 @@ export async function updateFirestoreNote(
     updatedAt: new Date().toISOString()
   };
   await updateDoc(noteDocRef, removeUndefinedFields(rawUpdates));
+  await logNoteAudit('update', audit, noteId, audit?.title || updates.title || 'Anotação');
 }
 
 /**
  * Delete a note from Firestore
  */
-export async function deleteFirestoreNote(noteId: string): Promise<void> {
+export async function deleteFirestoreNote(
+  noteId: string,
+  audit?: NoteAuditInfo
+): Promise<void> {
   const { db, doc, deleteDoc } = await firestore();
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
   await deleteDoc(noteDocRef);
+  await logNoteAudit('delete', audit, noteId, audit?.title || 'Anotação');
 }

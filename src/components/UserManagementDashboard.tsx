@@ -22,6 +22,7 @@ import {
   updateUserDetails,
   deleteUser
 } from '../services/userService';
+import { logAuditEntry } from '../services/auditService';
 import { isUserAdmin } from '../firebase';
 
 interface UserManagementDashboardProps {
@@ -73,6 +74,15 @@ export function UserManagementDashboard({
     setIsProcessing(user.uid);
     try {
       await approveUser(user.uid, currentAdminEmail);
+      logAuditEntry({
+        action: 'approve',
+        entityType: 'user',
+        entityId: user.uid,
+        entityTitle: user.displayName || user.email || undefined,
+        actorEmail: currentAdminEmail,
+        details:
+          user.status === 'rejected' ? 'Re-aprovou o acesso do usuário' : 'Aprovou o acesso do usuário'
+      });
       onShowToast(`Usuário ${user.displayName || user.email} aprovado com sucesso!`);
     } catch (err) {
       console.error('Error approving user:', err);
@@ -91,6 +101,15 @@ export function UserManagementDashboard({
     setIsProcessing(user.uid);
     try {
       await rejectUser(user.uid);
+      logAuditEntry({
+        action: user.status === 'approved' ? 'block' : 'reject',
+        entityType: 'user',
+        entityId: user.uid,
+        entityTitle: user.displayName || user.email || undefined,
+        actorEmail: currentAdminEmail,
+        details:
+          user.status === 'approved' ? 'Bloqueou o acesso do usuário' : 'Recusou a solicitação de acesso'
+      });
       onShowToast(`Acesso de ${user.displayName || user.email} foi recusado.`);
     } catch (err) {
       console.error('Error rejecting user:', err);
@@ -129,6 +148,14 @@ export function UserManagementDashboard({
         division: editDivision.trim() || 'Norte do Paraná',
         notes: editNotes.trim()
       });
+      logAuditEntry({
+        action: 'user_update',
+        entityType: 'user',
+        entityId: editingUser.uid,
+        entityTitle: editingUser.displayName || editingUser.email || undefined,
+        actorEmail: currentAdminEmail,
+        details: `Atualizou perfil (status: ${finalStatus}, cargo: ${finalRole})`
+      });
       onShowToast(`Dados de ${editName || editingUser.email} atualizados com sucesso!`);
       setEditingUser(null);
     } catch (err) {
@@ -151,6 +178,14 @@ export function UserManagementDashboard({
     setIsProcessing(userToDelete.uid);
     try {
       await deleteUser(userToDelete.uid);
+      logAuditEntry({
+        action: 'user_delete',
+        entityType: 'user',
+        entityId: userToDelete.uid,
+        entityTitle: userToDelete.displayName || userToDelete.email || undefined,
+        actorEmail: currentAdminEmail,
+        details: 'Excluiu o cadastro do usuário'
+      });
       onShowToast(`Usuário ${userToDelete.displayName || userToDelete.email} foi excluído.`);
       setUserToDelete(null);
     } catch (err) {

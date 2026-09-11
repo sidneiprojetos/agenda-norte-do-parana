@@ -36,6 +36,26 @@
         "authorEmail": { "type": "string" }
       },
       "required": ["title", "date", "createdAt", "authorEmail"]
+    },
+    "auditLogs": {
+      "title": "Log de Auditoria - Agenda Norte do Paraná",
+      "description": "Trilha de auditoria com quem criou, editou, excluiu, visualizou anotações e os acessos ao sistema",
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["create", "update", "delete", "view", "login", "logout", "export", "import", "reset", "approve", "reject", "block", "user_update", "user_delete"]
+        },
+        "entityType": { "type": "string", "enum": ["note", "user", "auth", "data"] },
+        "entityId": { "type": "string" },
+        "entityTitle": { "type": "string" },
+        "actorUid": { "type": "string" },
+        "actorName": { "type": "string" },
+        "actorEmail": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["action", "entityType", "timestamp"]
     }
   },
   "firestore": {
@@ -46,6 +66,10 @@
     "/notes/{noteId}": {
       "schema": "notes",
       "description": "Anotação da agenda compartilhada"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "auditLogs",
+      "description": "Evento de auditoria (append-only)"
     }
   }
 }

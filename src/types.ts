@@ -59,3 +59,40 @@ export interface DayInfo {
   hasNotes: boolean;
   notesCount: number;
 }
+
+export type AuditAction =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'view'
+  | 'login'
+  | 'logout'
+  | 'export'
+  | 'import'
+  | 'reset'
+  | 'approve'
+  | 'reject'
+  | 'block'
+  | 'user_update'
+  | 'user_delete';
+
+export type AuditEntityType = 'note' | 'user' | 'auth' | 'data';
+
+export interface AuditActor {
+  uid?: string | null;
+  name?: string | null;
+  email?: string | null;
+}
+
+export interface AuditLog {
+  id: string;
+  action: AuditAction;
+  entityType: AuditEntityType;
+  entityId?: string | null;
+  entityTitle?: string | null;
+  actorUid?: string | null;
+  actorName?: string | null;
+  actorEmail?: string | null;
+  details?: string | null;
+  timestamp: string; // ISO string
+}
