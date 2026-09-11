@@ -50,11 +50,9 @@ export interface AppUser {
 }
 
 export interface DayInfo {
-  date: Date;
   dateString: string; // YYYY-MM-DD
   dayNumber: number;
   isCurrentMonth: boolean;
-  isToday: boolean;
   isSelected: boolean;
   hasNotes: boolean;
   notesCount: number;

@@ -8,7 +8,6 @@ import {
   getCalendarDays,
   formatDateToISO
 } from '../utils/dateUtils';
-import { Watermark } from './Watermark';
 import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface CalendarProps {
@@ -43,9 +42,6 @@ export const Calendar: FC<CalendarProps> = ({
       id="calendar-container"
       className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#161619]/85 p-4 sm:p-5 shadow-xl backdrop-blur-md transition-all"
     >
-      {/* Background Watermark */}
-      <Watermark />
-
       {/* Calendar Header */}
       <div className="relative z-10 mb-4 flex items-start justify-between px-1">
         <button

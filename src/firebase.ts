@@ -11,7 +11,7 @@ import {
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Active configuration: prioritizes Vercel / .env environment variables if provided
-export const activeFirebaseConfig = {
+const activeFirebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId,
@@ -21,7 +21,7 @@ export const activeFirebaseConfig = {
 };
 
 // Initialize Firebase App
-export const app = initializeApp(activeFirebaseConfig);
+const app = initializeApp(activeFirebaseConfig);
 
 // Lazy Firestore client: only loads 'firebase/firestore' when first needed (after login)
 let firestorePromise: Promise<Firestore> | null = null;
@@ -44,13 +44,13 @@ export function getDb(): Promise<Firestore> {
 export const auth = getAuth(app);
 
 // Google Auth Provider for Gmail login
-export const googleProvider = new GoogleAuthProvider();
+const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
 export const ADMIN_EMAIL = 'imc.sidnei@gmail.com';
-export const ADMIN_EMAILS = ['imc.sidnei@gmail.com'];
+const ADMIN_EMAILS = ['imc.sidnei@gmail.com'];
 
 /**
  * Checks if an email is administrator with unrestricted access

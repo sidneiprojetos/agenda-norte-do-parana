@@ -67,9 +67,6 @@ export function getCalendarDays(
   selectedDateStr: string,
   notes: Note[]
 ): DayInfo[] {
-  const today = new Date();
-  const todayISO = formatDateToISO(today);
-
   // Map notes count by date
   const notesByDate: Record<string, number> = {};
   for (const note of notes) {
@@ -93,11 +90,9 @@ export function getCalendarDays(
     const date = new Date(year, month - 1, dayNum);
     const dateString = formatDateToISO(date);
     days.push({
-      date,
       dateString,
       dayNumber: dayNum,
       isCurrentMonth: false,
-      isToday: dateString === todayISO,
       isSelected: dateString === selectedDateStr,
       hasNotes: !!notesByDate[dateString],
       notesCount: notesByDate[dateString] || 0
@@ -109,11 +104,9 @@ export function getCalendarDays(
     const date = new Date(year, month, d);
     const dateString = formatDateToISO(date);
     days.push({
-      date,
       dateString,
       dayNumber: d,
       isCurrentMonth: true,
-      isToday: dateString === todayISO,
       isSelected: dateString === selectedDateStr,
       hasNotes: !!notesByDate[dateString],
       notesCount: notesByDate[dateString] || 0
@@ -127,11 +120,9 @@ export function getCalendarDays(
     const date = new Date(year, month + 1, i);
     const dateString = formatDateToISO(date);
     days.push({
-      date,
       dateString,
       dayNumber: i,
       isCurrentMonth: false,
-      isToday: dateString === todayISO,
       isSelected: dateString === selectedDateStr,
       hasNotes: !!notesByDate[dateString],
       notesCount: notesByDate[dateString] || 0
