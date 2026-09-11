@@ -4,10 +4,11 @@ import { removeUndefinedFields } from '../utils/cleanFirestore';
 
 const AUDIT_COLLECTION = 'auditLogs';
 const MAX_LOGS = 800;
+const AUDIT_LOG_RETENTION_DAYS = 180;
 
 async function firestore() {
   const db = await getDb();
-  const { collection, addDoc, query, orderBy, limit, onSnapshot } =
+  const { collection, addDoc, query, orderBy, limit, where, onSnapshot, getDocs, deleteDoc, doc } =
     await import('firebase/firestore');
   return {
     db,
@@ -16,13 +17,19 @@ async function firestore() {
     query,
     orderBy,
     limit,
-    onSnapshot
+    where,
+    onSnapshot,
+    getDocs,
+    deleteDoc,
+    doc
   };
 }
 
 /**
  * Append a new entry to the audit log collection. Logging failures are
  * non-blocking (best effort) so CRUD operations never break because of it.
+ * Each entry carries an `expireAt` Firestore timestamp so the Firestore TTL
+ * policy (180 days) removes it automatically.
  */
 export async function logAuditEntry(
   entry: Omit<AuditLog, 'id' | 'timestamp'>
@@ -30,7 +37,11 @@ export async function logAuditEntry(
   try {
     const { db, collection, addDoc } = await firestore();
     const logsRef = collection(db, AUDIT_COLLECTION);
-    const raw = removeUndefinedFields({ ...entry, timestamp: new Date().toISOString() });
+    const raw = removeUndefinedFields({
+      ...entry,
+      timestamp: new Date().toISOString(),
+      expireAt: new Date(Date.now() + AUDIT_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+    });
     Object.keys(raw).forEach((key) => {
       if (raw[key] === null) delete raw[key];
     });
@@ -77,4 +88,30 @@ export async function subscribeToAuditLogs(
       console.warn('Falha ao escutar log de auditoria:', error);
     }
   );
+}
+
+/**
+ * App-level cleanup: removes audit logs whose `expireAt` timestamp is in
+ * the past (older than 180 days). Runs in a batch of up to 100 docs
+ * per invocation to avoid heavy snapshots. Designed to be called when an
+ * admin opens the Auditoria dashboard.
+ */
+const CLEANUP_BATCH_SIZE = 100;
+
+export async function cleanupExpiredAuditLogs(): Promise<number> {
+  try {
+    const { db, collection, query, where, limit, getDocs, deleteDoc, doc } = await firestore();
+    const logsRef = collection(db, AUDIT_COLLECTION);
+    const q = query(logsRef, where('expireAt', '<=', new Date()), limit(CLEANUP_BATCH_SIZE));
+    const snapshot = await getDocs(q);
+    let removed = 0;
+    for (const d of snapshot.docs) {
+      await deleteDoc(doc(db, AUDIT_COLLECTION, d.id));
+      removed++;
+    }
+    return removed;
+  } catch (err) {
+    console.warn('Falha na limpeza de logs de auditoria expirados:', err);
+    return 0;
+  }
 }

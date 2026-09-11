@@ -53,6 +53,7 @@
         "actorName": { "type": "string" },
         "actorEmail": { "type": "string" },
         "details": { "type": "string" },
+        "expireAt": { "type": "timestamp", "description": "Timestamp used for app-level TTL cleanup (180 dias). Quando billing estiver habilitado, pode ser ativado TTL nativo nesta coleção." },
         "timestamp": { "type": "string" }
       },
       "required": ["action", "entityType", "timestamp"]

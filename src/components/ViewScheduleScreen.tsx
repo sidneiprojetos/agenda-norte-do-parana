@@ -10,7 +10,7 @@ import {
   CalendarDays
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser } from '../types';
-import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
+import { formatDateToBR, formatDateToISO, formatDateTimeBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
 import { isUserAdmin } from '../firebase';
 
@@ -43,8 +43,15 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<NoteCategory | 'Todas'>('Todas');
 
+  const todayISO = formatDateToISO(new Date());
+
+  const upcomingNotes = useMemo(
+    () => notes.filter((n) => n.date >= todayISO),
+    [notes, todayISO]
+  );
+
   const filteredNotes = useMemo(() => {
-    return notes.filter((n) => {
+    return upcomingNotes.filter((n) => {
       if (selectedCategory !== 'Todas' && n.category !== selectedCategory) {
         return false;
       }
@@ -58,7 +65,7 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
       }
       return true;
     });
-  }, [notes, searchQuery, selectedCategory]);
+  }, [upcomingNotes, searchQuery, selectedCategory]);
 
   const canModify = (note: Note): boolean => {
     if (!currentUser) return true;
@@ -86,7 +93,7 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
               VISUALIZAR AGENDA
             </h2>
             <p className="text-[11px] text-zinc-400">
-              {filteredNotes.length} de {notes.length} anotações
+              {filteredNotes.length} de {upcomingNotes.length} anotações
             </p>
           </div>
         </div>

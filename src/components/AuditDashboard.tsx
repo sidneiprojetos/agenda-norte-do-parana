@@ -19,7 +19,7 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { AuditLog } from '../types';
-import { subscribeToAuditLogs } from '../services/auditService';
+import { subscribeToAuditLogs, cleanupExpiredAuditLogs } from '../services/auditService';
 import { formatDateTimeBR } from '../utils/dateUtils';
 
 interface AuditDashboardProps {
@@ -187,6 +187,11 @@ export const AuditDashboard: FC<AuditDashboardProps> = ({ onBackToAgenda }) => {
       cancelled = true;
       if (unsubscribe) unsubscribe();
     };
+  }, []);
+
+  // App-level expiration cleanup: remove logs older than 180 days on dashboard mount
+  useEffect(() => {
+    cleanupExpiredAuditLogs().catch(() => {});
   }, []);
 
   const counts = useMemo(

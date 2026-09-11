@@ -350,14 +350,19 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     });
   }, [notes, search, startDate, endDate, selectedCategories, author, location, priority]);
 
+  const upcomingNotes = useMemo(
+    () => filteredNotes.filter((note) => note.date >= todayISO),
+    [filteredNotes, todayISO]
+  );
+
   const sortedNotes = useMemo(
     () =>
-      [...filteredNotes].sort((a, b) => {
+      [...upcomingNotes].sort((a, b) => {
         const dateOrder = a.date.localeCompare(b.date);
         if (dateOrder !== 0) return dateOrder;
         return (a.time || '').localeCompare(b.time || '');
       }),
-    [filteredNotes]
+    [upcomingNotes]
   );
 
   const upcomingCount = filteredNotes.filter((note) => note.date >= todayISO).length;
@@ -557,7 +562,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       drawColumnHeader(y);
       y += 11;
 
-      if (filteredNotes.length === 0) {
+      if (sortedNotes.length === 0) {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(10);
         pdf.setTextColor(100, 116, 139);
@@ -660,9 +665,9 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8.5);
         pdf.setTextColor(25, 25, 25);
-        pdf.text(`TOTAL: ${filteredNotes.length} anotação(ões)`, margin + 4, y + 6);
+        pdf.text(`TOTAL: ${sortedNotes.length} anotação(ões)`, margin + 4, y + 6);
         pdf.text(
-          `Futuros: ${upcomingCount}  •  Realizados: ${completedCount}  •  Alta prioridade: ${highPriorityCount}`,
+          `Futuros: ${sortedNotes.length}  •  Alta prioridade: ${sortedNotes.filter((note) => note.priority === 'alta').length}`,
           pageWidth - margin - 4,
           y + 6,
           { align: 'right' }
@@ -979,7 +984,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             </button>
             <button
               onClick={exportPdfReport}
-              disabled={filteredNotes.length === 0 || isExporting !== null}
+              disabled={sortedNotes.length === 0 || isExporting !== null}
               className="flex items-center gap-1.5 rounded-lg border border-rose-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <FileText className="h-3.5 w-3.5" />
@@ -987,7 +992,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             </button>
             <button
               onClick={exportCsv}
-              disabled={filteredNotes.length === 0}
+              disabled={sortedNotes.length === 0}
               className="flex items-center gap-1.5 rounded-lg border border-sky-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-sky-300 transition hover:bg-sky-500/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Download className="h-3.5 w-3.5" />
