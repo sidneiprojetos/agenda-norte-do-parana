@@ -8,7 +8,7 @@ const DIVISIONS_COLLECTION = 'divisions';
 
 async function firestore() {
   const db = await getDb();
-  const { collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, query, orderBy } =
+  const { collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, getDoc } =
     await import('firebase/firestore');
   return {
     db,
@@ -19,7 +19,8 @@ async function firestore() {
     deleteDoc,
     onSnapshot,
     query,
-    orderBy
+    orderBy,
+    getDoc
   };
 }
 
@@ -34,48 +35,26 @@ function defaultDivisions(): Division[] {
 
 /**
  * Realtime listener for divisions from Firebase Firestore.
- * Automatically seeds the collection with INITIAL_DIVISIONS if empty.
+ * Seeds the collection with INITIAL_DIVISIONS exactly once (guarded by an
+ * `appMeta/divisionsSeed` flag), so the initial divisions never come back
+ * after an admin deletes them.
  */
 export async function subscribeToDivisions(
   callback: (divisions: Division[]) => void
 ): Promise<() => void> {
-  const { db, collection, query, orderBy, onSnapshot, setDoc, doc } = await firestore();
+  const { db, collection, query, orderBy, onSnapshot, setDoc, doc, getDoc } = await firestore();
   const divisionsRef = collection(db, DIVISIONS_COLLECTION);
   const q = query(divisionsRef, orderBy('name', 'asc'));
+  const seedFlagRef = doc(db, 'appMeta', 'divisionsSeed');
 
-  let hasSeeded = false;
+  let seedHandledThisSession = false;
 
   const unsubscribe = onSnapshot(
     q,
     async (snapshot) => {
-      if (snapshot.empty) {
-        callback(defaultDivisions());
-
-        if (!hasSeeded) {
-          hasSeeded = true;
-          try {
-            for (const name of INITIAL_DIVISIONS) {
-              const id = name
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '');
-              await setDoc(doc(db, DIVISIONS_COLLECTION, id), {
-                name,
-                createdAt: new Date().toISOString(),
-                createdBy: ADMIN_EMAIL
-              });
-            }
-          } catch (seedErr) {
-            console.warn('Initial division seeding handled gracefully:', seedErr);
-          }
-        }
-        return;
-      }
-
       const divisions: Division[] = [];
       snapshot.forEach((docSnap) => {
+        if (docSnap.id.startsWith('_')) return;
         const data = docSnap.data();
         divisions.push({
           id: docSnap.id,
@@ -85,7 +64,48 @@ export async function subscribeToDivisions(
           createdByName: data.createdByName || undefined
         });
       });
-      callback(divisions);
+
+      if (divisions.length > 0) {
+        callback(divisions);
+        return;
+      }
+
+      if (seedHandledThisSession) {
+        callback(divisions);
+        return;
+      }
+      seedHandledThisSession = true;
+
+      try {
+        const flag = await getDoc(seedFlagRef);
+        if (flag.exists()) {
+          callback(divisions);
+          return;
+        }
+
+        callback(defaultDivisions());
+
+        for (const name of INITIAL_DIVISIONS) {
+          const id = name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+          await setDoc(doc(db, DIVISIONS_COLLECTION, id), {
+            name,
+            createdAt: new Date().toISOString(),
+            createdBy: ADMIN_EMAIL
+          });
+        }
+        await setDoc(seedFlagRef, {
+          seeded: true,
+          seededAt: new Date().toISOString()
+        });
+      } catch (seedErr) {
+        console.warn('Initial division seeding handled gracefully:', seedErr);
+        callback(divisions);
+      }
     },
     (error) => {
       console.warn('Subscription notice in Firestore, falling back to default divisions:', error);

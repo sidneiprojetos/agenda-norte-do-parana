@@ -58,6 +58,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // App metadata (e.g. one-time seed flag for initial divisions)
+    match /appMeta/{metaId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
     // Audit logs collection - append-only write, readable by admins, deletable by admins for TTL cleanup
     match /auditLogs/{logId} {
       allow read: if isAdmin();
