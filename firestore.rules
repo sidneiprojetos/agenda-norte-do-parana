@@ -7,9 +7,15 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    // Check if user is the master administrator
+    // Check if the user's profile (users/{uid}) has the admin role
+    function isMemberAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Check if user is an administrator (master email or promoted admin)
     function isAdmin() {
-      return request.auth.token.email == 'imc.sidnei@gmail.com';
+      return request.auth.token.email == 'imc.sidnei@gmail.com' || isMemberAdmin();
     }
     
     // Check if the requesting user owns the given resource

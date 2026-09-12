@@ -73,6 +73,14 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
     );
     if (!confirmed) return;
 
+    if (division.id.startsWith('div-default-')) {
+      onShowToast?.(
+        'Esta divisão é padrão do sistema e ainda não foi salva no Firebase. Crie-a novamente para poder gerenciá-la.',
+        'info'
+      );
+      return;
+    }
+
     try {
       await deleteDivision(division.id, division.name, actor);
       onShowToast?.(`Divisão "${division.name}" excluída.`, 'success');
