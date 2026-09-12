@@ -99,6 +99,7 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
           location: data.location || undefined,
           category: data.category || 'Geral',
           priority: data.priority || 'normal',
+          division: data.division || undefined,
           createdAt: data.createdAt || new Date().toISOString(),
           updatedAt: data.updatedAt || undefined,
           createdBy: data.authorEmail || data.createdBy || ADMIN_EMAIL,

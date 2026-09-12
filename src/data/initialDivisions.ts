@@ -1,0 +1,1 @@
+export const INITIAL_DIVISIONS: string[] = ['Norte do Paraná', 'Londrina', 'Maringá', 'Apucarana'];

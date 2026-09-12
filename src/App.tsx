@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Note, NoteCategory, AppUser, UserProfile } from './types';
+import { Note, NoteCategory, AppUser, UserProfile, Division } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
+import { INITIAL_DIVISIONS } from './data/initialDivisions';
 import { Calendar } from './components/Calendar';
 import { NoteForm } from './components/NoteForm';
 import { AdminHeader } from './components/AdminHeader';
@@ -14,6 +15,7 @@ import { ReportsModal } from './components/ReportsModal';
 import { ViewScheduleScreen } from './components/ViewScheduleScreen';
 import { DayEventsModal } from './components/DayEventsModal';
 import { AuditDashboard } from './components/AuditDashboard';
+import { DivisionManagerModal } from './components/DivisionManagerModal';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
@@ -23,6 +25,7 @@ import {
   updateFirestoreNote,
   deleteFirestoreNote
 } from './services/notesService';
+import { subscribeToDivisions } from './services/divisionService';
 import { logAuditEntry } from './services/auditService';
 import {
   syncUserProfile,
@@ -46,10 +49,15 @@ export default function App() {
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isViewingSchedule, setIsViewingSchedule] = useState(false);
   const [isViewingAudit, setIsViewingAudit] = useState(false);
+  const [isDivisionManagerOpen, setIsDivisionManagerOpen] = useState(false);
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
   // Notes state synchronized from Firebase Firestore
   const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
+
+  // Divisions available for notes (admin-managed, synchronized realtime)
+  const [divisionOptions, setDivisionOptions] = useState<string[]>(INITIAL_DIVISIONS);
+  const [divisionList, setDivisionList] = useState<Division[]>([]);
 
   // Calendar month view (defaults to today)
   const [viewDate, setViewDate] = useState<Date>(() => new Date());
@@ -211,6 +219,34 @@ export default function App() {
     };
   }, [currentUser?.isAdmin, userProfile?.status]);
 
+  // Listen to Firestore real-time updates for divisions (when approved or admin)
+  useEffect(() => {
+    const isApprovedOrAdmin = currentUser?.isAdmin || userProfile?.status === 'approved';
+    if (!currentUser || !isApprovedOrAdmin) {
+      return;
+    }
+
+    let cancelled = false;
+    let unsubscribeDivisions: (() => void) | null = null;
+    subscribeToDivisions((firestoreDivisions) => {
+      setDivisionList(firestoreDivisions);
+      setDivisionOptions(
+        firestoreDivisions.map((div) => div.name).filter((name): name is string => Boolean(name))
+      );
+    }).then((unsub) => {
+      if (cancelled) {
+        unsub();
+        return;
+      }
+      unsubscribeDivisions = unsub;
+    });
+
+    return () => {
+      cancelled = true;
+      if (unsubscribeDivisions) unsubscribeDivisions();
+    };
+  }, [currentUser?.isAdmin, userProfile?.status]);
+
   const handleRefreshProfile = useCallback(async () => {
     if (auth.currentUser) {
       const profile = await syncUserProfile(auth.currentUser);
@@ -289,6 +325,7 @@ export default function App() {
     location?: string;
     category?: NoteCategory;
     priority?: 'normal' | 'alta';
+    division?: string;
   }) => {
     const userEmail = currentUser?.email || ADMIN_EMAIL;
     const userName = currentUser?.displayName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Sidnei (ADM)');
@@ -310,6 +347,7 @@ export default function App() {
                 location: data.location,
                 category: data.category || n.category,
                 priority: data.priority || n.priority || 'normal',
+                division: data.division || n.division,
                 updatedAt: new Date().toISOString()
               }
             : n
@@ -327,6 +365,7 @@ export default function App() {
             location: data.location,
             category: data.category || editingNote.category,
             priority: data.priority || editingNote.priority || 'normal',
+            division: data.division || editingNote.division,
             updatedAt: new Date().toISOString()
           },
           {
@@ -354,6 +393,7 @@ export default function App() {
         location: data.location,
         category: data.category || 'Geral',
         priority: data.priority || 'normal',
+        division: data.division || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         createdBy: userEmail,
@@ -376,6 +416,7 @@ export default function App() {
             location: data.location,
             category: data.category || 'Geral',
             priority: data.priority || 'normal',
+            division: data.division || undefined,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             createdBy: userEmail,
@@ -491,6 +532,7 @@ export default function App() {
                 location: item.location,
                 category: item.category || 'Geral',
                 priority: item.priority || 'normal',
+                division: item.division || undefined,
                 createdAt: item.createdAt || new Date().toISOString(),
                 createdBy: item.createdBy || currentUser?.email || ADMIN_EMAIL,
                 authorEmail: item.authorEmail || item.createdBy || currentUser?.email || ADMIN_EMAIL,
@@ -618,6 +660,7 @@ export default function App() {
           onOpenUserManagement={handleToggleUserManagement}
           onViewSchedule={handleToggleSchedule}
           onOpenAudit={handleToggleAudit}
+          onOpenDivisions={() => setIsDivisionManagerOpen(true)}
           pendingUsersCount={pendingUsersCount}
           isViewingUserManagement={isViewingUserManagement}
           isViewingSchedule={isViewingSchedule}
@@ -670,6 +713,7 @@ export default function App() {
                 selectedDate={selectedDate}
                 editingNote={editingNote}
                 currentUser={currentUser}
+                divisions={divisionOptions}
                 onSaveNote={handleSaveNote}
                 onCancelEdit={() => setEditingNote(null)}
               />
@@ -733,6 +777,15 @@ export default function App() {
         isOpen={!!deletingNote}
         onClose={() => setDeletingNote(null)}
         onConfirm={handleConfirmDelete}
+      />
+
+      <DivisionManagerModal
+        isOpen={isDivisionManagerOpen}
+        onClose={() => setIsDivisionManagerOpen(false)}
+        divisions={divisionList}
+        notes={notes}
+        currentUser={currentUser}
+        onShowToast={showNotification}
       />
     </div>
   );

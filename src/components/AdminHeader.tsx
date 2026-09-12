@@ -10,7 +10,8 @@ import {
   Users,
   BarChart3,
   CalendarDays,
-  ScrollText
+  ScrollText,
+  Building2
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { loginWithGoogle, logoutUser, getAuthErrorMessage } from '../firebase';
@@ -26,6 +27,7 @@ interface AdminHeaderProps {
   onOpenUserManagement?: () => void;
   onViewSchedule?: () => void;
   onOpenAudit?: () => void;
+  onOpenDivisions?: () => void;
   pendingUsersCount?: number;
   isViewingUserManagement?: boolean;
   isViewingSchedule?: boolean;
@@ -43,6 +45,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
   onOpenUserManagement,
   onViewSchedule,
   onOpenAudit,
+  onOpenDivisions,
   pendingUsersCount = 0,
   isViewingUserManagement = false,
   isViewingSchedule = false,
@@ -214,6 +217,18 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
             >
               <ScrollText className="h-3.5 w-3.5" />
               <span>Auditoria</span>
+            </button>
+          )}
+
+          {currentUser?.isAdmin && onOpenDivisions && (
+            <button
+              id="admin-divisions-btn"
+              onClick={onOpenDivisions}
+              title="Gerenciar as divisões disponíveis nas anotações"
+              className="flex items-center gap-1.5 rounded-xl border border-teal-500/40 bg-teal-500/10 px-3 py-2 text-xs font-semibold text-teal-300 transition hover:bg-teal-500/20 active:scale-95"
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              <span>Divisões</span>
             </button>
           )}
 

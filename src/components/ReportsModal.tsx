@@ -16,11 +16,13 @@ import {
   LayoutGrid,
   List as ListIcon,
   FilterX,
-  CalendarX2
+  CalendarX2,
+  Building2
 } from 'lucide-react';
 import { Note, NoteCategory, CATEGORIES } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
+import { getDivisionStyle } from '../utils/divisionStyles';
 import { Modal } from './Modal';
 
 interface ReportsModalProps {
@@ -247,6 +249,11 @@ const GroupedNotes: FC<GroupedNotesProps> = ({
                             <AlertTriangle className="h-2.5 w-2.5" /> Alta
                           </span>
                         )}
+                        {note.division && (
+                          <span className={`ml-2 inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[9px] font-semibold ${getDivisionStyle(note.division).badge}`}>
+                            <Building2 className="h-2.5 w-2.5" /> {note.division}
+                          </span>
+                        )}
                       </span>
                       <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
                         <span className="text-sky-300">{formatDateToBR(note.date)}</span>
@@ -326,6 +333,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         const searchable = [
           note.title,
           note.content,
+          note.division || '',
           note.location || '',
           note.authorName || '',
           note.authorEmail || '',
@@ -495,6 +503,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       'Horário',
       'Categoria',
       'Prioridade',
+      'Divisão',
       'Local',
       'Autor',
       'Descrição'
@@ -505,11 +514,12 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       note.time || '',
       note.category || 'Geral',
       note.priority || 'normal',
+      note.division || '',
       note.location || '',
       noteAuthor(note),
       note.content
     ]);
-    const totalsRow = ['', '', '', '', '', '', '', `Total: ${sortedNotes.length}`];
+    const totalsRow = ['', '', '', '', '', '', '', '', `Total: ${sortedNotes.length}`];
     const csv = [header, ...rows, totalsRow]
       .map((row) => row.map((value) => escapeCsv(value)).join(';'))
       .join('\r\n');

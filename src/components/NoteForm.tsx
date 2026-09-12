@@ -10,7 +10,9 @@ import {
   MapPin,
   Tag,
   LogIn,
-  AlertTriangle
+  AlertTriangle,
+  Building2,
+  ChevronDown
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser, CATEGORIES } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
@@ -20,6 +22,7 @@ interface NoteFormProps {
   selectedDate: string;
   editingNote: Note | null;
   currentUser: AppUser | null;
+  divisions: string[];
   onSaveNote: (noteData: {
     title: string;
     content: string;
@@ -28,6 +31,7 @@ interface NoteFormProps {
     location?: string;
     category?: NoteCategory;
     priority?: 'normal' | 'alta';
+    division?: string;
   }) => Promise<void>;
   onCancelEdit: () => void;
 }
@@ -36,6 +40,7 @@ export const NoteForm: FC<NoteFormProps> = ({
   selectedDate,
   editingNote,
   currentUser,
+  divisions,
   onSaveNote,
   onCancelEdit
 }) => {
@@ -46,8 +51,13 @@ export const NoteForm: FC<NoteFormProps> = ({
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState<NoteCategory>('Geral');
   const [priority, setPriority] = useState<'normal' | 'alta'>('normal');
+  const [division, setDivision] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const divisionOptions = Array.from(
+    new Set(division ? [division, ...divisions] : divisions)
+  );
 
   // Synchronize when editing or when date is selected on calendar
   useEffect(() => {
@@ -59,6 +69,7 @@ export const NoteForm: FC<NoteFormProps> = ({
       setLocation(editingNote.location || '');
       setCategory(editingNote.category || 'Geral');
       setPriority(editingNote.priority || 'normal');
+      setDivision(editingNote.division || '');
     } else {
       setTitle('');
       setContent('');
@@ -66,6 +77,7 @@ export const NoteForm: FC<NoteFormProps> = ({
       setLocation('');
       setCategory('Geral');
       setPriority('normal');
+      setDivision('');
       if (selectedDate) {
         setDateStr(selectedDate);
       }
@@ -93,7 +105,8 @@ export const NoteForm: FC<NoteFormProps> = ({
         time: time.trim() || undefined,
         location: location.trim() || undefined,
         category,
-        priority
+        priority,
+        division: division.trim() || undefined
       });
 
       if (!editingNote) {
@@ -101,6 +114,7 @@ export const NoteForm: FC<NoteFormProps> = ({
         setContent('');
         setTime('');
         setLocation('');
+        setDivision('');
       }
       setError('');
     } catch (err: any) {
@@ -157,6 +171,37 @@ export const NoteForm: FC<NoteFormProps> = ({
             placeholder="Título da anotação"
             className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
           />
+        </div>
+
+        {/* Division select between title and content */}
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+            <Building2 className="h-4 w-4" />
+          </div>
+          <select
+            id="note-division-input"
+            aria-label="Divisão da anotação"
+            value={division}
+            onChange={(e) => {
+              setDivision(e.target.value);
+              if (error) setError('');
+            }}
+            className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+          >
+            <option value="">Selecione a divisão (opcional)</option>
+            {divisionOptions.map((div) => (
+              <option key={div} value={div} className="bg-[#1a1a1e]">
+                {div}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
+          {divisionOptions.length === 0 && (
+            <span className="mt-1 flex items-center gap-1 text-[10px] text-zinc-500">
+              <LogIn className="h-3 w-3" />
+              Nenhuma divisão cadastrada. O administrador pode criar divisões no painel ADM.
+            </span>
+          )}
         </div>
 
         {/* Content Textarea */}

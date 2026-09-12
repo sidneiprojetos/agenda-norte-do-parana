@@ -11,6 +11,7 @@ export interface Note {
   location?: string;
   category?: NoteCategory;
   priority?: 'normal' | 'alta';
+  division?: string;
   createdAt: string; // ISO string
   updatedAt?: string; // ISO string
   createdBy: string;
@@ -18,6 +19,14 @@ export interface Note {
   authorName?: string;
   authorPhoto?: string;
   authorId?: string;
+}
+
+export interface Division {
+  id: string;
+  name: string;
+  createdAt: string; // ISO string
+  createdBy?: string;
+  createdByName?: string;
 }
 
 export type UserRole = 'admin' | 'member';
@@ -72,9 +81,11 @@ export type AuditAction =
   | 'reject'
   | 'block'
   | 'user_update'
-  | 'user_delete';
+  | 'user_delete'
+  | 'division_create'
+  | 'division_delete';
 
-export type AuditEntityType = 'note' | 'user' | 'auth' | 'data';
+export type AuditEntityType = 'note' | 'user' | 'auth' | 'data' | 'division';
 
 export interface AuditActor {
   uid?: string | null;

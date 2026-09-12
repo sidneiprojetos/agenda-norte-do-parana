@@ -6,12 +6,14 @@ import {
   MapPin,
   Pencil,
   Trash2,
-  ShieldCheck
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import { Note, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
 import { isUserAdmin } from '../firebase';
 import { getCategoryStyle } from '../utils/categoryStyles';
+import { getDivisionStyle } from '../utils/divisionStyles';
 import { Modal } from './Modal';
 
 interface ViewNoteModalProps {
@@ -72,6 +74,12 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
               {note.category && (
                 <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${getCategoryStyle(note.category).badge}`}>
                   {note.category}
+                </span>
+              )}
+              {note.division && (
+                <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold ${getDivisionStyle(note.division).badge}`}>
+                  <Building2 className="h-3 w-3" />
+                  {note.division}
                 </span>
               )}
             </div>

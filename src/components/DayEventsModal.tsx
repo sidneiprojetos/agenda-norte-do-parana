@@ -3,6 +3,7 @@ import { Calendar as CalendarIcon, Clock, MapPin, Eye } from 'lucide-react';
 import { Note } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
+import { getDivisionStyle } from '../utils/divisionStyles';
 import { Modal } from './Modal';
 
 interface DayEventsModalProps {
@@ -72,6 +73,11 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
                       <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${categoryStyle.badge}`}>
                         {note.category || 'Geral'}
                       </span>
+                      {note.division && (
+                        <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${getDivisionStyle(note.division).badge}`}>
+                          {note.division}
+                        </span>
+                      )}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2.5 text-[11px] text-zinc-400">
                       {note.time && (

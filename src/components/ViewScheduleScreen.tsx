@@ -12,6 +12,7 @@ import {
 import { Note, NoteCategory, AppUser } from '../types';
 import { formatDateToBR, formatDateToISO, formatDateTimeBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
+import { getDivisionStyle } from '../utils/divisionStyles';
 import { isUserAdmin } from '../firebase';
 
 interface ViewScheduleScreenProps {
@@ -61,7 +62,8 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
         const matchContent = n.content.toLowerCase().includes(q);
         const matchAuthor = (n.authorName || n.authorEmail || n.createdBy || '').toLowerCase().includes(q);
         const matchLocation = n.location?.toLowerCase().includes(q) || false;
-        return matchTitle || matchContent || matchAuthor || matchLocation;
+        const matchDivision = n.division?.toLowerCase().includes(q) || false;
+        return matchTitle || matchContent || matchAuthor || matchLocation || matchDivision;
       }
       return true;
     });
@@ -187,6 +189,11 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                       {note.category && (
                         <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getCategoryStyle(note.category).badge}`}>
                           {note.category}
+                        </span>
+                      )}
+                      {note.division && (
+                        <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getDivisionStyle(note.division).badge}`}>
+                          {note.division}
                         </span>
                       )}
                       {note.priority === 'alta' && (

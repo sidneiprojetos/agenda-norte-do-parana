@@ -16,6 +16,8 @@ import {
   Ban,
   UserX,
   Activity,
+  Building2,
+  Building,
   type LucideIcon
 } from 'lucide-react';
 import { AuditLog } from '../types';
@@ -119,6 +121,18 @@ const ACTION_META: Record<string, ActionMeta> = {
     icon: UserX,
     iconClass: 'text-rose-400',
     chipClass: 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+  },
+  division_create: {
+    label: 'Criou divisão',
+    icon: Building2,
+    iconClass: 'text-teal-400',
+    chipClass: 'bg-teal-500/10 border-teal-500/40 text-teal-300'
+  },
+  division_delete: {
+    label: 'Excluiu divisão',
+    icon: Building,
+    iconClass: 'text-teal-400',
+    chipClass: 'bg-teal-500/10 border-teal-500/40 text-teal-300'
   }
 };
 
@@ -153,6 +167,8 @@ function describeLog(log: AuditLog): { title: string; detail: string } {
     case 'block':
     case 'user_update':
     case 'user_delete':
+    case 'division_create':
+    case 'division_delete':
       return {
         title: meta?.label || log.action,
         detail: `${entity} • por ${actor}`
