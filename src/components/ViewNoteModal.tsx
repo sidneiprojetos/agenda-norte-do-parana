@@ -3,11 +3,11 @@ import {
   FileText,
   Calendar as CalendarIcon,
   Clock,
-  MapPin,
   Pencil,
   Trash2,
   ShieldCheck,
-  Building2
+  Building2,
+  Tag
 } from 'lucide-react';
 import { Note, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
@@ -95,10 +95,10 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
                 </span>
               )}
 
-              {note.location && (
+              {note.category && (
                 <span className="flex items-center gap-1 text-slate-300">
-                  <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                  {note.location}
+                  <Tag className="h-3.5 w-3.5 text-slate-400" />
+                  {note.category}
                 </span>
               )}
             </div>

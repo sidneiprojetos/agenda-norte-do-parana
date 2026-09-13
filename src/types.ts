@@ -10,7 +10,6 @@ export interface Note {
   content: string;
   date: string; // ISO date format YYYY-MM-DD
   time?: string; // HH:mm
-  location?: string;
   category?: NoteCategory;
   division?: string;
   createdAt: string; // ISO string

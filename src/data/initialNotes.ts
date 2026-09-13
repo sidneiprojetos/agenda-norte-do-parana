@@ -8,7 +8,6 @@ export const INITIAL_NOTES: Note[] = [
     date: '2026-08-27',
     time: '20:00',
     category: 'Reunião',
-    location: 'Google Meet / Online',
     division: 'Norte do Paraná',
     createdAt: '2026-08-26T11:21:00',
     createdBy: 'imc.sidnei@gmail.com'
@@ -20,7 +19,6 @@ export const INITIAL_NOTES: Note[] = [
     date: '2026-08-30',
     time: '10:00',
     category: 'Coletamento',
-    location: 'Feira do Produtor',
     division: 'Norte do Paraná',
     createdAt: '2026-08-28T15:40:00',
     createdBy: 'imc.sidnei@gmail.com'
@@ -32,7 +30,6 @@ export const INITIAL_NOTES: Note[] = [
     date: '2026-09-07',
     time: '09:00',
     category: 'Pub',
-    location: 'Posto Central',
     division: 'Norte do Paraná',
     createdAt: '2026-09-01T09:15:00',
     createdBy: 'imc.sidnei@gmail.com'

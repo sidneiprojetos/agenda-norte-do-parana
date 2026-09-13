@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Calendar as CalendarIcon, Clock, MapPin, Eye } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Eye } from 'lucide-react';
 import { Note, DEFAULT_CATEGORY } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
@@ -82,12 +82,6 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {note.time}h
-                        </span>
-                      )}
-                      {note.location && (
-                        <span className="flex items-center gap-1 truncate">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{note.location}</span>
                         </span>
                       )}
                     </div>

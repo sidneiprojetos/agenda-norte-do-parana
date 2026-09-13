@@ -375,7 +375,6 @@ export default function App() {
     content: string;
     date: string;
     time?: string;
-    location?: string;
     category?: NoteCategory;
     division?: string;
   }) => {
@@ -396,7 +395,6 @@ export default function App() {
                 content: data.content,
                 date: data.date,
                 time: data.time,
-                location: data.location,
                 category: data.category || n.category,
                 division: data.division || n.division,
                 updatedAt: new Date().toISOString()
@@ -413,7 +411,6 @@ export default function App() {
             content: data.content,
             date: data.date,
             time: data.time,
-            location: data.location,
             category: data.category || editingNote.category,
             division: data.division || editingNote.division,
             updatedAt: new Date().toISOString()
@@ -440,7 +437,6 @@ export default function App() {
         content: data.content,
         date: data.date,
         time: data.time,
-        location: data.location,
         category: data.category || DEFAULT_CATEGORY,
         division: data.division || undefined,
         createdAt: new Date().toISOString(),
@@ -462,7 +458,6 @@ export default function App() {
             content: data.content,
             date: data.date,
             time: data.time,
-            location: data.location,
             category: data.category || DEFAULT_CATEGORY,
             division: data.division || undefined,
             createdAt: new Date().toISOString(),
@@ -577,7 +572,6 @@ export default function App() {
                 content: item.content || '',
                 date: item.date,
                 time: item.time,
-                location: item.location,
                 category: item.category || DEFAULT_CATEGORY,
                 division: item.division || currentUser?.division || 'Norte do Paraná',
                 createdAt: item.createdAt || new Date().toISOString(),

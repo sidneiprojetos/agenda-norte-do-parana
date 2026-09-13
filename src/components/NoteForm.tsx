@@ -7,7 +7,6 @@ import {
   Check,
   X,
   Clock,
-  MapPin,
   Tag,
   LogIn,
   Building2,
@@ -26,7 +25,6 @@ interface NoteFormProps {
     content: string;
     date: string;
     time?: string;
-    location?: string;
     category?: NoteCategory;
     division?: string;
   }) => Promise<void>;
@@ -45,7 +43,6 @@ export const NoteForm: FC<NoteFormProps> = ({
   const [content, setContent] = useState('');
   const [dateStr, setDateStr] = useState(selectedDate || formatDateToISO(new Date()));
   const [time, setTime] = useState('');
-  const [location, setLocation] = useState('');
   const [category, setCategory] = useState<NoteCategory>(DEFAULT_CATEGORY);
   const [division, setDivision] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,14 +59,12 @@ export const NoteForm: FC<NoteFormProps> = ({
       setContent(editingNote.content);
       setDateStr(editingNote.date);
       setTime(editingNote.time || '');
-      setLocation(editingNote.location || '');
       setCategory(editingNote.category || DEFAULT_CATEGORY);
       setDivision(editingNote.division || '');
     } else {
       setTitle('');
       setContent('');
       setTime('');
-      setLocation('');
       setCategory(DEFAULT_CATEGORY);
       setDivision('');
       if (selectedDate) {
@@ -101,7 +96,6 @@ export const NoteForm: FC<NoteFormProps> = ({
         content: content.trim(),
         date: dateStr,
         time: time.trim() || undefined,
-        location: location.trim() || undefined,
         category,
         division: division.trim() || undefined
       });
@@ -110,7 +104,6 @@ export const NoteForm: FC<NoteFormProps> = ({
         setTitle('');
         setContent('');
         setTime('');
-        setLocation('');
         setDivision('');
       }
       setError('');
@@ -287,22 +280,6 @@ export const NoteForm: FC<NoteFormProps> = ({
               className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             />
           </div>
-        </div>
-
-        {/* Location input (Optional) */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
-            <MapPin className="h-3.5 w-3.5" />
-          </div>
-          <input
-            id="note-location-input"
-            type="text"
-            aria-label="Localização ou link da anotação"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Localização / Link (opcional)"
-            className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-9 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition-colors"
-          />
         </div>
 
         {error && (

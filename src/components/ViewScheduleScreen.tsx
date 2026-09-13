@@ -60,9 +60,8 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
         const matchTitle = n.title.toLowerCase().includes(q);
         const matchContent = n.content.toLowerCase().includes(q);
         const matchAuthor = (n.authorName || n.authorEmail || n.createdBy || '').toLowerCase().includes(q);
-        const matchLocation = n.location?.toLowerCase().includes(q) || false;
         const matchDivision = n.division?.toLowerCase().includes(q) || false;
-        return matchTitle || matchContent || matchAuthor || matchLocation || matchDivision;
+        return matchTitle || matchContent || matchAuthor || matchDivision;
       }
       return true;
     });
@@ -199,12 +198,6 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                     {note.content && (
                       <p className="mt-1.5 text-xs sm:text-sm text-slate-200 whitespace-pre-wrap break-words">
                         {note.content}
-                      </p>
-                    )}
-
-                    {note.location && (
-                      <p className="mt-1 text-xs text-slate-400">
-                        <span>📍 {note.location}</span>
                       </p>
                     )}
 

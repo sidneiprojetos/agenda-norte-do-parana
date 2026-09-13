@@ -5,7 +5,6 @@ import {
   CalendarDays,
   Download,
   FileText,
-  MapPin,
   Search,
   Tags,
   X,
@@ -247,12 +246,6 @@ const GroupedNotes: FC<GroupedNotesProps> = ({
                       </span>
                     </span>
                     <span className="flex shrink-0 flex-wrap items-center gap-3 text-[11px] text-zinc-400">
-                      {note.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {note.location}
-                        </span>
-                      )}
                       <span className="flex items-center gap-1">
                         {noteAuthor(note)}
                       </span>
@@ -283,7 +276,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   const [endDate, setEndDate] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<NoteCategory[]>([]);
   const [author, setAuthor] = useState('Todos');
-  const [location, setLocation] = useState('Todos');
   const [division, setDivision] = useState('Todos');
   const [view, setView] = useState<ReportView>('lista');
   const [monthFilter, setMonthFilter] = useState('todas');
@@ -300,16 +292,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       Array.from(
         new Set<string>(
           notes.map((note) => noteAuthor(note)).filter((value): value is string => Boolean(value))
-        )
-      ).sort((a, b) => a.localeCompare(b)),
-    [notes]
-  );
-
-  const locations = useMemo(
-    () =>
-      Array.from(
-        new Set<string>(
-          notes.map((note) => note.location).filter((value): value is string => Boolean(value))
         )
       ).sort((a, b) => a.localeCompare(b)),
     [notes]
@@ -338,7 +320,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           note.title,
           note.content,
           note.division || '',
-          note.location || '',
           note.authorName || '',
           note.authorEmail || '',
           note.createdBy
@@ -356,11 +337,10 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         return false;
       }
       if (author !== 'Todos' && noteAuthor(note) !== author) return false;
-      if (location !== 'Todos' && note.location !== location) return false;
       if (division !== 'Todos' && (note.division || 'Sem divisão') !== division) return false;
       return true;
     });
-  }, [notes, search, startDate, endDate, selectedCategories, author, location, division]);
+  }, [notes, search, startDate, endDate, selectedCategories, author, division]);
 
   const upcomingNotes = useMemo(
     () => filteredNotes.filter((note) => note.date >= todayISO),
@@ -425,7 +405,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     (startDate || endDate ? 1 : 0) +
     selectedCategories.length +
     (author !== 'Todos' ? 1 : 0) +
-    (location !== 'Todos' ? 1 : 0) +
     (division !== 'Todos' ? 1 : 0);
 
   const clearFilters = () => {
@@ -434,7 +413,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     setEndDate('');
     setSelectedCategories([]);
     setAuthor('Todos');
-    setLocation('Todos');
     setDivision('Todos');
   };
 
@@ -453,7 +431,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       'Horário',
       'Categoria',
       'Divisão',
-      'Local',
       'Autor',
       'Descrição'
     ];
@@ -463,11 +440,10 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       note.time || '',
       note.category || DEFAULT_CATEGORY,
       note.division || '',
-      note.location || '',
       noteAuthor(note),
       note.content
     ]);
-    const totalsRow = ['', '', '', '', '', '', '', `Total: ${sortedNotes.length}`];
+    const totalsRow = ['', '', '', '', '', '', `Total: ${sortedNotes.length}`];
     const csv = [header, ...rows, totalsRow]
       .map((row) => row.map((value) => escapeCsv(value)).join(';'))
       .join('\r\n');
@@ -494,7 +470,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       }
       if (selectedCategories.length > 0) parts.push(`Categorias: ${selectedCategories.join(', ')}`);
       if (author !== 'Todos') parts.push(`Autor: ${author}`);
-      if (location !== 'Todos') parts.push(`Local: ${location}`);
       if (division !== 'Todos') parts.push(`Divisão: ${division}`);
       return parts.join('  •  ');
     };
@@ -511,7 +486,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       const colHora = margin + 46;
       const colEvento = margin + 58;
       const colCategoria = margin + 130;
-      const colLocalAutor = pageWidth - margin - 60;
+      const colAutor = pageWidth - margin - 60;
 
       const drawColumnHeader = (y: number) => {
         pdf.setFillColor(241, 245, 249);
@@ -524,7 +499,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.text('HORA', colHora, y + 5);
         pdf.text('EVENTO', colEvento, y + 5);
         pdf.text('CATEGORIA', colCategoria + 6, y + 5);
-        pdf.text('LOCAL / AUTOR', colLocalAutor, y + 5);
+        pdf.text('AUTOR', colAutor, y + 5);
         pdf.setDrawColor(80, 80, 80);
         pdf.setLineWidth(0.3);
         pdf.line(margin, y + 7, pageWidth - margin, y + 7);
@@ -641,17 +616,16 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.setFontSize(7);
           pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(category, colCategoria + 13, y + 2, { align: 'center' });
-          const localLine = (
+          const authorLine = (
             pdf.splitTextToSize(
-              [note.location || '', noteAuthor(note)].filter(Boolean).join(' • ').slice(0, 48) ||
-                '—',
-              pageWidth - margin - colLocalAutor - 2
+              noteAuthor(note) || '—',
+              pageWidth - margin - colAutor - 2
             ) as string[]
           ).slice(0, 1);
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7);
           pdf.setTextColor(cRed, cGreen, cBlue);
-          pdf.text(localLine, colLocalAutor, y + 2);
+          pdf.text(authorLine, colAutor, y + 2);
           if (contentLines.length > 0) {
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(7.5);
@@ -768,21 +742,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             >
               <option>Todos</option>
               {authors.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="mb-1 block text-[10px] font-semibold uppercase text-zinc-500">
-              Local
-            </span>
-            <select
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-[#1a1a1e] px-3 py-2.5 text-xs text-zinc-200 outline-none focus:border-sky-500"
-            >
-              <option>Todos</option>
-              {locations.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
