@@ -136,7 +136,7 @@ function drawReportFooter(
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7.5);
   pdf.setTextColor(150, 150, 150);
-  pdf.text('Gerado por Siluar Core', pageWidth / 2, pageHeight - 8, { align: 'center' });
+  pdf.text('Gerado por Siluar (Sid imc.sidnei@gmail.com)', pageWidth / 2, pageHeight - 8, { align: 'center' });
   if (pageNumber !== undefined && totalPages !== undefined) {
     pdf.text(
       `Página ${pageNumber} de ${totalPages}`,
@@ -639,9 +639,11 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           const contentLines = note.content
             ? (pdf.splitTextToSize(note.content, pageWidth - margin - colEvento) as string[])
             : [];
+          const divisionLine = note.division ? `Div: ${note.division}` : '';
+          const divisionBlock = divisionLine ? 4 : 0;
           const titleBlock = titleLines.length * 5 + 2;
           const contentBlock = contentLines.length * 4;
-          const rowHeight = Math.max(9, titleBlock + contentBlock);
+          const rowHeight = Math.max(9, titleBlock + contentBlock + divisionBlock);
 
           if (y + rowHeight > bottomLimit) {
             pdf.addPage();
@@ -662,6 +664,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.text(note.time || '—', colHora, y + 2);
           pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(titleLines, colEvento, y + 2);
+          if (divisionLine) {
+            const divColor = getDivisionRgb(note.division);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(6.5);
+            pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
+            pdf.text(divisionLine, colEvento, y + 2 + titleLines.length * 5 + 1);
+          }
           const isHighPriority = note.priority === 'alta';
           pdf.setFont('helvetica', isHighPriority ? 'bold' : 'normal');
           pdf.setFontSize(7);
@@ -689,7 +698,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(7.5);
             pdf.setTextColor(cRed, cGreen, cBlue);
-            pdf.text(contentLines, colEvento, y + titleLines.length * 5 + 3);
+            pdf.text(contentLines, colEvento, y + titleLines.length * 5 + divisionBlock + 2);
           }
 
           y += rowHeight;
