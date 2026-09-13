@@ -53,7 +53,9 @@ export default function App() {
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
   // Notes state synchronized from Firebase Firestore
-  const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
+  const [notes, setNotes] = useState<Note[]>(
+    INITIAL_NOTES.filter((note) => note.date >= formatDateToISO(new Date()))
+  );
 
   // Divisions available for notes (admin-managed, synchronized realtime)
   const [divisionOptions, setDivisionOptions] = useState<string[]>(INITIAL_DIVISIONS);
@@ -204,7 +206,8 @@ export default function App() {
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
     subscribeToNotes((firestoreNotes) => {
-      setNotes(firestoreNotes);
+      const todayISO = formatDateToISO(new Date());
+      setNotes(firestoreNotes.filter((note) => note.date >= todayISO));
     }).then((unsub) => {
       if (cancelled) {
         unsub();
