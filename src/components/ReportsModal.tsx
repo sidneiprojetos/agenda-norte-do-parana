@@ -31,10 +31,16 @@ const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
   'Ação Social': [225, 29, 72]
 };
 
+const ACCENT = [14, 165, 233];
+const SLATE_900 = [15, 23, 42];
+const SLATE_600 = [71, 85, 105];
+const SLATE_500 = [100, 116, 139];
+const SLATE_300 = [203, 213, 225];
+
 const MARGIN = 14;
 const PAGE_WIDTH = 297;
 const PAGE_HEIGHT = 210;
-const BOTTOM_LIMIT = PAGE_HEIGHT - 14;
+const BOTTOM_LIMIT = PAGE_HEIGHT - 17;
 const COL_DATA = MARGIN + 4;
 const COL_DIVISAO = MARGIN + 22;
 const COL_CATEGORIA = MARGIN + 46;
@@ -66,45 +72,78 @@ async function loadImageAsDataUrl(url: string): Promise<string> {
   });
 }
 
-async function drawReportHeader(pdf: JsPDF) {
+async function drawTitleHeader(pdf: JsPDF, reportTitle: string) {
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.setTextColor(25, 25, 25);
+  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.setFontSize(13);
+  pdf.text('AGENDA NORTE DO PARANÁ', MARGIN + 12, 13);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
+  pdf.text('Relatório de eventos da região', MARGIN + 12, 18.5);
+
   try {
     const logoDataUrl = await loadImageAsDataUrl('/insanos.png');
-    pdf.addImage(logoDataUrl, 'PNG', MARGIN, 6, 10, 10);
+    pdf.addImage(logoDataUrl, 'PNG', MARGIN, 5, 10, 10);
   } catch {
     // ignore: report still works without the emblem
   }
-  pdf.text('Agenda Norte do Paraná', MARGIN + 12, 13);
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(12);
+  pdf.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.text(reportTitle, PAGE_WIDTH - MARGIN, 13, { align: 'right' });
+
+  const now = new Date();
+  const dateBR = formatDateToBR(now.toISOString().slice(0, 10));
+  const timeHHMM = now.toTimeString().slice(0, 5);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
-  pdf.setTextColor(90, 90, 90);
-  pdf.text(
-    `Gerado em ${formatDateToBR(new Date().toISOString().slice(0, 10))}`,
-    PAGE_WIDTH - MARGIN,
-    13,
-    { align: 'right' }
-  );
-  pdf.setDrawColor(60, 60, 60);
-  pdf.setLineWidth(0.4);
-  pdf.line(MARGIN, 19, PAGE_WIDTH - MARGIN, 19);
+  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.text(`Gerado em ${dateBR} às ${timeHHMM}`, PAGE_WIDTH - MARGIN, 18.5, { align: 'right' });
+
+  pdf.setFillColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.rect(MARGIN, 21.5, PAGE_WIDTH - MARGIN * 2, 1.4, 'F');
+}
+
+function drawContinuationHeader(pdf: JsPDF, reportTitle: string) {
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(8);
+  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.text('AGENDA NORTE DO PARANÁ', MARGIN, 12);
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.text(reportTitle, PAGE_WIDTH - MARGIN, 12, { align: 'right' });
+
+  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
+  pdf.setLineWidth(0.3);
+  pdf.line(MARGIN, 14.5, PAGE_WIDTH - MARGIN, 14.5);
 }
 
 const DEFAULT_SIGNATURE = 'Siluar (Sid imc.sidnei@gmail.com)';
 
 function drawReportFooter(
   pdf: JsPDF,
+  signature: string = DEFAULT_SIGNATURE,
   pageNumber?: number,
-  totalPages?: number,
-  signature: string = DEFAULT_SIGNATURE
+  totalPages?: number
 ) {
+  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
+  pdf.setLineWidth(0.3);
+  pdf.line(MARGIN, PAGE_HEIGHT - 13, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 13);
+
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(7.5);
-  pdf.setTextColor(150, 150, 150);
+  pdf.setFontSize(7);
+  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.text('Agenda Norte do Paraná', MARGIN, PAGE_HEIGHT - 8);
+
   pdf.text(`Gerado por ${signature}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 8, { align: 'center' });
+
   if (pageNumber !== undefined && totalPages !== undefined) {
-    pdf.text(`Página ${pageNumber} de ${totalPages}`, PAGE_WIDTH - 14, PAGE_HEIGHT - 8, {
+    pdf.text(`Página ${pageNumber} de ${totalPages}`, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 8, {
       align: 'right'
     });
   }
@@ -114,26 +153,44 @@ function applyPageFooters(pdf: JsPDF, signature: string = DEFAULT_SIGNATURE) {
   const total = pdf.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     pdf.setPage(i);
-    drawReportFooter(pdf, i, total, signature);
+    drawReportFooter(pdf, signature, i, total);
   }
   pdf.setPage(total);
 }
 
 function drawColumnHeader(pdf: JsPDF, y: number) {
-  pdf.setFillColor(241, 245, 249);
-  pdf.rect(MARGIN, y - 1.5, PAGE_WIDTH - MARGIN * 2, 8, 'F');
+  pdf.setFillColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.rect(MARGIN, y - 2, PAGE_WIDTH - MARGIN * 2, 9, 'F');
+
+  pdf.setFillColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.rect(MARGIN, y - 2, 1.4, 9, 'F');
+
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8);
-  pdf.setTextColor(30, 41, 59);
-  pdf.text('DATA', COL_DATA, y + 5);
-  pdf.text('DIVISÃO', COL_DIVISAO, y + 5);
-  pdf.text('CATEGORIA', COL_CATEGORIA, y + 5);
-  pdf.text('HORA', COL_HORA, y + 5);
-  pdf.text('EVENTO', COL_EVENTO, y + 5);
-  pdf.text('AUTOR', COL_AUTOR, y + 5);
-  pdf.setDrawColor(80, 80, 80);
-  pdf.setLineWidth(0.3);
-  pdf.line(MARGIN, y + 7, PAGE_WIDTH - MARGIN, y + 7);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text('DATA', COL_DATA, y + 4);
+  pdf.text('DIVISÃO', COL_DIVISAO, y + 4);
+  pdf.text('CATEGORIA', COL_CATEGORIA, y + 4);
+  pdf.text('HORA', COL_HORA, y + 4);
+  pdf.text('EVENTO', COL_EVENTO, y + 4);
+  pdf.text('AUTOR', COL_AUTOR, y + 4);
+}
+
+function drawGroupHeader(pdf: JsPDF, y: number, label: string, count: number) {
+  pdf.setFillColor(241, 245, 249);
+  pdf.rect(MARGIN, y - 3.2, PAGE_WIDTH - MARGIN * 2, 7.4, 'F');
+
+  pdf.setFillColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.rect(MARGIN, y - 3.2, 1.5, 7.4, 'F');
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.text(label.toUpperCase(), MARGIN + 4.5, y);
+
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.text(`${count} evento(s)`, PAGE_WIDTH - MARGIN, y, { align: 'right' });
 }
 
 interface NoteRowMetrics {
@@ -169,14 +226,15 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
   const { titleLines, contentLines, divisionLine, divisionLines, rowHeight } = metrics;
 
   if (zebra) {
-    pdf.setFillColor(246, 247, 249);
+    pdf.setFillColor(246, 248, 251);
     pdf.rect(MARGIN, y - 0.6, PAGE_WIDTH - MARGIN * 2, rowHeight + 1.2, 'F');
   }
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
-  pdf.setTextColor(cRed, cGreen, cBlue);
+  pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
   pdf.text(formatDateToBR(note.date), COL_DATA, y + 2);
+
   if (divisionLine) {
     const divColor = getDivisionRgb(divisionLine);
     pdf.setFont('helvetica', 'bold');
@@ -184,18 +242,22 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
     pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
     pdf.text(divisionLines, COL_DIVISAO, y + 2);
   }
+
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7);
   pdf.setTextColor(cRed, cGreen, cBlue);
   pdf.text(category, COL_CATEGORIA, y + 2);
+
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
-  pdf.setTextColor(90, 90, 90);
+  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
   pdf.text(note.time || '—', COL_HORA, y + 2);
+
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
   pdf.setTextColor(cRed, cGreen, cBlue);
   pdf.text(titleLines, COL_EVENTO, y + 2);
+
   const authorLine = (
     pdf.splitTextToSize(
       noteAuthor(note) || '—',
@@ -204,17 +266,61 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
   ).slice(0, 1);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
-  pdf.setTextColor(cRed, cGreen, cBlue);
+  pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
   pdf.text(authorLine, COL_AUTOR, y + 2);
+
   if (contentLines.length > 0) {
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7.5);
-    pdf.setTextColor(55, 65, 81);
+    pdf.setTextColor(60, 72, 88);
     pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 5 + 2);
   }
-  pdf.setDrawColor(233, 236, 239);
+
+  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
   pdf.setLineWidth(0.25);
   pdf.line(MARGIN + 2, y + rowHeight - 0.3, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 0.3);
+}
+
+function drawSummary(pdf: JsPDF, y: number, reportNotes: Note[]) {
+  const total = reportNotes.length;
+  const counts = CATEGORIES.map((category) => ({
+    category,
+    count: reportNotes.filter((n) => (n.category || DEFAULT_CATEGORY) === category).length
+  })).filter((item) => item.count > 0);
+
+  const boxHeight = 12 + counts.length * 5.5 + 4;
+
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(MARGIN, y - 6, PAGE_WIDTH - MARGIN * 2, boxHeight, 'F');
+  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
+  pdf.setLineWidth(0.3);
+  pdf.rect(MARGIN, y - 6, PAGE_WIDTH - MARGIN * 2, boxHeight, 'S');
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.text('RESUMO DO RELATÓRIO', MARGIN + 5, y - 1);
+
+  pdf.setFontSize(9.5);
+  pdf.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.text(`Total: ${total} anotação(ões)`, PAGE_WIDTH - MARGIN - 5, y - 1, { align: 'right' });
+
+  let rowY = y + 6;
+  counts.forEach((item) => {
+    const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[item.category];
+    pdf.setFillColor(cRed, cGreen, cBlue);
+    pdf.rect(MARGIN + 5, rowY - 1.6, 3, 3, 'F');
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
+    pdf.text(item.category, MARGIN + 11, rowY + 0.4);
+
+    pdf.setTextColor(cRed, cGreen, cBlue);
+    pdf.text(String(item.count), PAGE_WIDTH - MARGIN - 5, rowY + 0.4, { align: 'right' });
+
+    rowY += 5.5;
+  });
 }
 
 interface NoteGroup {
@@ -239,6 +345,12 @@ function buildGroups(
     label: labelOf(key),
     notes: groupNotes
   }));
+}
+
+function startNewPage(pdf: JsPDF, reportTitle: string) {
+  pdf.addPage();
+  drawContinuationHeader(pdf, reportTitle);
+  return { y: 20, hasColumnHeader: false };
 }
 
 export const ReportsModal: FC<ReportsModalProps> = ({
@@ -318,18 +430,16 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-      await drawReportHeader(pdf);
-      drawReportFooter(pdf);
+      await drawTitleHeader(pdf, 'Relatório Detalhado');
 
-      let y = 24;
-
+      let y = 29;
       drawColumnHeader(pdf, y);
-      y += 11;
+      y += 13;
 
       if (sortedNotes.length === 0) {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(10);
-        pdf.setTextColor(100, 116, 139);
+        pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
         pdf.text('Nenhuma anotação na agenda para este relatório.', MARGIN, y);
       } else {
         let lastMonthKey = '';
@@ -340,33 +450,22 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           if (monthKey !== lastMonthKey) {
             lastMonthKey = monthKey;
             if (y + 9 > BOTTOM_LIMIT) {
-              pdf.addPage();
-              drawReportFooter(pdf);
-              y = 24;
+              const next = startNewPage(pdf, 'Relatório Detalhado');
+              y = next.y;
               drawColumnHeader(pdf, y);
-              y += 11;
+              y += 13;
             }
-            pdf.setFillColor(226, 232, 240);
-            pdf.rect(MARGIN, y - 3.2, PAGE_WIDTH - MARGIN * 2, 6.4, 'F');
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9);
-            pdf.setTextColor(15, 23, 42);
-            pdf.text(monthLabel(monthKey).toUpperCase(), MARGIN + 4, y);
             const monthCount = sortedNotes.filter((n) => monthKeyOf(n.date) === monthKey).length;
-            pdf.text(`${monthCount} evento(s)`, PAGE_WIDTH - MARGIN, y, { align: 'right' });
-            pdf.setDrawColor(70, 70, 70);
-            pdf.setLineWidth(0.5);
-            pdf.line(MARGIN, y + 2, PAGE_WIDTH - MARGIN, y + 2);
-            y += 7;
+            drawGroupHeader(pdf, y, monthLabel(monthKey), monthCount);
+            y += 8;
           }
 
           const metrics = measureNoteRow(pdf, note);
           if (y + metrics.rowHeight > BOTTOM_LIMIT) {
-            pdf.addPage();
-            drawReportFooter(pdf);
-            y = 24;
+            const next = startNewPage(pdf, 'Relatório Detalhado');
+            y = next.y;
             drawColumnHeader(pdf, y);
-            y += 11;
+            y += 13;
           }
 
           const noteDivision = note.division || '';
@@ -378,18 +477,19 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           y += metrics.rowHeight;
         }
 
-        if (y + 8 > BOTTOM_LIMIT) {
-          pdf.addPage();
-          drawReportFooter(pdf);
-          y = 24;
+        if (y + 48 > BOTTOM_LIMIT) {
+          const next = startNewPage(pdf, 'Relatório Detalhado');
+          y = next.y;
         }
         pdf.setDrawColor(60, 60, 60);
         pdf.setLineWidth(0.4);
         pdf.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8.5);
-        pdf.setTextColor(25, 25, 25);
-        pdf.text(`TOTAL: ${sortedNotes.length} anotação(ões)`, MARGIN + 4, y + 6);
+        pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+        pdf.text(`Total: ${sortedNotes.length} anotação(ões)`, MARGIN + 4, y + 4.5);
+        pdf.text('Eventos futuros', PAGE_WIDTH - MARGIN - 4, y + 4.5, { align: 'right' });
+        drawSummary(pdf, y + 10, sortedNotes);
       }
 
       applyPageFooters(pdf, generatorLabel);
@@ -401,53 +501,43 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     }
   };
 
-  const exportGroupedPdf = async (groups: NoteGroup[], fileNamePrefix: string) => {
+  const exportGroupedPdf = async (groups: NoteGroup[], fileNamePrefix: string, reportTitle: string) => {
     try {
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-      await drawReportHeader(pdf);
-      drawReportFooter(pdf);
+      await drawTitleHeader(pdf, reportTitle);
 
-      let y = 24;
+      let y = 29;
 
       if (groups.length === 0) {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(10);
-        pdf.setTextColor(100, 116, 139);
+        pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
         pdf.text('Nenhuma anotação na agenda para este relatório.', MARGIN, y);
       } else {
         for (const group of groups) {
           if (y + 9 > BOTTOM_LIMIT) {
-            pdf.addPage();
-            drawReportFooter(pdf);
-            y = 24;
+            const next = startNewPage(pdf, reportTitle);
+            y = next.y;
+            drawColumnHeader(pdf, y);
+            y += 13;
           }
-          pdf.setFillColor(226, 232, 240);
-          pdf.rect(MARGIN, y - 3.2, PAGE_WIDTH - MARGIN * 2, 6.4, 'F');
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(9);
-          pdf.setTextColor(15, 23, 42);
-          pdf.text(group.label, MARGIN + 4, y);
-          pdf.text(`${group.notes.length} evento(s)`, PAGE_WIDTH - MARGIN, y, { align: 'right' });
-          pdf.setDrawColor(70, 70, 70);
-          pdf.setLineWidth(0.5);
-          pdf.line(MARGIN, y + 2, PAGE_WIDTH - MARGIN, y + 2);
-          y += 7;
+          drawGroupHeader(pdf, y, group.label, group.notes.length);
+          y += 8;
 
           drawColumnHeader(pdf, y);
-          y += 11;
+          y += 13;
 
           let lastDivision: string | null = null;
           let zebraBand = false;
           for (const note of group.notes) {
             const metrics = measureNoteRow(pdf, note);
             if (y + metrics.rowHeight > BOTTOM_LIMIT) {
-              pdf.addPage();
-              drawReportFooter(pdf);
-              y = 24;
+              const next = startNewPage(pdf, reportTitle);
+              y = next.y;
               drawColumnHeader(pdf, y);
-              y += 11;
+              y += 13;
             }
 
             const noteDivision = note.division || '';
@@ -460,19 +550,24 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           }
         }
 
-        if (y + 8 > BOTTOM_LIMIT) {
-          pdf.addPage();
-          drawReportFooter(pdf);
-          y = 24;
+        if (y + 48 > BOTTOM_LIMIT) {
+          const next = startNewPage(pdf, reportTitle);
+          y = next.y;
         }
+        const totalCount = groups.reduce((acc, group) => acc + group.notes.length, 0);
         pdf.setDrawColor(60, 60, 60);
         pdf.setLineWidth(0.4);
         pdf.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8.5);
-        pdf.setTextColor(25, 25, 25);
-        const totalCount = groups.reduce((acc, group) => acc + group.notes.length, 0);
-        pdf.text(`TOTAL: ${totalCount} anotação(ões)`, MARGIN + 4, y + 6);
+        pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+        pdf.text(`Total: ${totalCount} anotação(ões)`, MARGIN + 4, y + 4.5);
+        pdf.text('Eventos futuros', PAGE_WIDTH - MARGIN - 4, y + 4.5, { align: 'right' });
+        drawSummary(
+          pdf,
+          y + 10,
+          groups.flatMap((group) => group.notes)
+        );
       }
 
       applyPageFooters(pdf, generatorLabel);
@@ -497,7 +592,10 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       title: 'Relatório por data',
       description: 'Eventos agrupados por data para acompanhamento diário.',
       icon: CalendarDays,
-      generate: () => generateReport('data', () => exportGroupedPdf(dateGroups, 'relatorio_por_data'))
+      generate: () =>
+        generateReport('data', () =>
+          exportGroupedPdf(dateGroups, 'relatorio_por_data', 'Relatório por Data')
+        )
     },
     {
       id: 'categoria' as const,
@@ -506,7 +604,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       icon: Tags,
       generate: () =>
         generateReport('categoria', () =>
-          exportGroupedPdf(categoryGroups, 'relatorio_por_categoria')
+          exportGroupedPdf(categoryGroups, 'relatorio_por_categoria', 'Relatório por Categoria')
         )
     },
     {
@@ -515,7 +613,9 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       description: 'Eventos agrupados por divisão regional.',
       icon: Building2,
       generate: () =>
-        generateReport('divisao', () => exportGroupedPdf(divisionGroups, 'relatorio_por_divisao'))
+        generateReport('divisao', () =>
+          exportGroupedPdf(divisionGroups, 'relatorio_por_divisao', 'Relatório por Divisão')
+        )
     }
   ];
 
