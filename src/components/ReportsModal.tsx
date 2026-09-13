@@ -31,6 +31,8 @@ interface ReportsModalProps {
   onClose: () => void;
   onViewNote: (note: Note) => void;
   notify?: (message: string, type?: 'success' | 'error' | 'info') => void;
+  generatorName?: string;
+  generatorEmail?: string;
 }
 
 const CATEGORY_BAR: Record<NoteCategory, string> = {
@@ -126,17 +128,20 @@ async function drawReportHeader(pdf: import('jspdf').jsPDF, pageWidth: number) {
   pdf.line(margin, 19, pageWidth - margin, 19);
 }
 
+const DEFAULT_SIGNATURE = 'Siluar (Sid imc.sidnei@gmail.com)';
+
 function drawReportFooter(
   pdf: import('jspdf').jsPDF,
   pageWidth: number,
   pageHeight: number,
   pageNumber?: number,
-  totalPages?: number
+  totalPages?: number,
+  signature: string = DEFAULT_SIGNATURE
 ) {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7.5);
   pdf.setTextColor(150, 150, 150);
-  pdf.text('Gerado por Siluar (Sid imc.sidnei@gmail.com)', pageWidth / 2, pageHeight - 8, { align: 'center' });
+  pdf.text(`Gerado por ${signature}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
   if (pageNumber !== undefined && totalPages !== undefined) {
     pdf.text(
       `Página ${pageNumber} de ${totalPages}`,
@@ -147,11 +152,16 @@ function drawReportFooter(
   }
 }
 
-function applyPageFooters(pdf: import('jspdf').jsPDF, pageWidth: number, pageHeight: number) {
+function applyPageFooters(
+  pdf: import('jspdf').jsPDF,
+  pageWidth: number,
+  pageHeight: number,
+  signature: string = DEFAULT_SIGNATURE
+) {
   const total = pdf.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     pdf.setPage(i);
-    drawReportFooter(pdf, pageWidth, pageHeight, i, total);
+    drawReportFooter(pdf, pageWidth, pageHeight, i, total, signature);
   }
   pdf.setPage(total);
 }
@@ -289,7 +299,9 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   isOpen,
   onClose,
   onViewNote,
-  notify
+  notify,
+  generatorName,
+  generatorEmail
 }) => {
   const [search, setSearch] = useState('');
   const [isExporting, setIsExporting] = useState<'report' | 'summary' | null>(null);
@@ -304,6 +316,11 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   const [monthFilter, setMonthFilter] = useState('todas');
 
   const todayISO = formatDateToISO(new Date());
+
+  const generatorLabel =
+    generatorName && generatorEmail
+      ? `${generatorName} (${generatorEmail})`
+      : generatorEmail || DEFAULT_SIGNATURE;
 
   const authors = useMemo(
     () =>
@@ -596,7 +613,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       };
 
       await drawReportHeader(pdf, pageWidth);
-      drawReportFooter(pdf, pageWidth, pageHeight);
+      drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
 
       let y = 29;
 
@@ -616,7 +633,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             lastMonthKey = monthKey;
             if (y + 9 > bottomLimit) {
               pdf.addPage();
-              drawReportFooter(pdf, pageWidth, pageHeight);
+              drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
               y = 24;
               drawColumnHeader(y);
               y += 11;
@@ -647,7 +664,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
           if (y + rowHeight > bottomLimit) {
             pdf.addPage();
-            drawReportFooter(pdf, pageWidth, pageHeight);
+            drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
             y = 24;
             drawColumnHeader(y);
             y += 11;
@@ -706,7 +723,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
         if (y + 8 > bottomLimit) {
           pdf.addPage();
-          drawReportFooter(pdf, pageWidth, pageHeight);
+          drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
           y = 24;
         }
         pdf.setDrawColor(60, 60, 60);
@@ -724,7 +741,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         );
       }
 
-      applyPageFooters(pdf, pageWidth, pageHeight);
+      applyPageFooters(pdf, pageWidth, pageHeight, generatorLabel);
       pdf.save(`relatorio_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
       notify?.('Relatório PDF gerado com sucesso.', 'success');
     } catch (error) {
@@ -746,7 +763,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       const contentWidth = pageWidth - margin * 2;
 
       await drawReportHeader(pdf, pageWidth);
-      drawReportFooter(pdf, pageWidth, pageHeight);
+      drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
 
       let y = 32;
       const line = () => {
@@ -831,7 +848,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       drawBarSection('Distribuição por categoria', categoryRows, Math.max(1, ...categoryRows.map((r) => r.value)));
       if (y + 20 > bottomLimit) {
         pdf.addPage();
-        drawReportFooter(pdf, pageWidth, pageHeight);
+        drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
         y = 24;
       }
 
@@ -843,7 +860,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       drawBarSection('Distribuição por autor', authorRows, Math.max(1, ...authorRows.map((r) => r.value)));
       if (y + 20 > bottomLimit) {
         pdf.addPage();
-        drawReportFooter(pdf, pageWidth, pageHeight);
+        drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
         y = 24;
       }
 
@@ -855,7 +872,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       drawBarSection('Eventos por mês', monthRows, Math.max(1, ...monthRows.map((r) => r.value)));
       if (y + 20 > bottomLimit) {
         pdf.addPage();
-        drawReportFooter(pdf, pageWidth, pageHeight);
+        drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
         y = 24;
       }
 
@@ -866,7 +883,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       }));
       drawBarSection('Distribuição por divisão', divisionRows, Math.max(1, ...divisionRows.map((r) => r.value)));
 
-      applyPageFooters(pdf, pageWidth, pageHeight);
+      applyPageFooters(pdf, pageWidth, pageHeight, generatorLabel);
       pdf.save(`resumo_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
       notify?.('Resumo PDF gerado com sucesso.', 'success');
     } catch (error) {

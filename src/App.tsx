@@ -751,6 +751,8 @@ export default function App() {
         isOpen={isReportsOpen}
         onClose={() => setIsReportsOpen(false)}
         notify={showNotification}
+        generatorName={currentUser?.displayName || undefined}
+        generatorEmail={currentUser?.email || undefined}
         onViewNote={(note) => {
           setIsReportsOpen(false);
           handleViewNote(note);
