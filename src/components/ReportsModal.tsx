@@ -42,10 +42,10 @@ const PAGE_WIDTH = 297;
 const PAGE_HEIGHT = 210;
 const BOTTOM_LIMIT = PAGE_HEIGHT - 17;
 const COL_DATA = MARGIN + 4;
-const COL_DIVISAO = MARGIN + 22;
-const COL_CATEGORIA = MARGIN + 46;
-const COL_HORA = MARGIN + 74;
-const COL_EVENTO = MARGIN + 86;
+const COL_DIVISAO = MARGIN + 24;
+const COL_CATEGORIA = MARGIN + 58;
+const COL_HORA = MARGIN + 82;
+const COL_EVENTO = MARGIN + 94;
 const COL_AUTOR = PAGE_WIDTH - MARGIN - 60;
 
 function monthKeyOf(dateStr: string): string {
