@@ -197,7 +197,7 @@ function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
   const titleBlock = titleLines.length * 6 + 2.5;
   const contentBlock = contentLines.length * 5;
   const divisionBlock = divisionLines.length * 6 + 1.5;
-  const rowHeight = Math.max(11, titleBlock + contentBlock, divisionBlock) + 1.5;
+  const rowHeight = Math.max(13, titleBlock + contentBlock, divisionBlock) + 2.5;
   return { titleLines, contentLines, divisionLine, divisionLines, rowHeight };
 }
 
@@ -366,7 +366,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
       let y = 29;
       drawColumnHeader(pdf, y);
-      y += 13;
+      y += 14;
 
       if (sortedNotes.length === 0) {
         pdf.setFont('helvetica', 'normal');
@@ -385,13 +385,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
               const next = startNewPage(pdf, 'Relatório Detalhado');
               y = next.y;
               drawColumnHeader(pdf, y);
-              y += 13;
+              y += 14;
             } else {
               y += 4;
             }
             const monthCount = sortedNotes.filter((n) => monthKeyOf(n.date) === monthKey).length;
             drawGroupHeader(pdf, y, monthLabel(monthKey), monthCount);
-            y += 8;
+            y += 9;
           }
 
           const metrics = measureNoteRow(pdf, note);
@@ -399,7 +399,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             const next = startNewPage(pdf, 'Relatório Detalhado');
             y = next.y;
             drawColumnHeader(pdf, y);
-            y += 13;
+            y += 14;
           }
 
           const noteDivision = note.division || '';
@@ -441,15 +441,15 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             const next = startNewPage(pdf, reportTitle);
             y = next.y;
             drawColumnHeader(pdf, y);
-            y += 13;
+            y += 14;
           } else {
             y += 4;
           }
           drawGroupHeader(pdf, y, group.label, group.notes.length);
-          y += 8;
+          y += 9;
 
           drawColumnHeader(pdf, y);
-          y += 13;
+          y += 14;
 
           let lastDivision: string | null = null;
           let zebraBand = false;
@@ -459,7 +459,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
               const next = startNewPage(pdf, reportTitle);
               y = next.y;
               drawColumnHeader(pdf, y);
-              y += 13;
+              y += 14;
             }
 
             const noteDivision = note.division || '';
