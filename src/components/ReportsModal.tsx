@@ -591,10 +591,11 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       const bottomLimit = pageHeight - 14;
 
       const colData = margin + 4;
-      const colHora = margin + 27;
-      const colEvento = margin + 45;
-      const colPrioridade = margin + 82;
-      const colCategoria = margin + 110;
+      const colDivisao = margin + 20;
+      const colHora = margin + 44;
+      const colEvento = margin + 54;
+      const colPrioridade = margin + 88;
+      const colCategoria = margin + 106;
       const colLocalAutor = pageWidth - margin - 40;
 
       const drawColumnHeader = (y: number) => {
@@ -602,11 +603,12 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.setFontSize(8);
         pdf.setTextColor(30, 41, 59);
         pdf.text('DATA', margin + 4, y + 5);
-        pdf.text('HORA', margin + 27, y + 5);
-        pdf.text('EVENTO', margin + 45, y + 5);
+        pdf.text('DIVISÃO', colDivisao, y + 5);
+        pdf.text('HORA', colHora, y + 5);
+        pdf.text('EVENTO', colEvento, y + 5);
         pdf.text('PRIOR.', colPrioridade - 4, y + 5);
         pdf.text('CATEGORIA', colCategoria + 6, y + 5);
-        pdf.text('LOCAL / AUTOR', pageWidth - margin - 40, y + 5);
+        pdf.text('LOCAL / AUTOR', colLocalAutor, y + 5);
         pdf.setDrawColor(80, 80, 80);
         pdf.setLineWidth(0.3);
         pdf.line(margin, y + 7, pageWidth - margin, y + 7);
@@ -656,11 +658,10 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           const contentLines = note.content
             ? (pdf.splitTextToSize(note.content, pageWidth - margin - colEvento) as string[])
             : [];
-          const divisionLine = note.division ? `Div: ${note.division}` : '';
-          const divisionBlock = divisionLine ? 4 : 0;
+          const divisionLine = note.division ? note.division : '';
           const titleBlock = titleLines.length * 5 + 2;
           const contentBlock = contentLines.length * 4;
-          const rowHeight = Math.max(9, titleBlock + contentBlock + divisionBlock);
+          const rowHeight = Math.max(9, titleBlock + contentBlock);
 
           if (y + rowHeight > bottomLimit) {
             pdf.addPage();
@@ -676,18 +677,22 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.setFontSize(8.5);
           pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(formatDateToBR(note.date), colData, y + 2);
+          if (divisionLine) {
+            const divColor = getDivisionRgb(divisionLine);
+            const divLines = pdf.splitTextToSize(
+              divisionLine,
+              colHora - colDivisao - 1
+            ) as string[];
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(6.5);
+            pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
+            pdf.text(divLines.slice(0, 1), colDivisao, y + 2);
+          }
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(90, 90, 90);
           pdf.text(note.time || '—', colHora, y + 2);
           pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(titleLines, colEvento, y + 2);
-          if (divisionLine) {
-            const divColor = getDivisionRgb(note.division);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(6.5);
-            pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
-            pdf.text(divisionLine, colEvento, y + 2 + titleLines.length * 5 + 1);
-          }
           const isHighPriority = note.priority === 'alta';
           pdf.setFont('helvetica', isHighPriority ? 'bold' : 'normal');
           pdf.setFontSize(7);
@@ -715,7 +720,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(7.5);
             pdf.setTextColor(cRed, cGreen, cBlue);
-            pdf.text(contentLines, colEvento, y + titleLines.length * 5 + divisionBlock + 2);
+            pdf.text(contentLines, colEvento, y + titleLines.length * 5 + 2);
           }
 
           y += rowHeight;
