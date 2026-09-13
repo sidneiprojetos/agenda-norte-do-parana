@@ -9,7 +9,6 @@ import {
   Search,
   Tags,
   X,
-  AlertTriangle,
   List as ListIcon,
   FilterX,
   CalendarX2,
@@ -36,11 +35,6 @@ const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
   Pub: [5, 150, 105],
   Coletamento: [124, 58, 237],
   'Ação Social': [225, 29, 72]
-};
-
-const PRIORITY_LABEL: Record<string, string> = {
-  normal: 'Normal',
-  alta: 'Alta'
 };
 
 function escapeCsv(value: unknown): string {
@@ -72,13 +66,12 @@ async function loadImageAsDataUrl(url: string): Promise<string> {
   });
 }
 
-type ReportView = 'categoria' | 'autor' | 'mes' | 'prioridade' | 'lista';
+type ReportView = 'categoria' | 'autor' | 'mes' | 'lista';
 
 const VIEW_OPTIONS: { id: ReportView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'categoria', label: 'Por categoria', icon: Tags },
   { id: 'autor', label: 'Por autor', icon: Tags },
   { id: 'mes', label: 'Por mês', icon: CalendarDays },
-  { id: 'prioridade', label: 'Por prioridade', icon: AlertTriangle },
   { id: 'lista', label: 'Listagem detalhada', icon: ListIcon }
 ];
 
@@ -240,11 +233,6 @@ const GroupedNotes: FC<GroupedNotesProps> = ({
                           </span>
                         )}
                         <strong>{note.title}</strong>
-                        {note.priority === 'alta' && (
-                          <span className="ml-2 inline-flex items-center gap-0.5 rounded bg-rose-600/30 px-1.5 py-0.5 text-[9px] font-bold uppercase text-rose-300">
-                            <AlertTriangle className="h-2.5 w-2.5" /> Alta
-                          </span>
-                        )}
                         <span className={`ml-2 inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[9px] font-semibold ${getDivisionStyle(note.division).badge}`}>
                             <Building2 className="h-2.5 w-2.5" /> {note.division || 'Sem divisão'}
                           </span>
@@ -296,7 +284,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<NoteCategory[]>([]);
   const [author, setAuthor] = useState('Todos');
   const [location, setLocation] = useState('Todos');
-  const [priority, setPriority] = useState('Todas');
   const [division, setDivision] = useState('Todos');
   const [view, setView] = useState<ReportView>('lista');
   const [monthFilter, setMonthFilter] = useState('todas');
@@ -371,10 +358,9 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       if (author !== 'Todos' && noteAuthor(note) !== author) return false;
       if (location !== 'Todos' && note.location !== location) return false;
       if (division !== 'Todos' && (note.division || 'Sem divisão') !== division) return false;
-      if (priority !== 'Todas' && (note.priority || 'normal') !== priority) return false;
       return true;
     });
-  }, [notes, search, startDate, endDate, selectedCategories, author, location, division, priority]);
+  }, [notes, search, startDate, endDate, selectedCategories, author, location, division]);
 
   const upcomingNotes = useMemo(
     () => filteredNotes.filter((note) => note.date >= todayISO),
@@ -426,13 +412,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     [sortedNotes]
   );
 
-  const priorityGroups: NoteGroup[] = useMemo(
-    () =>
-      buildGroups(sortedNotes, (note) => note.priority || 'normal', (key) => PRIORITY_LABEL[key] || key)
-        .sort((a, b) => (a.key === 'alta' ? 0 : 1) - (b.key === 'alta' ? 0 : 1)),
-    [sortedNotes]
-  );
-
   const selectedMonthGroups: NoteGroup[] = useMemo(() => {
     if (monthFilter === 'todas') return monthGroups;
     const notesInMonth = sortedNotes.filter((note) => monthKeyOf(note.date) === monthFilter);
@@ -447,8 +426,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     selectedCategories.length +
     (author !== 'Todos' ? 1 : 0) +
     (location !== 'Todos' ? 1 : 0) +
-    (division !== 'Todos' ? 1 : 0) +
-    (priority !== 'Todas' ? 1 : 0);
+    (division !== 'Todos' ? 1 : 0);
 
   const clearFilters = () => {
     setSearch('');
@@ -458,7 +436,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     setAuthor('Todos');
     setLocation('Todos');
     setDivision('Todos');
-    setPriority('Todas');
   };
 
   const toggleCategory = (category: NoteCategory) => {
@@ -475,7 +452,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       'Data',
       'Horário',
       'Categoria',
-      'Prioridade',
       'Divisão',
       'Local',
       'Autor',
@@ -486,13 +462,12 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       note.date,
       note.time || '',
       note.category || DEFAULT_CATEGORY,
-      note.priority || 'normal',
       note.division || '',
       note.location || '',
       noteAuthor(note),
       note.content
     ]);
-    const totalsRow = ['', '', '', '', '', '', '', '', `Total: ${sortedNotes.length}`];
+    const totalsRow = ['', '', '', '', '', '', '', `Total: ${sortedNotes.length}`];
     const csv = [header, ...rows, totalsRow]
       .map((row) => row.map((value) => escapeCsv(value)).join(';'))
       .join('\r\n');
@@ -521,7 +496,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       if (author !== 'Todos') parts.push(`Autor: ${author}`);
       if (location !== 'Todos') parts.push(`Local: ${location}`);
       if (division !== 'Todos') parts.push(`Divisão: ${division}`);
-      if (priority !== 'Todas') parts.push(`Prioridade: ${PRIORITY_LABEL[priority] || priority}`);
       return parts.join('  •  ');
     };
     try {
@@ -536,8 +510,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       const colDivisao = margin + 22;
       const colHora = margin + 46;
       const colEvento = margin + 58;
-      const colPrioridade = margin + 118;
-      const colCategoria = margin + 138;
+      const colCategoria = margin + 130;
       const colLocalAutor = pageWidth - margin - 60;
 
       const drawColumnHeader = (y: number) => {
@@ -550,7 +523,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.text('DIVISÃO', colDivisao, y + 5);
         pdf.text('HORA', colHora, y + 5);
         pdf.text('EVENTO', colEvento, y + 5);
-        pdf.text('PRIOR.', colPrioridade - 4, y + 5);
         pdf.text('CATEGORIA', colCategoria + 6, y + 5);
         pdf.text('LOCAL / AUTOR', colLocalAutor, y + 5);
         pdf.setDrawColor(80, 80, 80);
@@ -609,7 +581,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           const category = note.category || DEFAULT_CATEGORY;
           const titleLines = pdf.splitTextToSize(
             note.title,
-            colPrioridade - colEvento - 6
+            colCategoria - colEvento - 6
           ) as string[];
           const contentLines = note.content
             ? (pdf.splitTextToSize(note.content, pageWidth - margin - colEvento) as string[])
@@ -662,15 +634,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.setFontSize(8.5);
           pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(titleLines, colEvento, y + 2);
-          const isHighPriority = note.priority === 'alta';
-          pdf.setFont('helvetica', isHighPriority ? 'bold' : 'normal');
-          pdf.setFontSize(7);
-          pdf.setTextColor(
-            isHighPriority ? 185 : 100,
-            isHighPriority ? 28 : 116,
-            isHighPriority ? 28 : 139
-          );
-          pdf.text(isHighPriority ? 'ALTA' : 'Normal', colPrioridade, y + 2);
           pdf.setDrawColor(cRed, cGreen, cBlue);
           pdf.setLineWidth(0.45);
           pdf.roundedRect(colCategoria - 1, y - 2, 28, 6, 2, 2, 'S');
@@ -714,12 +677,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.setFontSize(8.5);
         pdf.setTextColor(25, 25, 25);
         pdf.text(`TOTAL: ${sortedNotes.length} anotação(ões)`, margin + 4, y + 6);
-        pdf.text(
-          `Futuros: ${sortedNotes.length}  •  Alta prioridade: ${sortedNotes.filter((note) => note.priority === 'alta').length}`,
-          pageWidth - margin - 4,
-          y + 6,
-          { align: 'right' }
-        );
       }
 
       applyPageFooters(pdf, pageWidth, pageHeight, generatorLabel);
@@ -845,20 +802,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
               ))}
             </select>
           </label>
-          <label>
-            <span className="mb-1 block text-[10px] font-semibold uppercase text-zinc-500">
-              Prioridade
-            </span>
-            <select
-              value={priority}
-              onChange={(event) => setPriority(event.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-[#1a1a1e] px-3 py-2.5 text-xs text-zinc-200 outline-none focus:border-sky-500"
-            >
-              <option>Todas</option>
-              <option value="normal">Normal</option>
-              <option value="alta">Alta</option>
-            </select>
-          </label>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-4">
@@ -966,14 +909,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             groups={authorGroups}
             title="Anotações por autor"
             headerClass={() => 'text-sky-300'}
-            emptyText="Nenhuma anotação corresponde aos filtros selecionados."
-            onViewNote={onViewNote}
-          />
-        ) : view === 'prioridade' ? (
-          <GroupedNotes
-            groups={priorityGroups}
-            title="Anotações por prioridade"
-            headerClass={(key) => (key === 'alta' ? 'text-rose-300' : 'text-zinc-300')}
             emptyText="Nenhuma anotação corresponde aos filtros selecionados."
             onViewNote={onViewNote}
           />

@@ -104,7 +104,6 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
           time: data.time || undefined,
           location: data.location || undefined,
           category: LEGACY_CATEGORY_MAP[data.category as string] || data.category || DEFAULT_CATEGORY,
-          priority: data.priority || 'normal',
           division: data.division || undefined,
           createdAt: data.createdAt || new Date().toISOString(),
           updatedAt: data.updatedAt || undefined,

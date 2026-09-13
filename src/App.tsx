@@ -377,7 +377,6 @@ export default function App() {
     time?: string;
     location?: string;
     category?: NoteCategory;
-    priority?: 'normal' | 'alta';
     division?: string;
   }) => {
     const userEmail = currentUser?.email || ADMIN_EMAIL;
@@ -399,7 +398,6 @@ export default function App() {
                 time: data.time,
                 location: data.location,
                 category: data.category || n.category,
-                priority: data.priority || n.priority || 'normal',
                 division: data.division || n.division,
                 updatedAt: new Date().toISOString()
               }
@@ -417,7 +415,6 @@ export default function App() {
             time: data.time,
             location: data.location,
             category: data.category || editingNote.category,
-            priority: data.priority || editingNote.priority || 'normal',
             division: data.division || editingNote.division,
             updatedAt: new Date().toISOString()
           },
@@ -445,7 +442,6 @@ export default function App() {
         time: data.time,
         location: data.location,
         category: data.category || DEFAULT_CATEGORY,
-        priority: data.priority || 'normal',
         division: data.division || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -468,7 +464,6 @@ export default function App() {
             time: data.time,
             location: data.location,
             category: data.category || DEFAULT_CATEGORY,
-            priority: data.priority || 'normal',
             division: data.division || undefined,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -584,7 +579,6 @@ export default function App() {
                 time: item.time,
                 location: item.location,
                 category: item.category || DEFAULT_CATEGORY,
-                priority: item.priority || 'normal',
                 division: item.division || currentUser?.division || 'Norte do Paraná',
                 createdAt: item.createdAt || new Date().toISOString(),
                 createdBy: item.createdBy || currentUser?.email || ADMIN_EMAIL,
