@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser, CATEGORIES } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
-import { getCategoryStyle } from '../utils/categoryStyles';
 
 interface NoteFormProps {
   selectedDate: string;
@@ -217,6 +216,40 @@ export const NoteForm: FC<NoteFormProps> = ({
           </div>
         </div>
 
+        {/* Category select after division (same style as division selector) */}
+        <div>
+          <label
+            htmlFor="note-category-input"
+            className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase text-zinc-500"
+          >
+            <Tag className="h-3 w-3" /> Categoria
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+              <Tag className="h-4 w-4" />
+            </div>
+            <select
+              id="note-category-input"
+              aria-label="Categoria do evento"
+              value={category}
+              onChange={(e) => {
+                const value = e.target.value as NoteCategory | '';
+                setCategory(value === '' ? 'Geral' : value);
+                if (error) setError('');
+              }}
+              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+            >
+              <option value="">Selecione a categoria</option>
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat} className="bg-[#1a1a1e]">
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
+          </div>
+        </div>
+
         {/* Content Textarea */}
         <div className="relative">
           <textarea
@@ -260,27 +293,6 @@ export const NoteForm: FC<NoteFormProps> = ({
               className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             />
           </div>
-        </div>
-
-        {/* Category selector chips */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-[11px] font-semibold text-zinc-400 mr-1 flex items-center gap-1">
-            <Tag className="h-3 w-3" /> Categoria:
-          </span>
-          {CATEGORIES.map((cat) => (
-            <button
-              type="button"
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`rounded-lg border px-2 py-1 text-[11px] font-medium transition ${
-                category === cat
-                  ? `${getCategoryStyle(cat).selected} font-semibold`
-                  : 'border-transparent bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
         </div>
 
         {/* Priority selector */}
