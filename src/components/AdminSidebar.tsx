@@ -7,7 +7,8 @@ import {
   BarChart3,
   CalendarDays,
   Settings,
-  LogOut
+  LogOut,
+  Plus
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { logoutUser, ADMIN_EMAIL } from '../firebase';
@@ -15,6 +16,7 @@ import { logoutUser, ADMIN_EMAIL } from '../firebase';
 interface AdminSidebarProps {
   currentUser: AppUser | null;
   pendingUsersCount?: number;
+  onOpenCreateForm?: () => void;
   onOpenReports?: () => void;
   onOpenUserManagement?: () => void;
   onOpenAudit?: () => void;
@@ -30,6 +32,7 @@ interface AdminSidebarProps {
 export const AdminSidebar: FC<AdminSidebarProps> = ({
   currentUser,
   pendingUsersCount = 0,
+  onOpenCreateForm,
   onOpenReports,
   onOpenUserManagement,
   onOpenAudit,
@@ -71,6 +74,18 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
 
   return (
     <nav className="lg:sticky lg:top-4 flex flex-row lg:flex-col gap-1.5 rounded-2xl border border-zinc-800/80 bg-[#161619]/85 p-2 shadow-xl backdrop-blur-md lg:p-2.5">
+      {/* Novo Evento: top of the sidebar */}
+      {onOpenCreateForm && (
+        <button
+          id="admin-create-note-btn"
+          onClick={onOpenCreateForm}
+          className="flex flex-1 lg:flex-none items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white px-3 py-2.5 text-xs font-bold shadow-md shadow-amber-900/30 transition active:scale-95"
+        >
+          <Plus className="h-4 w-4 stroke-[3]" />
+          <span>Novo Evento</span>
+        </button>
+      )}
+
       {/* Logged-in user card */}
       <div className="flex items-center gap-2.5 rounded-xl bg-[#18181b]/90 border border-zinc-700/80 p-2 pr-1.5 shadow-md">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-black text-white shadow-md shadow-amber-900/40">

@@ -687,6 +687,7 @@ export default function App() {
               <AdminSidebar
                 currentUser={currentUser}
                 pendingUsersCount={pendingUsersCount}
+                onOpenCreateForm={handleOpenCreateForm}
                 onOpenReports={() => setIsReportsOpen(true)}
                 onOpenUserManagement={handleToggleUserManagement}
                 onOpenAudit={handleToggleAudit}
@@ -703,10 +704,7 @@ export default function App() {
 
           <div className="min-w-0 flex-1">
         {/* Admin Header with user imc.sidnei@gmail.com, Google login for guests, and Firestore sync */}
-        <AdminHeader
-          currentUser={currentUser}
-          onOpenCreateForm={handleOpenCreateForm}
-        />
+        <AdminHeader currentUser={currentUser} />
 
         {/* Conditional View: Admin User Management Dashboard OR Audit OR Schedule OR Normal Agenda */}
         {isViewingUserManagement && currentUser?.isAdmin ? (
