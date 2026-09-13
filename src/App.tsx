@@ -16,6 +16,7 @@ import { ReportsModal } from './components/ReportsModal';
 import { ViewScheduleScreen } from './components/ViewScheduleScreen';
 import { DayEventsModal } from './components/DayEventsModal';
 import { AuditDashboard } from './components/AuditDashboard';
+import { AdminTools } from './components/AdminTools';
 import { DivisionManagerModal } from './components/DivisionManagerModal';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
@@ -51,6 +52,7 @@ export default function App() {
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isViewingSchedule, setIsViewingSchedule] = useState(false);
   const [isViewingAudit, setIsViewingAudit] = useState(false);
+  const [isViewingAdmTools, setIsViewingAdmTools] = useState(false);
   const [isDivisionManagerOpen, setIsDivisionManagerOpen] = useState(false);
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
@@ -306,22 +308,32 @@ export default function App() {
     [currentUser]
   );
 
-  // Mutually exclusive full-screen views (User Management / Audit / Schedule)
+  // Mutually exclusive full-screen views (User Management / Audit / Adm Tools / Schedule)
   const handleToggleUserManagement = useCallback(() => {
     setIsViewingSchedule(false);
     setIsViewingAudit(false);
+    setIsViewingAdmTools(false);
     setIsViewingUserManagement((prev) => !prev);
   }, []);
 
   const handleToggleAudit = useCallback(() => {
     setIsViewingSchedule(false);
     setIsViewingUserManagement(false);
+    setIsViewingAdmTools(false);
     setIsViewingAudit((prev) => !prev);
+  }, []);
+
+  const handleToggleAdmTools = useCallback(() => {
+    setIsViewingSchedule(false);
+    setIsViewingUserManagement(false);
+    setIsViewingAudit(false);
+    setIsViewingAdmTools((prev) => !prev);
   }, []);
 
   const handleToggleSchedule = useCallback(() => {
     setIsViewingAudit(false);
     setIsViewingUserManagement(false);
+    setIsViewingAdmTools(false);
     setIsViewingSchedule((prev) => !prev);
   }, []);
 
@@ -594,37 +606,11 @@ export default function App() {
     reader.readAsText(file);
   }, [currentUser, showNotification]);
 
-  // Admin: Reset to default in Firestore
-  const handleResetData = useCallback(async () => {
-    if (
-      window.confirm(
-        'Deseja restaurar as anotações padrão no Firebase? Isso adicionará os registros iniciais.'
-      )
-    ) {
-      for (const note of INITIAL_NOTES) {
-        await createFirestoreNote({
-          ...note,
-          authorEmail: ADMIN_EMAIL,
-          authorName: 'Sidnei (ADM)',
-          authorId: 'admin-seed'
-        });
-      }
-      showNotification('Anotações padrão reinseridas no Firebase!');
-      logAuditEntry({
-        action: 'reset',
-        entityType: 'data',
-        actorUid: currentUser?.uid,
-        actorName: currentUser?.displayName,
-        actorEmail: currentUser?.email,
-        details: `Restaurou ${INITIAL_NOTES.length} anotações padrão`
-      });
-    }
-  }, [showNotification, currentUser]);
-
   const handleOpenCreateForm = useCallback(() => {
     setIsViewingSchedule(false);
     setIsViewingUserManagement(false);
     setIsViewingAudit(false);
+    setIsViewingAdmTools(false);
     setEditingNote(null);
     setTimeout(() => {
       document.getElementById('note-title-input')?.focus();
@@ -699,9 +685,11 @@ export default function App() {
                 onOpenAudit={handleToggleAudit}
                 onOpenDivisions={() => setIsDivisionManagerOpen(true)}
                 onViewSchedule={handleToggleSchedule}
+                onOpenAdmTools={handleToggleAdmTools}
                 isViewingUserManagement={isViewingUserManagement}
                 isViewingAudit={isViewingAudit}
                 isViewingSchedule={isViewingSchedule}
+                isViewingAdmTools={isViewingAdmTools}
               />
             </aside>
           )}
@@ -711,9 +699,6 @@ export default function App() {
         <AdminHeader
           currentUser={currentUser}
           totalNotes={notes.length}
-          onExportData={handleExportData}
-          onImportData={handleImportData}
-          onResetData={handleResetData}
           onOpenCreateForm={handleOpenCreateForm}
         />
 
@@ -727,6 +712,13 @@ export default function App() {
         ) : isViewingAudit && currentUser?.isAdmin ? (
           <AuditDashboard
             onBackToAgenda={() => setIsViewingAudit(false)}
+          />
+        ) : isViewingAdmTools && currentUser?.isAdmin ? (
+          <AdminTools
+            currentUser={currentUser}
+            onExportData={handleExportData}
+            onImportData={handleImportData}
+            onBackToAgenda={() => setIsViewingAdmTools(false)}
           />
         ) : isViewingSchedule ? (
           <ViewScheduleScreen
