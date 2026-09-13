@@ -319,7 +319,7 @@ export const NoteForm: FC<NoteFormProps> = ({
             ) : (
               <>
                 <Plus className="h-4 w-4 stroke-[3]" />
-                {isSubmitting ? 'Publicando...' : 'Adicionar'}
+                {isSubmitting ? 'Salvando...' : 'Salvar Evento'}
               </>
             )}
           </button>
