@@ -609,8 +609,8 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
       const colData = margin + 4;
       const colDivisao = margin + 22;
-      const colHora = margin + 44;
-      const colEvento = margin + 56;
+      const colHora = margin + 46;
+      const colEvento = margin + 58;
       const colPrioridade = margin + 118;
       const colCategoria = margin + 138;
       const colLocalAutor = pageWidth - margin - 60;
@@ -690,9 +690,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             ? (pdf.splitTextToSize(note.content, pageWidth - margin - colEvento) as string[])
             : [];
           const divisionLine = note.division ? note.division : '';
+          const divisionLines = divisionLine
+            ? (pdf.splitTextToSize(divisionLine, colHora - colDivisao - 1) as string[])
+            : [];
           const titleBlock = titleLines.length * 5 + 2;
           const contentBlock = contentLines.length * 4;
-          const rowHeight = Math.max(9, titleBlock + contentBlock);
+          const divisionBlock = divisionLines.length * 5 + 1;
+          const rowHeight = Math.max(9, titleBlock + contentBlock, divisionBlock);
 
           if (y + rowHeight > bottomLimit) {
             pdf.addPage();
@@ -720,14 +724,10 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.text(formatDateToBR(note.date), colData, y + 2);
           if (divisionLine) {
             const divColor = getDivisionRgb(divisionLine);
-            const divLines = pdf.splitTextToSize(
-              divisionLine,
-              colHora - colDivisao - 1
-            ) as string[];
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(6.5);
+            pdf.setFontSize(8.5);
             pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
-            pdf.text(divLines.slice(0, 1), colDivisao, y + 2);
+            pdf.text(divisionLines, colDivisao, y + 2);
           }
           pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(8);
