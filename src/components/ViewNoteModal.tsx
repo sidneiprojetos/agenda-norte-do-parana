@@ -46,7 +46,7 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      ariaLabel={`Detalhes da anotação: ${note?.title ?? ''}`}
+      ariaLabel={`Detalhes da anotação: ${note?.content ?? ''}`}
       maxWidthClass="max-w-lg"
     >
       {note && (
@@ -68,9 +68,6 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
 
           <div className="flex flex-col pr-6">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-bold text-white tracking-tight">
-                {note.title}
-              </h2>
               {note.category && (
                 <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${getCategoryStyle(note.category).badge}`}>
                   {note.category}

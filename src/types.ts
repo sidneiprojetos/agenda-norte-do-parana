@@ -6,7 +6,6 @@ export const DEFAULT_CATEGORY: NoteCategory = 'Reunião';
 
 export interface Note {
   id: string;
-  title: string;
   content: string;
   date: string; // ISO date format YYYY-MM-DD
   time?: string; // HH:mm

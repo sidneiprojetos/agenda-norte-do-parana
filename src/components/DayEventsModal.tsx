@@ -69,7 +69,7 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
                   <div className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${categoryStyle.active.split(' ')[1]}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-white truncate">{note.title}</span>
+                      <span className="text-sm font-semibold text-white truncate">{note.content}</span>
                       <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${categoryStyle.badge}`}>
                         {note.category || DEFAULT_CATEGORY}
                       </span>
@@ -85,9 +85,6 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
                         </span>
                       )}
                     </div>
-                    {note.content && (
-                      <p className="mt-1.5 text-xs text-zinc-500 line-clamp-2">{note.content}</p>
-                    )}
                   </div>
                   <Eye className="h-4 w-4 shrink-0 mt-1 text-zinc-500" />
                 </button>

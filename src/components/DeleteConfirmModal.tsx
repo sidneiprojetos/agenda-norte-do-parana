@@ -43,15 +43,10 @@ export const DeleteConfirmModal: FC<DeleteConfirmModalProps> = ({
 
             {/* Note preview box */}
             <div className="mt-3 rounded-xl border border-zinc-800 bg-[#1a1a1e] p-3 text-xs text-zinc-300">
-              <p className="font-semibold text-amber-400">{note.title}</p>
+              <p className="font-semibold text-amber-400 line-clamp-2">{note.content}</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 Data: {formatDateToBR(note.date)} {note.time ? `às ${note.time}h` : ''}
               </p>
-              {note.content && (
-                <p className="mt-1 text-slate-400 italic line-clamp-2">
-                  "{note.content}"
-                </p>
-              )}
             </div>
           </div>
         </div>

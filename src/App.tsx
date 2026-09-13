@@ -305,7 +305,7 @@ export default function App() {
         action: 'view',
         entityType: 'note',
         entityId: note.id,
-        entityTitle: note.title,
+        entityTitle: note.content || 'Anotação',
         actorUid: currentUser?.uid,
         actorName: currentUser?.displayName,
         actorEmail: currentUser?.email,
@@ -371,7 +371,6 @@ export default function App() {
 
   // CRUD - Create & Update with Firebase
   const handleSaveNote = useCallback(async (data: {
-    title: string;
     content: string;
     date: string;
     time?: string;
@@ -391,7 +390,6 @@ export default function App() {
           n.id === editingNote.id
             ? {
                 ...n,
-                title: data.title,
                 content: data.content,
                 date: data.date,
                 time: data.time,
@@ -407,7 +405,6 @@ export default function App() {
         await updateFirestoreNote(
           editingNote.id,
           {
-            title: data.title,
             content: data.content,
             date: data.date,
             time: data.time,
@@ -416,7 +413,7 @@ export default function App() {
             updatedAt: new Date().toISOString()
           },
           {
-            title: data.title,
+            title: data.content,
             actor: { uid: userId, name: userName, email: userEmail },
             details: 'Editou a anotação'
           }
@@ -427,13 +424,12 @@ export default function App() {
         throw error;
       }
       setEditingNote(null);
-      showNotification(`Anotação "${data.title}" atualizada com sucesso!`);
+      showNotification(`Anotação "${data.content}" atualizada com sucesso!`);
     } else {
       // Optimistic create in UI
       const tempId = 'note-' + Date.now();
       const optimisticNote: Note = {
         id: tempId,
-        title: data.title,
         content: data.content,
         date: data.date,
         time: data.time,
@@ -454,7 +450,6 @@ export default function App() {
       try {
         realId = await createFirestoreNote(
           {
-            title: data.title,
             content: data.content,
             date: data.date,
             time: data.time,
@@ -481,14 +476,14 @@ export default function App() {
 
       // Update with real Firestore ID
       setNotes((prev) => prev.map((n) => (n.id === tempId ? { ...n, id: realId } : n)));
-      showNotification(`Anotação "${data.title}" publicada online!`);
+      showNotification(`Anotação "${data.content}" publicada online!`);
     }
   }, [currentUser, editingNote, showNotification]);
 
   // CRUD - Delete with Firebase
   const handleConfirmDelete = useCallback(async () => {
     if (!deletingNote) return;
-    const title = deletingNote.title;
+    const title = deletingNote.content;
     const targetId = deletingNote.id;
 
     // Optimistic delete in UI
@@ -566,9 +561,8 @@ export default function App() {
         if (Array.isArray(parsed)) {
           showNotification(`Importando ${parsed.length} anotações para o Firebase...`, 'info');
           for (const item of parsed) {
-            if (item.title && item.date) {
+            if (item.content && item.date) {
               await createFirestoreNote({
-                title: item.title,
                 content: item.content || '',
                 date: item.date,
                 time: item.time,
@@ -608,7 +602,7 @@ export default function App() {
     setIsViewingAdmTools(false);
     setEditingNote(null);
     setTimeout(() => {
-      document.getElementById('note-title-input')?.focus();
+      document.getElementById('note-content-input')?.focus();
       document.getElementById('note-form-container')?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'

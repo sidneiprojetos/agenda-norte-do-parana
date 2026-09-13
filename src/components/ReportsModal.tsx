@@ -184,12 +184,10 @@ interface NoteRowMetrics {
 
 function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
   const titleLines = pdf.splitTextToSize(
-    note.title,
+    note.content,
     COL_AUTOR - COL_EVENTO - 6
   ) as string[];
-  const contentLines = note.content
-    ? (pdf.splitTextToSize(note.content, PAGE_WIDTH - MARGIN - COL_EVENTO) as string[])
-    : [];
+  const contentLines: string[] = [];
   const divisionLine = note.division ? note.division : '';
   const divisionLines = divisionLine
     ? (pdf.splitTextToSize(divisionLine, COL_CATEGORIA - COL_DIVISAO - 1) as string[])
@@ -203,7 +201,7 @@ function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
 
 function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metrics: NoteRowMetrics) {
   const category = note.category || DEFAULT_CATEGORY;
-  const { titleLines, contentLines, divisionLine, divisionLines, rowHeight } = metrics;
+  const { titleLines, divisionLine, divisionLines, rowHeight } = metrics;
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
@@ -242,13 +240,6 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
   pdf.setFontSize(7);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(authorLine, COL_AUTOR, y + 5);
-
-  if (contentLines.length > 0) {
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7.5);
-    pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-    pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 6 + 5);
-  }
 
   pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.25);

@@ -57,11 +57,10 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchTitle = n.title.toLowerCase().includes(q);
         const matchContent = n.content.toLowerCase().includes(q);
         const matchAuthor = (n.authorName || n.authorEmail || n.createdBy || '').toLowerCase().includes(q);
         const matchDivision = n.division?.toLowerCase().includes(q) || false;
-        return matchTitle || matchContent || matchAuthor || matchDivision;
+        return matchContent || matchAuthor || matchDivision;
       }
       return true;
     });
@@ -161,7 +160,7 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                   onClick={() => onViewNote(note)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Ver detalhes de ${note.title}`}
+                  aria-label={`Ver detalhes de ${note.content}`}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -173,8 +172,8 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                   <div className="flex flex-col min-w-0 w-full">
                     {/* Title and Badges */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm sm:text-base font-semibold text-slate-100 group-hover:text-amber-400 transition-colors">
-                        {note.title}
+                      <h3 className="text-sm sm:text-base font-semibold text-slate-100 group-hover:text-amber-400 transition-colors line-clamp-2">
+                        {note.content}
                       </h3>
                       <span className="rounded-full bg-amber-600 px-2.5 py-0.5 text-xs font-medium text-white shadow-sm">
                         {formatDateToBR(note.date)}
@@ -193,13 +192,6 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                       {note.division || 'Sem divisão'}
                     </span>
                     </div>
-
-                    {/* Full content */}
-                    {note.content && (
-                      <p className="mt-1.5 text-xs sm:text-sm text-slate-200 whitespace-pre-wrap break-words">
-                        {note.content}
-                      </p>
-                    )}
 
                     {/* Author and Timestamp with ADM tag */}
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
@@ -227,7 +219,7 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                     onClick={() => onViewNote(note)}
                     className="flex items-center gap-1 rounded-lg p-2.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 active:scale-95"
                     title="Ver detalhes da anotação"
-                    aria-label={`Ver detalhes de ${note.title}`}
+                    aria-label={`Ver detalhes de ${note.content}`}
                   >
                     <Eye className="h-4 w-4" />
                     <span className="hidden md:inline text-xs font-medium">Ver</span>

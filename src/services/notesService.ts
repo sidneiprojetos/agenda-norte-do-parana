@@ -98,7 +98,6 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
         const data = docSnap.data();
         notes.push({
           id: docSnap.id,
-          title: data.title || '',
           content: data.content || '',
           date: data.date || '',
           time: data.time || undefined,
@@ -156,7 +155,7 @@ export async function createFirestoreNote(
 
   await setDoc(newDocRef, sanitized);
 
-  await logNoteAudit('create', audit, noteId, noteData.title);
+  await logNoteAudit('create', audit, noteId, noteData.content || 'Anotação');
 
   return noteId;
 }
@@ -176,7 +175,7 @@ export async function updateFirestoreNote(
     updatedAt: new Date().toISOString()
   };
   await updateDoc(noteDocRef, removeUndefinedFields(rawUpdates));
-  await logNoteAudit('update', audit, noteId, audit?.title || updates.title || 'Anotação');
+  await logNoteAudit('update', audit, noteId, audit?.title || updates.content || 'Anotação');
 }
 
 /**
@@ -207,7 +206,7 @@ export async function cleanupPastNotes(pastNotes: Note[]): Promise<void> {
   for (const note of past) {
     try {
       await deleteDoc(doc(db, NOTES_COLLECTION, note.id));
-      console.info('Limpeza automática: anotação passada removida', note.date, note.title);
+      console.info('Limpeza automática: anotação passada removida', note.date, note.content);
     } catch (err) {
       console.warn('Limpeza automática falhou para a anotação:', note.id, err);
     }

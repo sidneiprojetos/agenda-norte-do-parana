@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import {
-  FileText,
   Calendar as CalendarIcon,
   Plus,
   Check,
@@ -21,7 +20,6 @@ interface NoteFormProps {
   currentUser: AppUser | null;
   divisions: string[];
   onSaveNote: (noteData: {
-    title: string;
     content: string;
     date: string;
     time?: string;
@@ -39,7 +37,6 @@ export const NoteForm: FC<NoteFormProps> = ({
   onSaveNote,
   onCancelEdit
 }) => {
-  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [dateStr, setDateStr] = useState(selectedDate || formatDateToISO(new Date()));
   const [time, setTime] = useState('');
@@ -55,14 +52,12 @@ export const NoteForm: FC<NoteFormProps> = ({
   // Synchronize when editing or when date is selected on calendar
   useEffect(() => {
     if (editingNote) {
-      setTitle(editingNote.title);
       setContent(editingNote.content);
       setDateStr(editingNote.date);
       setTime(editingNote.time || '');
       setCategory(editingNote.category || DEFAULT_CATEGORY);
       setDivision(editingNote.division || '');
     } else {
-      setTitle('');
       setContent('');
       setTime('');
       setCategory(DEFAULT_CATEGORY);
@@ -76,8 +71,8 @@ export const NoteForm: FC<NoteFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError('Por favor, informe o título da anotação.');
+    if (!content.trim()) {
+      setError('Por favor, informe o texto da anotação.');
       return;
     }
     if (!dateStr) {
@@ -92,7 +87,6 @@ export const NoteForm: FC<NoteFormProps> = ({
     try {
       setIsSubmitting(true);
       await onSaveNote({
-        title: title.trim(),
         content: content.trim(),
         date: dateStr,
         time: time.trim() || undefined,
@@ -101,7 +95,6 @@ export const NoteForm: FC<NoteFormProps> = ({
       });
 
       if (!editingNote) {
-        setTitle('');
         setContent('');
         setTime('');
         setDivision('');
@@ -144,26 +137,7 @@ export const NoteForm: FC<NoteFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        {/* Title Input with Icon */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
-            <FileText className="h-4 w-4" />
-          </div>
-          <input
-            id="note-title-input"
-            type="text"
-            aria-label="Título da anotação"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              if (error) setError('');
-            }}
-            placeholder="Título da anotação"
-            className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
-          />
-        </div>
-
-        {/* Division select between title and content (required) */}
+        {/* Division select (required) */}
         <div>
           <label
             htmlFor="note-division-input"
@@ -203,7 +177,20 @@ export const NoteForm: FC<NoteFormProps> = ({
           </div>
         </div>
 
-        {/* Category select after division (same style as division selector) */}
+        {/* Content Textarea */}
+        <div className="relative">
+          <textarea
+            id="note-content-input"
+            rows={3}
+            aria-label="Texto da anotação"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Escreva o texto do evento..."
+            className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+          />
+        </div>
+
+        {/* Category select */}
         <div>
           <label
             htmlFor="note-category-input"
@@ -235,19 +222,6 @@ export const NoteForm: FC<NoteFormProps> = ({
             </select>
             <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
           </div>
-        </div>
-
-        {/* Content Textarea */}
-        <div className="relative">
-          <textarea
-            id="note-content-input"
-            rows={3}
-            aria-label="Descrição da anotação"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Escreva o texto da anotação..."
-            className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
-          />
         </div>
 
         {/* Primary Row: Date Input */}
