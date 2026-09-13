@@ -460,7 +460,7 @@ export default function App() {
           },
           {
             actor: { uid: userId, name: userName, email: userEmail },
-            details: 'Criou uma nova anotação'
+            details: 'Criou um novo evento'
           }
         );
       } catch (error) {

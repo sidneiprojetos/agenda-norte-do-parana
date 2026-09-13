@@ -136,7 +136,7 @@ export const NoteForm: FC<NoteFormProps> = ({
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-            {editingNote ? 'Editar anotação' : 'Nova anotação'}
+            {editingNote ? 'Editar anotação' : 'Novo Evento'}
           </h3>
           {editingNote && (
             <span className="rounded bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 text-[10px] font-semibold text-amber-300">

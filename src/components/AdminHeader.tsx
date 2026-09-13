@@ -179,7 +179,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
             className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white px-2.5 sm:px-3.5 py-2 text-xs font-semibold shadow-md shadow-amber-900/30 transition active:scale-95"
           >
             <Plus className="h-3.5 w-3.5 stroke-[3]" />
-            <span>Nova Anotação</span>
+            <span>Novo Evento</span>
           </button>
 
           {currentUser?.isAdmin && onOpenUserManagement && (
