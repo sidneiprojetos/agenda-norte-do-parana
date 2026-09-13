@@ -24,7 +24,6 @@ interface ReportsModalProps {
 type JsPDF = import('jspdf').jsPDF;
 
 const BLACK: [number, number, number] = [0, 0, 0];
-const SLATE_900 = [15, 23, 42];
 
 const MARGIN = 14;
 const PAGE_WIDTH = 297;
@@ -92,8 +91,9 @@ async function drawTitleHeader(pdf: JsPDF, reportTitle: string) {
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(`Gerado em ${dateBR} às ${timeHHMM}`, PAGE_WIDTH - MARGIN, 18.5, { align: 'right' });
 
-  pdf.setFillColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.rect(MARGIN, 21.5, PAGE_WIDTH - MARGIN * 2, 1.4, 'F');
+  pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
+  pdf.setLineWidth(0.3);
+  pdf.line(MARGIN, 22.2, PAGE_WIDTH - MARGIN, 22.2);
 }
 
 function drawContinuationHeader(pdf: JsPDF, reportTitle: string) {
@@ -148,12 +148,13 @@ function applyPageFooters(pdf: JsPDF, signature: string = DEFAULT_SIGNATURE) {
 }
 
 function drawColumnHeader(pdf: JsPDF, y: number) {
-  pdf.setFillColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
-  pdf.rect(MARGIN, y - 2, PAGE_WIDTH - MARGIN * 2, 9, 'F');
+  pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
+  pdf.setLineWidth(0.5);
+  pdf.line(MARGIN, y + 7, PAGE_WIDTH - MARGIN, y + 7);
 
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(8);
-  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text('DATA', COL_DATA, y + 4);
   pdf.text('DIVISÃO', COL_DIVISAO, y + 4);
   pdf.text('CATEGORIA', COL_CATEGORIA, y + 4);
@@ -163,16 +164,13 @@ function drawColumnHeader(pdf: JsPDF, y: number) {
 }
 
 function drawGroupHeader(pdf: JsPDF, y: number, label: string, count: number) {
-  pdf.setFillColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.rect(MARGIN, y - 3.2, PAGE_WIDTH - MARGIN * 2, 7.4, 'F');
-
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9);
-  pdf.setTextColor(255, 255, 255);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(label.toUpperCase(), MARGIN + 4.5, y);
 
   pdf.setFontSize(8.5);
-  pdf.setTextColor(255, 255, 255);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(`${count} evento(s)`, PAGE_WIDTH - MARGIN, y, { align: 'right' });
 }
 
