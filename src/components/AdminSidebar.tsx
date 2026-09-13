@@ -73,9 +73,9 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
     'flex flex-1 lg:flex-none items-center gap-2.5 rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-95';
 
   return (
-    <nav className="lg:sticky lg:top-4 flex flex-row lg:flex-col gap-1.5 rounded-2xl border border-zinc-800/80 bg-[#161619]/85 p-2 shadow-xl backdrop-blur-md lg:p-2.5">
+    <nav className="lg:sticky lg:top-4 flex flex-row flex-wrap lg:flex-col lg:flex-nowrap gap-1.5 rounded-2xl border border-zinc-800/80 bg-[#161619]/85 p-2 shadow-xl backdrop-blur-md lg:p-2.5">
       {/* Logged-in user card */}
-      <div className="flex items-center gap-2.5 rounded-xl bg-[#18181b]/90 border border-zinc-700/80 p-2 pr-1.5 shadow-md">
+      <div className="flex w-full lg:w-auto items-center gap-2.5 rounded-xl bg-[#18181b]/90 border border-zinc-700/80 p-2 pr-1.5 shadow-md">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-black text-white shadow-md shadow-amber-900/40">
           {initials}
         </div>
