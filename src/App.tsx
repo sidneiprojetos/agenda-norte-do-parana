@@ -767,7 +767,7 @@ export default function App() {
         </p>
 
         <span className="text-sm sm:text-base text-zinc-200 tracking-wide whitespace-nowrap">
-          Siluar Core
+          Sid imc.sidnei@gmail.com
         </span>
       </footer>
 
