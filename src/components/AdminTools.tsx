@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { ChangeEvent, FC } from 'react';
-import { ArrowLeft, Database, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Database, Download, ShieldCheck, Upload } from 'lucide-react';
 import { AppUser } from '../types';
 
 interface AdminToolsProps {
@@ -11,7 +11,6 @@ interface AdminToolsProps {
 }
 
 export const AdminTools: FC<AdminToolsProps> = ({
-  currentUser,
   onExportData,
   onImportData,
   onBackToAgenda
@@ -36,11 +35,18 @@ export const AdminTools: FC<AdminToolsProps> = ({
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Voltar à agenda</span>
         </button>
-        <div className="flex flex-col gap-0.5 text-right">
+        <div className="flex flex-col gap-1 text-right">
           <h2 className="text-sm font-bold text-zinc-100">Ferramentas ADM</h2>
-          <p className="text-[11px] text-zinc-500">
-            Login: {currentUser.displayName || currentUser.email}
-          </p>
+          <div className="flex items-center justify-end gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-400">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              PAINEL ADM
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Firestore Tempo Real
+            </span>
+          </div>
         </div>
       </div>
 
