@@ -6,13 +6,11 @@ import { loginWithGoogle } from '../firebase';
 
 interface AdminHeaderProps {
   currentUser: AppUser | null;
-  totalNotes: number;
   onOpenCreateForm: () => void;
 }
 
 export const AdminHeader: FC<AdminHeaderProps> = ({
   currentUser,
-  totalNotes,
   onOpenCreateForm
 }) => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -83,10 +81,6 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
             <Plus className="h-3.5 w-3.5 stroke-[3]" />
             <span>Novo Evento</span>
           </button>
-
-          <span className="text-xs text-zinc-400 px-1 whitespace-nowrap">
-            Total: <strong className="text-zinc-200">{totalNotes}</strong>
-          </span>
 
           {!currentUser && (
             <span className="text-[11px] text-zinc-400 hidden md:inline">

@@ -698,7 +698,6 @@ export default function App() {
         {/* Admin Header with user imc.sidnei@gmail.com, Google login for guests, and Firestore sync */}
         <AdminHeader
           currentUser={currentUser}
-          totalNotes={notes.length}
           onOpenCreateForm={handleOpenCreateForm}
         />
 
