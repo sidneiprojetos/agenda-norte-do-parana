@@ -7,6 +7,10 @@ import { logAuditEntry } from './auditService';
 
 const NOTES_COLLECTION = 'notes';
 
+const LEGACY_CATEGORY_MAP: Record<string, Note['category']> = {
+  Evento: 'Coletamento'
+};
+
 async function firestore() {
   const db = await getDb();
   const { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } =
@@ -98,7 +102,7 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
           date: data.date || '',
           time: data.time || undefined,
           location: data.location || undefined,
-          category: data.category || 'Geral',
+          category: LEGACY_CATEGORY_MAP[data.category as string] || data.category || 'Geral',
           priority: data.priority || 'normal',
           division: data.division || undefined,
           createdAt: data.createdAt || new Date().toISOString(),

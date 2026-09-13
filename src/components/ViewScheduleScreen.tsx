@@ -28,7 +28,7 @@ const CATEGORIES: (NoteCategory | 'Todas')[] = [
   'Todas',
   'Reunião',
   'Pub',
-  'Evento',
+  'Coletamento',
   'Ação Social',
   'Geral'
 ];

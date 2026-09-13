@@ -34,7 +34,7 @@ interface ReportsModalProps {
 const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
   Reunião: [2, 132, 199],
   Pub: [5, 150, 105],
-  Evento: [124, 58, 237],
+  Coletamento: [124, 58, 237],
   'Ação Social': [225, 29, 72],
   Geral: [217, 119, 6]
 };

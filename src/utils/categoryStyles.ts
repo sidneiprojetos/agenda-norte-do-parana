@@ -23,7 +23,7 @@ const CATEGORY_STYLES: Record<NoteCategory, CategoryStyle> = {
     calendar: 'border-emerald-400/70 bg-emerald-950/75 text-emerald-100',
     border: 'border-emerald-500/40'
   },
-  Evento: {
+  Coletamento: {
     badge: 'border-violet-500/40 bg-violet-950/40 text-violet-300',
     active: 'border-violet-500 bg-violet-600 text-white shadow-sm',
     selected: 'border-violet-500/50 bg-violet-600 text-white shadow-sm',

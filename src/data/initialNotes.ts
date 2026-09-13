@@ -19,7 +19,7 @@ export const INITIAL_NOTES: Note[] = [
     content: 'Feira do Produtor - Encontro de Carros antigos - 10:00h',
     date: '2026-08-30',
     time: '10:00',
-    category: 'Evento',
+    category: 'Coletamento',
     location: 'Feira do Produtor',
     division: 'Norte do Paraná',
     createdAt: '2026-08-28T15:40:00',
