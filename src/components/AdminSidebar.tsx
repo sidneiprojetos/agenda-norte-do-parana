@@ -7,7 +7,8 @@ import {
   BarChart3,
   CalendarDays,
   Settings,
-  LogOut
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { logoutUser, ADMIN_EMAIL } from '../firebase';
@@ -103,6 +104,20 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
         >
           <LogOut className="h-4 w-4" />
         </button>
+      </div>
+
+      {/* Badges under the logged-in user */}
+      <div className="flex flex-row lg:flex-col gap-1.5 flex-wrap">
+        {currentUser.isAdmin && (
+          <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-1 text-[11px] font-semibold text-amber-400">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            PAINEL ADM
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 text-[11px] font-medium text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Firestore Tempo Real
+        </span>
       </div>
 
       <span className="hidden lg:flex items-center gap-1.5 px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">

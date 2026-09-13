@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FC } from 'react';
-import { ShieldCheck, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { AppUser } from '../types';
 import { loginWithGoogle } from '../firebase';
 
@@ -38,19 +38,6 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
             <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white truncate">
               Agenda Norte do Paraná
             </h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {currentUser?.isAdmin && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-400">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                PAINEL ADM
-              </span>
-            )}
-            {/* Realtime sync badge */}
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Firestore Tempo Real
-            </span>
           </div>
         </div>
 
