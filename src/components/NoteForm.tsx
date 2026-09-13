@@ -216,19 +216,6 @@ export const NoteForm: FC<NoteFormProps> = ({
           </div>
         </div>
 
-        {/* Content Textarea */}
-        <div className="relative">
-          <textarea
-            id="note-content-input"
-            rows={3}
-            aria-label="Texto da anotação"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Escreva o texto do evento..."
-            className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
-          />
-        </div>
-
         {/* Primary Row: Date Input */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div className="relative">
@@ -259,6 +246,19 @@ export const NoteForm: FC<NoteFormProps> = ({
               className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             />
           </div>
+        </div>
+
+        {/* Content Textarea */}
+        <div className="relative">
+          <textarea
+            id="note-content-input"
+            rows={3}
+            aria-label="Texto da anotação"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Escreva o texto do evento..."
+            className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+          />
         </div>
 
         {error && (
