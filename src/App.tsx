@@ -621,12 +621,17 @@ export default function App() {
   }, [showNotification, currentUser]);
 
   const handleOpenCreateForm = useCallback(() => {
+    setIsViewingSchedule(false);
+    setIsViewingUserManagement(false);
+    setIsViewingAudit(false);
     setEditingNote(null);
-    document.getElementById('note-title-input')?.focus();
-    document.getElementById('note-form-container')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center'
-    });
+    setTimeout(() => {
+      document.getElementById('note-title-input')?.focus();
+      document.getElementById('note-form-container')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 50);
   }, []);
 
   // If still checking authentication state, show branded loading splash
