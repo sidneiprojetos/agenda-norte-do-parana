@@ -37,9 +37,9 @@ const PAGE_HEIGHT = 210;
 const BOTTOM_LIMIT = PAGE_HEIGHT - 14;
 const COL_DATA = MARGIN + 4;
 const COL_DIVISAO = MARGIN + 22;
-const COL_HORA = MARGIN + 46;
-const COL_EVENTO = MARGIN + 58;
-const COL_CATEGORIA = MARGIN + 130;
+const COL_CATEGORIA = MARGIN + 46;
+const COL_HORA = MARGIN + 74;
+const COL_EVENTO = MARGIN + 86;
 const COL_AUTOR = PAGE_WIDTH - MARGIN - 60;
 
 function monthKeyOf(dateStr: string): string {
@@ -127,9 +127,9 @@ function drawColumnHeader(pdf: JsPDF, y: number) {
   pdf.setTextColor(30, 41, 59);
   pdf.text('DATA', COL_DATA, y + 5);
   pdf.text('DIVISÃO', COL_DIVISAO, y + 5);
+  pdf.text('CATEGORIA', COL_CATEGORIA, y + 5);
   pdf.text('HORA', COL_HORA, y + 5);
   pdf.text('EVENTO', COL_EVENTO, y + 5);
-  pdf.text('CATEGORIA', COL_CATEGORIA + 6, y + 5);
   pdf.text('AUTOR', COL_AUTOR, y + 5);
   pdf.setDrawColor(80, 80, 80);
   pdf.setLineWidth(0.3);
@@ -147,14 +147,14 @@ interface NoteRowMetrics {
 function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
   const titleLines = pdf.splitTextToSize(
     note.title,
-    COL_CATEGORIA - COL_EVENTO - 6
+    COL_AUTOR - COL_EVENTO - 6
   ) as string[];
   const contentLines = note.content
     ? (pdf.splitTextToSize(note.content, PAGE_WIDTH - MARGIN - COL_EVENTO) as string[])
     : [];
   const divisionLine = note.division ? note.division : '';
   const divisionLines = divisionLine
-    ? (pdf.splitTextToSize(divisionLine, COL_HORA - COL_DIVISAO - 1) as string[])
+    ? (pdf.splitTextToSize(divisionLine, COL_CATEGORIA - COL_DIVISAO - 1) as string[])
     : [];
   const titleBlock = titleLines.length * 5 + 2;
   const contentBlock = contentLines.length * 4;
@@ -184,6 +184,10 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
     pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
     pdf.text(divisionLines, COL_DIVISAO, y + 2);
   }
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(7);
+  pdf.setTextColor(cRed, cGreen, cBlue);
+  pdf.text(category, COL_CATEGORIA, y + 2);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(90, 90, 90);
@@ -192,13 +196,6 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
   pdf.setFontSize(8.5);
   pdf.setTextColor(cRed, cGreen, cBlue);
   pdf.text(titleLines, COL_EVENTO, y + 2);
-  pdf.setDrawColor(cRed, cGreen, cBlue);
-  pdf.setLineWidth(0.45);
-  pdf.roundedRect(COL_CATEGORIA - 1, y - 2, 28, 6, 2, 2, 'S');
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(7);
-  pdf.setTextColor(cRed, cGreen, cBlue);
-  pdf.text(category, COL_CATEGORIA + 13, y + 2, { align: 'center' });
   const authorLine = (
     pdf.splitTextToSize(
       noteAuthor(note) || '—',
