@@ -107,7 +107,7 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar anotações..."
-            className="w-full rounded-xl border border-zinc-700/60 bg-[#1a1a1e] py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition"
+            className="w-full rounded-xl border border-zinc-700/60 bg-[#1a1a1e] py-2.5 pl-8 pr-3 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition"
           />
         </div>
       </div>
@@ -225,30 +225,31 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                 <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
                   <button
                     onClick={() => onViewNote(note)}
-                    className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+                    className="flex items-center gap-1 rounded-lg p-2.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 active:scale-95"
                     title="Ver detalhes da anotação"
+                    aria-label={`Ver detalhes de ${note.title}`}
                   >
-                    <Eye className="h-3.5 w-3.5" />
-                    <span className="hidden md:inline">Ver</span>
+                    <Eye className="h-4 w-4" />
+                    <span className="hidden md:inline text-xs font-medium">Ver</span>
                   </button>
 
                   {hasPermission && (
                     <>
                       <button
                         onClick={() => onEditNote(note)}
-                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-slate-800 hover:text-amber-400"
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-400 transition hover:bg-slate-800 hover:text-amber-400 active:scale-95"
                         title="Editar esta anotação"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="h-4 w-4" />
                         <span>Editar</span>
                       </button>
 
                       <button
                         onClick={() => onDeleteNote(note)}
-                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-rose-950/40 hover:text-rose-400"
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-400 transition hover:bg-rose-950/40 hover:text-rose-400 active:scale-95"
                         title="Excluir esta anotação"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                         <span>Excluir</span>
                       </button>
                     </>

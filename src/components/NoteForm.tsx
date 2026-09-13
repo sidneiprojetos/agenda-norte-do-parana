@@ -159,7 +159,7 @@ export const NoteForm: FC<NoteFormProps> = ({
               if (error) setError('');
             }}
             placeholder="Título da anotação"
-            className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+            className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
           />
         </div>
 
@@ -184,7 +184,7 @@ export const NoteForm: FC<NoteFormProps> = ({
                 setDivision(e.target.value);
                 if (error) setError('');
               }}
-              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             >
               <option value="">Selecione a divisão</option>
               {divisionOptions.map((div) => (
@@ -224,7 +224,7 @@ export const NoteForm: FC<NoteFormProps> = ({
                 setCategory(value === '' ? DEFAULT_CATEGORY : value);
                 if (error) setError('');
               }}
-              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             >
               <option value="">Selecione a categoria</option>
               {CATEGORIES.map((cat) => (
@@ -246,7 +246,7 @@ export const NoteForm: FC<NoteFormProps> = ({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Escreva o texto da anotação..."
-            className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+            className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
           />
         </div>
 
@@ -262,7 +262,7 @@ export const NoteForm: FC<NoteFormProps> = ({
               aria-label="Data da anotação"
               value={dateStr}
               onChange={(e) => setDateStr(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+              className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             />
           </div>
 
@@ -277,7 +277,7 @@ export const NoteForm: FC<NoteFormProps> = ({
               value={time}
               onChange={(e) => setTime(e.target.value)}
               placeholder="Horário (opcional)"
-              className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+              className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2 pl-10 pr-3 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             />
           </div>
         </div>

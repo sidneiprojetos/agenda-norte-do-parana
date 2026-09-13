@@ -57,7 +57,7 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
             <p className="text-sm text-zinc-400">Nenhum evento encontrado para este dia.</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="flex flex-col gap-2 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto pr-1">
             {dayNotes.map((note) => {
               const categoryStyle = getCategoryStyle(note.category || DEFAULT_CATEGORY);
               return (

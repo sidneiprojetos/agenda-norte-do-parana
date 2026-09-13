@@ -112,10 +112,10 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
 
         {/* Metadata & Audit Trail */}
         <div className="mt-4 flex flex-col gap-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-3 text-[11px] text-zinc-400">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <span className="flex items-center gap-1">
               Publicado por:{' '}
-              <strong className="text-slate-200">
+              <strong className="text-slate-200 break-all">
                 {note.authorName ? `${note.authorName} (${note.authorEmail || note.createdBy})` : (note.authorEmail || note.createdBy)}
               </strong>
             </span>
@@ -129,7 +129,7 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
               </span>
             )}
           </div>
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-slate-400">
             <span>Criado em: {formatDateTimeBR(note.createdAt)}</span>
             {note.updatedAt && (
               <span>Atualizado em: {formatDateTimeBR(note.updatedAt)}</span>
@@ -138,7 +138,7 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-5 flex items-center justify-between pt-2 border-t border-slate-800">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
           {canModify ? (
             <button
               type="button"

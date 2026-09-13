@@ -47,7 +47,7 @@ export const Calendar: FC<CalendarProps> = ({
         <button
           id="prev-month-btn"
           onClick={() => onChangeMonth(-1)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100 active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100 active:scale-95"
           title="Mês anterior"
           aria-label="Mês anterior"
         >
@@ -89,7 +89,7 @@ export const Calendar: FC<CalendarProps> = ({
         <button
           id="next-month-btn"
           onClick={() => onChangeMonth(1)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100 active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/80 hover:text-zinc-100 active:scale-95"
           title="Próximo mês"
           aria-label="Próximo mês"
         >
@@ -112,7 +112,7 @@ export const Calendar: FC<CalendarProps> = ({
       {/* Days Grid (animated on month/year change) */}
       <motion.div
         key={`${year}-${month}`}
-        className="relative z-10 grid grid-cols-7 gap-1 sm:gap-1.5"
+        className="relative z-10 grid grid-cols-7 gap-1 sm:gap-1.5 touch-manipulation select-none"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: 'easeOut' }}

@@ -525,7 +525,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       ariaLabel="Relatórios da agenda"
       maxWidthClass="max-w-3xl"
       showCloseButton={false}
-      panelClassName="flex max-h-[94vh] flex-col overflow-hidden rounded-2xl border border-zinc-700/80 bg-[#121215] shadow-2xl"
+      panelClassName="flex max-h-[94vh] flex-col overflow-hidden rounded-t-2xl rounded-b-none sm:rounded-2xl border border-zinc-700/80 bg-[#121215] shadow-2xl"
     >
       <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-5 py-4 sm:px-6">
         <div className="flex items-center gap-3">

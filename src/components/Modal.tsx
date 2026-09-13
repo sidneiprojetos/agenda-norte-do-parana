@@ -53,7 +53,7 @@ export const Modal: FC<ModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-sm sm:p-5"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm sm:p-5"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -66,11 +66,11 @@ export const Modal: FC<ModalProps> = ({
             aria-modal="true"
             aria-label={ariaLabel}
             tabIndex={-1}
-            className={`relative w-full ${maxWidthClass} rounded-2xl border border-zinc-800 bg-[#141417] shadow-2xl outline-none ${panelClassName}`}
-            initial={{ opacity: 0, scale: 0.96, y: 14 }}
+            className={`relative w-full ${maxWidthClass} max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto overscroll-contain rounded-t-2xl rounded-b-none sm:rounded-2xl border border-zinc-800 bg-[#141417] shadow-2xl outline-none ${panelClassName}`}
+            initial={{ opacity: 0, scale: 0.96, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 14 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+            exit={{ opacity: 0, scale: 0.96, y: 40 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
           >
             {showCloseButton && (
