@@ -790,10 +790,6 @@ export default function App() {
         notify={showNotification}
         generatorName={currentUser?.displayName || undefined}
         generatorEmail={currentUser?.email || undefined}
-        onViewNote={(note) => {
-          setIsReportsOpen(false);
-          handleViewNote(note);
-        }}
       />
 
       <DayEventsModal

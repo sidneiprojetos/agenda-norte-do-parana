@@ -17,7 +17,6 @@ interface ReportsModalProps {
   notes: Note[];
   isOpen: boolean;
   onClose: () => void;
-  onViewNote: (note: Note) => void;
   notify?: (message: string, type?: 'success' | 'error' | 'info') => void;
   generatorName?: string;
   generatorEmail?: string;
