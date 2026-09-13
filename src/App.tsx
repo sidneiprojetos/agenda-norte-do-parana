@@ -6,6 +6,7 @@ import { INITIAL_DIVISIONS } from './data/initialDivisions';
 import { Calendar } from './components/Calendar';
 import { NoteForm } from './components/NoteForm';
 import { AdminHeader } from './components/AdminHeader';
+import { AdminSidebar } from './components/AdminSidebar';
 import { ViewNoteModal } from './components/ViewNoteModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { PendingApprovalScreen } from './components/PendingApprovalScreen';
@@ -685,7 +686,27 @@ export default function App() {
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       {/* Outer Card Container */}
-      <main className="relative z-10 mx-auto max-w-5xl rounded-3xl border border-zinc-800/80 bg-[#121215]/90 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-md">
+      <main className="relative z-10 mx-auto max-w-6xl rounded-3xl border border-zinc-800/80 bg-[#121215]/90 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-md">
+        <div className="flex flex-col gap-5 lg:flex-row">
+          {/* Left sidebar with admin/panel navigation */}
+          {currentUser && (
+            <aside className="shrink-0 lg:w-60">
+              <AdminSidebar
+                currentUser={currentUser}
+                pendingUsersCount={pendingUsersCount}
+                onOpenReports={() => setIsReportsOpen(true)}
+                onOpenUserManagement={handleToggleUserManagement}
+                onOpenAudit={handleToggleAudit}
+                onOpenDivisions={() => setIsDivisionManagerOpen(true)}
+                onViewSchedule={handleToggleSchedule}
+                isViewingUserManagement={isViewingUserManagement}
+                isViewingAudit={isViewingAudit}
+                isViewingSchedule={isViewingSchedule}
+              />
+            </aside>
+          )}
+
+          <div className="min-w-0 flex-1">
         {/* Admin Header with user imc.sidnei@gmail.com, Google login for guests, and Firestore sync */}
         <AdminHeader
           currentUser={currentUser}
@@ -694,15 +715,6 @@ export default function App() {
           onImportData={handleImportData}
           onResetData={handleResetData}
           onOpenCreateForm={handleOpenCreateForm}
-          onOpenReports={() => setIsReportsOpen(true)}
-          onOpenUserManagement={handleToggleUserManagement}
-          onViewSchedule={handleToggleSchedule}
-          onOpenAudit={handleToggleAudit}
-          onOpenDivisions={() => setIsDivisionManagerOpen(true)}
-          pendingUsersCount={pendingUsersCount}
-          isViewingUserManagement={isViewingUserManagement}
-          isViewingSchedule={isViewingSchedule}
-          isViewingAudit={isViewingAudit}
         />
 
         {/* Conditional View: Admin User Management Dashboard OR Audit OR Schedule OR Normal Agenda */}
@@ -758,6 +770,8 @@ export default function App() {
             </div>
           </>
         )}
+          </div>
+        </div>
       </main>
 
       {/* Footer */}
