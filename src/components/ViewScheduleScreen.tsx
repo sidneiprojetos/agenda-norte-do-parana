@@ -191,11 +191,9 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
                           {note.category}
                         </span>
                       )}
-                      {note.division && (
-                        <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getDivisionStyle(note.division).badge}`}>
-                          {note.division}
-                        </span>
-                      )}
+                      <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold ${getDivisionStyle(note.division).badge}`}>
+                      {note.division || 'Sem divisão'}
+                    </span>
                       {note.priority === 'alta' && (
                         <span className="rounded-md border border-red-500/40 bg-red-950/40 px-2 py-0.5 text-[10px] font-bold text-red-300">
                           ALTA

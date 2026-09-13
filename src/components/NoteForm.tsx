@@ -95,6 +95,10 @@ export const NoteForm: FC<NoteFormProps> = ({
       setError('Por favor, selecione uma data válida.');
       return;
     }
+    if (!division) {
+      setError('Por favor, selecione a divisão da anotação.');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -173,35 +177,44 @@ export const NoteForm: FC<NoteFormProps> = ({
           />
         </div>
 
-        {/* Division select between title and content */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
-            <Building2 className="h-4 w-4" />
-          </div>
-          <select
-            id="note-division-input"
-            aria-label="Divisão da anotação"
-            value={division}
-            onChange={(e) => {
-              setDivision(e.target.value);
-              if (error) setError('');
-            }}
-            className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+        {/* Division select between title and content (required) */}
+        <div>
+          <label
+            htmlFor="note-division-input"
+            className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase text-zinc-500"
           >
-            <option value="">Selecione a divisão (opcional)</option>
-            {divisionOptions.map((div) => (
-              <option key={div} value={div} className="bg-[#1a1a1e]">
-                {div}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
-          {divisionOptions.length === 0 && (
-            <span className="mt-1 flex items-center gap-1 text-[10px] text-zinc-500">
-              <LogIn className="h-3 w-3" />
-              Nenhuma divisão cadastrada. O administrador pode criar divisões no painel ADM.
-            </span>
-          )}
+            <Building2 className="h-3 w-3" /> Divisão <span className="text-amber-400">*</span>
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+              <Building2 className="h-4 w-4" />
+            </div>
+            <select
+              id="note-division-input"
+              aria-label="Divisão da anotação"
+              required
+              value={division}
+              onChange={(e) => {
+                setDivision(e.target.value);
+                if (error) setError('');
+              }}
+              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+            >
+              <option value="">Selecione a divisão</option>
+              {divisionOptions.map((div) => (
+                <option key={div} value={div} className="bg-[#1a1a1e]">
+                  {div}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
+            {divisionOptions.length === 0 && (
+              <span className="mt-1 flex items-center gap-1 text-[10px] text-zinc-500">
+                <LogIn className="h-3 w-3" />
+                Nenhuma divisão cadastrada. O administrador pode criar divisões no painel ADM.
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Content Textarea */}

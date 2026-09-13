@@ -532,7 +532,7 @@ export default function App() {
                 location: item.location,
                 category: item.category || 'Geral',
                 priority: item.priority || 'normal',
-                division: item.division || undefined,
+                division: item.division || currentUser?.division || 'Norte do Paraná',
                 createdAt: item.createdAt || new Date().toISOString(),
                 createdBy: item.createdBy || currentUser?.email || ADMIN_EMAIL,
                 authorEmail: item.authorEmail || item.createdBy || currentUser?.email || ADMIN_EMAIL,

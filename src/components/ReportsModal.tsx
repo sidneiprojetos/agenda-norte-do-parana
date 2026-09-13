@@ -22,7 +22,7 @@ import {
 import { Note, NoteCategory, CATEGORIES } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
-import { getDivisionStyle } from '../utils/divisionStyles';
+import { getDivisionStyle, getDivisionRgb } from '../utils/divisionStyles';
 import { Modal } from './Modal';
 
 interface ReportsModalProps {
@@ -249,11 +249,9 @@ const GroupedNotes: FC<GroupedNotesProps> = ({
                             <AlertTriangle className="h-2.5 w-2.5" /> Alta
                           </span>
                         )}
-                        {note.division && (
-                          <span className={`ml-2 inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[9px] font-semibold ${getDivisionStyle(note.division).badge}`}>
-                            <Building2 className="h-2.5 w-2.5" /> {note.division}
+                        <span className={`ml-2 inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[9px] font-semibold ${getDivisionStyle(note.division).badge}`}>
+                            <Building2 className="h-2.5 w-2.5" /> {note.division || 'Sem divisão'}
                           </span>
-                        )}
                       </span>
                       <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
                         <span className="text-sky-300">{formatDateToBR(note.date)}</span>
@@ -301,6 +299,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   const [author, setAuthor] = useState('Todos');
   const [location, setLocation] = useState('Todos');
   const [priority, setPriority] = useState('Todas');
+  const [division, setDivision] = useState('Todos');
   const [view, setView] = useState<ReportView>('geral');
   const [monthFilter, setMonthFilter] = useState('todas');
 
@@ -325,6 +324,21 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       ).sort((a, b) => a.localeCompare(b)),
     [notes]
   );
+
+  const divisionNames = useMemo(
+    () =>
+      Array.from(
+        new Set<string>(
+          notes.map((note) => note.division).filter((value): value is string => Boolean(value))
+        )
+      ).sort((a, b) => a.localeCompare(b)),
+    [notes]
+  );
+
+  const divisionFilterOptions = useMemo(() => {
+    const hasMissing = notes.some((note) => !note.division);
+    return hasMissing ? ['Sem divisão', ...divisionNames] : divisionNames;
+  }, [notes, divisionNames]);
 
   const filteredNotes = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -353,10 +367,11 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       }
       if (author !== 'Todos' && noteAuthor(note) !== author) return false;
       if (location !== 'Todos' && note.location !== location) return false;
+      if (division !== 'Todos' && (note.division || 'Sem divisão') !== division) return false;
       if (priority !== 'Todas' && (note.priority || 'normal') !== priority) return false;
       return true;
     });
-  }, [notes, search, startDate, endDate, selectedCategories, author, location, priority]);
+  }, [notes, search, startDate, endDate, selectedCategories, author, location, division, priority]);
 
   const upcomingNotes = useMemo(
     () => filteredNotes.filter((note) => note.date >= todayISO),
@@ -405,6 +420,19 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   }, [filteredNotes]);
 
   const maxAuthorCount = Math.max(1, ...authorStats.map((item) => item.total));
+
+  const divisionStats = useMemo(() => {
+    const counts = new Map<string, number>();
+    filteredNotes.forEach((note) => {
+      const label = note.division || 'Sem divisão';
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .map(([label, total]) => ({ label, total }))
+      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+  }, [filteredNotes]);
+
+  const maxDivisionCount = Math.max(1, ...divisionStats.map((item) => item.total));
 
   const monthStats = useMemo(() => {
     const counts = new Map<string, number>();
@@ -466,9 +494,10 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     if (selectedCategories.length) parts.push(`Categorias: ${selectedCategories.join(', ')}`);
     if (author !== 'Todos') parts.push(`Autor: ${author}`);
     if (location !== 'Todos') parts.push(`Local: ${location}`);
+    if (division !== 'Todos') parts.push(`Divisão: ${division}`);
     if (priority !== 'Todas') parts.push(`Prioridade: ${PRIORITY_LABEL[priority] || priority}`);
     return parts;
-  }, [search, startDate, endDate, selectedCategories, author, location, priority]);
+  }, [search, startDate, endDate, selectedCategories, author, location, division, priority]);
 
   const activeFilterCount =
     (search.trim() ? 1 : 0) +
@@ -476,6 +505,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     selectedCategories.length +
     (author !== 'Todos' ? 1 : 0) +
     (location !== 'Todos' ? 1 : 0) +
+    (division !== 'Todos' ? 1 : 0) +
     (priority !== 'Todas' ? 1 : 0);
 
   const clearFilters = () => {
@@ -485,6 +515,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     setSelectedCategories([]);
     setAuthor('Todos');
     setLocation('Todos');
+    setDivision('Todos');
     setPriority('Todas');
   };
 
@@ -813,6 +844,18 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         color: [2, 132, 199] as [number, number, number]
       }));
       drawBarSection('Eventos por mês', monthRows, Math.max(1, ...monthRows.map((r) => r.value)));
+      if (y + 20 > bottomLimit) {
+        pdf.addPage();
+        drawReportFooter(pdf, pageWidth, pageHeight);
+        y = 24;
+      }
+
+      const divisionRows = divisionStats.map(({ label, total }) => ({
+        label,
+        value: total,
+        color: getDivisionRgb(label)
+      }));
+      drawBarSection('Distribuição por divisão', divisionRows, Math.max(1, ...divisionRows.map((r) => r.value)));
 
       applyPageFooters(pdf, pageWidth, pageHeight);
       pdf.save(`resumo_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -918,6 +961,21 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             >
               <option>Todos</option>
               {locations.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[10px] font-semibold uppercase text-zinc-500">
+              Divisão
+            </span>
+            <select
+              value={division}
+              onChange={(event) => setDivision(event.target.value)}
+              className="w-full rounded-xl border border-zinc-700 bg-[#1a1a1e] px-3 py-2.5 text-xs text-zinc-200 outline-none focus:border-sky-500"
+            >
+              <option>Todos</option>
+              {divisionFilterOptions.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
@@ -1124,6 +1182,41 @@ export const ReportsModal: FC<ReportsModalProps> = ({
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Division breakdown */}
+            <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-4">
+              <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-300">
+                Distribuição por divisão
+              </h3>
+              {divisionStats.length === 0 ? (
+                <p className="text-xs text-zinc-500">Sem dados no intervalo atual.</p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {divisionStats.map(({ label, total }) => (
+                    <div key={label}>
+                      <div className="mb-1 flex items-center justify-between gap-2 text-[11px]">
+                        <span className="min-w-0 truncate font-semibold text-zinc-200">
+                          {label}
+                        </span>
+                        <span className="text-zinc-400">
+                          {total} •{' '}
+                          {filteredNotes.length === 0
+                            ? '0'
+                            : Math.round((total / filteredNotes.length) * 100)}
+                          %
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+                        <div
+                          className={`h-full rounded-full ${getDivisionStyle(label).dot}`}
+                          style={{ width: `${Math.round((total / maxDivisionCount) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Monthly breakdown */}

@@ -76,12 +76,10 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
                   {note.category}
                 </span>
               )}
-              {note.division && (
-                <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold ${getDivisionStyle(note.division).badge}`}>
+              <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold ${getDivisionStyle(note.division).badge}`}>
                   <Building2 className="h-3 w-3" />
-                  {note.division}
+                  {note.division || 'Sem divisão'}
                 </span>
-              )}
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
