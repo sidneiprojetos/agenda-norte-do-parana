@@ -6,7 +6,6 @@ import {
   Download,
   FileText,
   MapPin,
-  PieChart,
   Search,
   Tags,
   X,
@@ -292,7 +291,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   generatorEmail
 }) => {
   const [search, setSearch] = useState('');
-  const [isExporting, setIsExporting] = useState<'report' | 'summary' | null>(null);
+  const [isExporting, setIsExporting] = useState<'report' | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<NoteCategory[]>([]);
@@ -393,48 +392,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     [upcomingNotes]
   );
 
-  const upcomingCount = filteredNotes.filter((note) => note.date >= todayISO).length;
-  const completedCount = filteredNotes.length - upcomingCount;
-  const highPriorityCount = filteredNotes.filter((note) => note.priority === 'alta').length;
-
-  const categoryStats = useMemo(
-    () =>
-      CATEGORIES.map((category) => {
-        const total = filteredNotes.filter((note) => (note.category || 'Geral') === category).length;
-        return {
-          category,
-          total,
-          pct: filteredNotes.length === 0 ? 0 : Math.round((total / filteredNotes.length) * 100)
-        };
-      }),
-    [filteredNotes]
-  );
-
-  const authorStats = useMemo(() => {
-    const counts = new Map<string, number>();
-    filteredNotes.forEach((note) => {
-      const name = noteAuthor(note);
-      counts.set(name, (counts.get(name) || 0) + 1);
-    });
-    const sorted = Array.from(counts.entries())
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
-    const top = sorted.slice(0, 5);
-    const rest = sorted.slice(5).reduce((acc, item) => acc + item.total, 0);
-    return rest > 0 ? [...top, { name: 'Outros', total: rest }] : top;
-  }, [filteredNotes]);
-
-  const divisionStats = useMemo(() => {
-    const counts = new Map<string, number>();
-    filteredNotes.forEach((note) => {
-      const label = note.division || 'Sem divisão';
-      counts.set(label, (counts.get(label) || 0) + 1);
-    });
-    return Array.from(counts.entries())
-      .map(([label, total]) => ({ label, total }))
-      .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
-  }, [filteredNotes]);
-
   const monthStats = useMemo(() => {
     const counts = new Map<string, number>();
     filteredNotes.forEach((note) => {
@@ -484,19 +441,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       ? [{ key: monthFilter, label: monthLabel(monthFilter), notes: notesInMonth }]
       : [];
   }, [monthFilter, monthGroups, sortedNotes]);
-
-  const activeFiltersSummary = useMemo(() => {
-    const parts: string[] = [];
-    if (search.trim()) parts.push(`Busca: "${search.trim()}"`);
-    if (startDate) parts.push(`De ${formatDateToBR(startDate)}`);
-    if (endDate) parts.push(`Até ${formatDateToBR(endDate)}`);
-    if (selectedCategories.length) parts.push(`Categorias: ${selectedCategories.join(', ')}`);
-    if (author !== 'Todos') parts.push(`Autor: ${author}`);
-    if (location !== 'Todos') parts.push(`Local: ${location}`);
-    if (division !== 'Todos') parts.push(`Divisão: ${division}`);
-    if (priority !== 'Todas') parts.push(`Prioridade: ${PRIORITY_LABEL[priority] || priority}`);
-    return parts;
-  }, [search, startDate, endDate, selectedCategories, author, location, division, priority]);
 
   const activeFilterCount =
     (search.trim() ? 1 : 0) +
@@ -790,148 +734,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     }
   };
 
-  const exportPdfSummary = async () => {
-    setIsExporting('summary');
-    try {
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 14;
-      const contentWidth = pageWidth - margin * 2;
-
-      await drawReportHeader(pdf, pageWidth);
-      drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
-
-      let y = 32;
-      const line = () => {
-        pdf.setDrawColor(140, 140, 140);
-        pdf.setLineWidth(0.2);
-        pdf.line(margin, y + 1.5, pageWidth - margin, y + 1.5);
-      };
-      const sectionTitle = (text: string) => {
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(10);
-        pdf.setTextColor(15, 23, 42);
-        pdf.text(text, margin, y);
-        line();
-        y += 6;
-      };
-
-      const bottomLimit = pageHeight - 14;
-
-      sectionTitle('Resumo geral');
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(9);
-      pdf.setTextColor(40, 40, 40);
-      pdf.text(
-        `Total: ${filteredNotes.length}   •   Futuros/Hoje: ${upcomingCount}   •   Realizados: ${completedCount}   •   Alta prioridade: ${highPriorityCount}`,
-        margin,
-        y
-      );
-      y += 7;
-
-      if (activeFiltersSummary.length > 0) {
-        pdf.setFontSize(7.5);
-        pdf.setTextColor(110, 110, 110);
-        const filtersText = activeFiltersSummary.join('  •  ');
-        pdf.text(pdf.splitTextToSize(`Filtros: ${filtersText}`, contentWidth) as string[], margin, y);
-        y += filtersText.length > 55 ? 10 : 7;
-      }
-
-      const drawBarSection = (
-        title: string,
-        rows: { label: string; value: number; color: [number, number, number] }[],
-        maxValue: number
-      ) => {
-        sectionTitle(title);
-        if (rows.length === 0) {
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(8);
-          pdf.setTextColor(110, 110, 110);
-          pdf.text('Sem dados no intervalo atual.', margin, y);
-          y += 7;
-          return;
-        }
-        rows.forEach((row) => {
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(8);
-          pdf.setTextColor(40, 40, 40);
-          pdf.text(row.label.slice(0, 52), margin, y);
-          pdf.setTextColor(90, 90, 90);
-          pdf.text(String(row.value), margin + 62, y);
-          pdf.setDrawColor(200, 200, 200);
-          pdf.setLineWidth(0.2);
-          pdf.line(margin + 70, y - 1.5, pageWidth - margin, y - 1.5);
-          pdf.setDrawColor(row.color[0], row.color[1], row.color[2]);
-          pdf.setLineWidth(1.6);
-          pdf.line(
-            margin + 70,
-            y - 1,
-            margin + 70 + (row.value / maxValue) * (contentWidth - 70),
-            y - 1
-          );
-          y += 5.5;
-        });
-        y += 1;
-      };
-
-      const categoryRows = categoryStats
-        .filter((item) => item.total > 0)
-        .map(({ category, total }) => ({
-          label: category,
-          value: total,
-          color: PDF_CATEGORY_COLORS[category]
-        }));
-      drawBarSection('Distribuição por categoria', categoryRows, Math.max(1, ...categoryRows.map((r) => r.value)));
-      if (y + 20 > bottomLimit) {
-        pdf.addPage();
-        drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
-        y = 24;
-      }
-
-      const authorRows = authorStats.map(({ name, total }) => ({
-        label: name,
-        value: total,
-        color: [2, 132, 199] as [number, number, number]
-      }));
-      drawBarSection('Distribuição por autor', authorRows, Math.max(1, ...authorRows.map((r) => r.value)));
-      if (y + 20 > bottomLimit) {
-        pdf.addPage();
-        drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
-        y = 24;
-      }
-
-      const monthRows = monthStats.map(({ key, count }) => ({
-        label: monthLabel(key),
-        value: count,
-        color: [2, 132, 199] as [number, number, number]
-      }));
-      drawBarSection('Eventos por mês', monthRows, Math.max(1, ...monthRows.map((r) => r.value)));
-      if (y + 20 > bottomLimit) {
-        pdf.addPage();
-        drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
-        y = 24;
-      }
-
-      const divisionRows = divisionStats.map(({ label, total }) => ({
-        label,
-        value: total,
-        color: getDivisionRgb(label)
-      }));
-      drawBarSection('Distribuição por divisão', divisionRows, Math.max(1, ...divisionRows.map((r) => r.value)));
-
-      applyPageFooters(pdf, pageWidth, pageHeight, generatorLabel);
-      pdf.save(`resumo_agenda_${new Date().toISOString().slice(0, 10)}.pdf`);
-      notify?.('Resumo PDF gerado com sucesso.', 'success');
-    } catch (error) {
-      console.error('Erro ao gerar PDF resumo:', error);
-      notify?.('Não foi possível gerar o PDF resumo. Veja o console para mais detalhes.', 'error');
-    } finally {
-      setIsExporting(null);
-    }
-  };
-
   return (
     <Modal
       isOpen={isOpen}
@@ -1106,14 +908,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={exportPdfSummary}
-              disabled={filteredNotes.length === 0 || isExporting !== null}
-              className="flex items-center gap-1.5 rounded-lg border border-violet-500/40 px-2.5 py-1.5 text-[11px] font-semibold text-violet-300 transition hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <PieChart className="h-3.5 w-3.5" />
-              {isExporting === 'summary' ? 'Gerando...' : 'PDF resumo'}
-            </button>
             <button
               onClick={exportPdfReport}
               disabled={sortedNotes.length === 0 || isExporting !== null}
