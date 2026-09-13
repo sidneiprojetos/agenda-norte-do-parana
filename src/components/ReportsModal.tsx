@@ -8,9 +8,8 @@ import {
   Tags,
   Building2
 } from 'lucide-react';
-import { Note, NoteCategory, CATEGORIES, DEFAULT_CATEGORY } from '../types';
+import { Note, CATEGORIES, DEFAULT_CATEGORY } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
-import { getDivisionRgb } from '../utils/divisionStyles';
 import { Modal } from './Modal';
 
 interface ReportsModalProps {
@@ -24,18 +23,8 @@ interface ReportsModalProps {
 
 type JsPDF = import('jspdf').jsPDF;
 
-const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
-  Reunião: [2, 132, 199],
-  Pub: [5, 150, 105],
-  Coletamento: [124, 58, 237],
-  'Ação Social': [225, 29, 72]
-};
-
-const ACCENT = [14, 165, 233];
+const BLACK: [number, number, number] = [0, 0, 0];
 const SLATE_900 = [15, 23, 42];
-const SLATE_600 = [71, 85, 105];
-const SLATE_500 = [100, 116, 139];
-const SLATE_300 = [203, 213, 225];
 
 const MARGIN = 14;
 const PAGE_WIDTH = 297;
@@ -74,13 +63,13 @@ async function loadImageAsDataUrl(url: string): Promise<string> {
 
 async function drawTitleHeader(pdf: JsPDF, reportTitle: string) {
   pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setFontSize(13);
   pdf.text('AGENDA NORTE DO PARANÁ', MARGIN + 12, 13);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8.5);
-  pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text('Relatório de eventos da região', MARGIN + 12, 18.5);
 
   try {
@@ -92,7 +81,7 @@ async function drawTitleHeader(pdf: JsPDF, reportTitle: string) {
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
-  pdf.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(reportTitle, PAGE_WIDTH - MARGIN, 13, { align: 'right' });
 
   const now = new Date();
@@ -100,25 +89,25 @@ async function drawTitleHeader(pdf: JsPDF, reportTitle: string) {
   const timeHHMM = now.toTimeString().slice(0, 5);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
-  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(`Gerado em ${dateBR} às ${timeHHMM}`, PAGE_WIDTH - MARGIN, 18.5, { align: 'right' });
 
-  pdf.setFillColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.setFillColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.rect(MARGIN, 21.5, PAGE_WIDTH - MARGIN * 2, 1.4, 'F');
 }
 
 function drawContinuationHeader(pdf: JsPDF, reportTitle: string) {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8);
-  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text('AGENDA NORTE DO PARANÁ', MARGIN, 12);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7.5);
-  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(reportTitle, PAGE_WIDTH - MARGIN, 12, { align: 'right' });
 
-  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
+  pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.3);
   pdf.line(MARGIN, 14.5, PAGE_WIDTH - MARGIN, 14.5);
 }
@@ -131,13 +120,13 @@ function drawReportFooter(
   pageNumber?: number,
   totalPages?: number
 ) {
-  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
+  pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.3);
   pdf.line(MARGIN, PAGE_HEIGHT - 13, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 13);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
-  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text('Agenda Norte do Paraná', MARGIN, PAGE_HEIGHT - 8);
 
   pdf.text(`Gerado por ${signature}`, PAGE_WIDTH / 2, PAGE_HEIGHT - 8, { align: 'center' });
@@ -162,9 +151,6 @@ function drawColumnHeader(pdf: JsPDF, y: number) {
   pdf.setFillColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
   pdf.rect(MARGIN, y - 2, PAGE_WIDTH - MARGIN * 2, 9, 'F');
 
-  pdf.setFillColor(ACCENT[0], ACCENT[1], ACCENT[2]);
-  pdf.rect(MARGIN, y - 2, 1.4, 9, 'F');
-
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8);
   pdf.setTextColor(255, 255, 255);
@@ -177,19 +163,16 @@ function drawColumnHeader(pdf: JsPDF, y: number) {
 }
 
 function drawGroupHeader(pdf: JsPDF, y: number, label: string, count: number) {
-  pdf.setFillColor(241, 245, 249);
+  pdf.setFillColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.rect(MARGIN, y - 3.2, PAGE_WIDTH - MARGIN * 2, 7.4, 'F');
-
-  pdf.setFillColor(ACCENT[0], ACCENT[1], ACCENT[2]);
-  pdf.rect(MARGIN, y - 3.2, 1.5, 7.4, 'F');
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9);
-  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
+  pdf.setTextColor(255, 255, 255);
   pdf.text(label.toUpperCase(), MARGIN + 4.5, y);
 
   pdf.setFontSize(8.5);
-  pdf.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+  pdf.setTextColor(255, 255, 255);
   pdf.text(`${count} evento(s)`, PAGE_WIDTH - MARGIN, y, { align: 'right' });
 }
 
@@ -220,42 +203,35 @@ function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
   return { titleLines, contentLines, divisionLine, divisionLines, rowHeight };
 }
 
-function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metrics: NoteRowMetrics) {
+function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metrics: NoteRowMetrics) {
   const category = note.category || DEFAULT_CATEGORY;
-  const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[category];
   const { titleLines, contentLines, divisionLine, divisionLines, rowHeight } = metrics;
-
-  if (zebra) {
-    pdf.setFillColor(246, 248, 251);
-    pdf.rect(MARGIN, y - 0.6, PAGE_WIDTH - MARGIN * 2, rowHeight + 1.2, 'F');
-  }
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
-  pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(formatDateToBR(note.date), COL_DATA, y + 2);
 
   if (divisionLine) {
-    const divColor = getDivisionRgb(divisionLine);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.5);
-    pdf.setTextColor(divColor[0], divColor[1], divColor[2]);
+    pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
     pdf.text(divisionLines, COL_DIVISAO, y + 2);
   }
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7);
-  pdf.setTextColor(cRed, cGreen, cBlue);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(category, COL_CATEGORIA, y + 2);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
-  pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(note.time || '—', COL_HORA, y + 2);
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
-  pdf.setTextColor(cRed, cGreen, cBlue);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(titleLines, COL_EVENTO, y + 2);
 
   const authorLine = (
@@ -266,17 +242,17 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
   ).slice(0, 1);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
-  pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
+  pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(authorLine, COL_AUTOR, y + 2);
 
   if (contentLines.length > 0) {
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7.5);
-    pdf.setTextColor(60, 72, 88);
+    pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
     pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 5 + 2);
   }
 
-  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
+  pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.25);
   pdf.line(MARGIN + 2, y + rowHeight - 0.3, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 0.3);
 }
@@ -397,7 +373,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       if (sortedNotes.length === 0) {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(10);
-        pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+        pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
         pdf.text('Nenhuma anotação na agenda para este relatório.', MARGIN, y);
       } else {
         let lastMonthKey = '';
@@ -457,7 +433,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       if (groups.length === 0) {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(10);
-        pdf.setTextColor(SLATE_500[0], SLATE_500[1], SLATE_500[2]);
+        pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
         pdf.text('Nenhuma anotação na agenda para este relatório.', MARGIN, y);
       } else {
         for (const group of groups) {
