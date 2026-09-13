@@ -74,41 +74,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
 
   return (
     <nav className="lg:sticky lg:top-4 flex flex-row flex-wrap lg:flex-col lg:flex-nowrap gap-1.5 rounded-2xl border border-zinc-800/80 bg-[#161619]/85 p-2 shadow-xl backdrop-blur-md lg:p-2.5">
-      {/* Logged-in user card */}
-      <div className="flex w-full lg:w-auto items-center gap-2.5 rounded-xl bg-[#18181b]/90 border border-zinc-700/80 p-2 pr-1.5 shadow-md">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-black text-white shadow-md shadow-amber-900/40">
-          {initials}
-        </div>
-        <div className="flex flex-col text-left min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-xs text-zinc-100 truncate max-w-[90px] lg:max-w-[110px]">
-              {currentUser.displayName || currentUser.email}
-            </span>
-            {currentUser.isAdmin ? (
-              <span className="rounded bg-amber-600 px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
-                ADM
-              </span>
-            ) : (
-              <span className="rounded bg-zinc-700 px-1.5 py-0.2 text-[9px] font-medium text-zinc-300">
-                Membro
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] text-zinc-400 font-mono truncate max-w-[110px] lg:max-w-[130px]">
-            {currentUser.email}
-          </span>
-        </div>
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          title="Sair da conta"
-          className="ml-auto rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-rose-400 transition"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Novo Evento: right after the user card */}
+      {/* Novo Evento: right after the top */}
       {onOpenCreateForm && (
         <button
           id="admin-create-note-btn"
@@ -217,6 +183,40 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
           <span className="whitespace-nowrap">Adm</span>
         </button>
       )}
+
+      {/* Logged-in user card (below all buttons) */}
+      <div className="mt-1 flex w-full lg:w-auto items-center gap-2.5 rounded-xl bg-[#18181b]/90 border border-zinc-700/80 p-2 pr-1.5 shadow-md">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-black text-white shadow-md shadow-amber-900/40">
+          {initials}
+        </div>
+        <div className="flex flex-col text-left min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-xs text-zinc-100 truncate max-w-[90px] lg:max-w-[110px]">
+              {currentUser.displayName || currentUser.email}
+            </span>
+            {currentUser.isAdmin ? (
+              <span className="rounded bg-amber-600 px-1.5 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
+                ADM
+              </span>
+            ) : (
+              <span className="rounded bg-zinc-700 px-1.5 py-0.2 text-[9px] font-medium text-zinc-300">
+                Membro
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] text-zinc-400 font-mono truncate max-w-[110px] lg:max-w-[130px]">
+            {currentUser.email}
+          </span>
+        </div>
+        <button
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          title="Sair da conta"
+          className="ml-auto rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-rose-400 transition"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
+      </div>
     </nav>
   );
 };
