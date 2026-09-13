@@ -582,6 +582,23 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
   const exportPdfReport = async () => {
     setIsExporting('report');
+    const buildFilterSummary = () => {
+      const parts: string[] = [];
+      if (search) parts.push(`Busca: "${search}"`);
+      if (startDate || endDate) {
+        parts.push(
+          `Período: ${startDate ? formatDateToBR(startDate) : 'início'} a ${
+            endDate ? formatDateToBR(endDate) : 'hoje'
+          }`
+        );
+      }
+      if (selectedCategories.length > 0) parts.push(`Categorias: ${selectedCategories.join(', ')}`);
+      if (author !== 'Todos') parts.push(`Autor: ${author}`);
+      if (location !== 'Todos') parts.push(`Local: ${location}`);
+      if (division !== 'Todos') parts.push(`Divisão: ${division}`);
+      if (priority !== 'Todas') parts.push(`Prioridade: ${PRIORITY_LABEL[priority] || priority}`);
+      return parts.join('  •  ');
+    };
     try {
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF();
@@ -591,14 +608,16 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       const bottomLimit = pageHeight - 14;
 
       const colData = margin + 4;
-      const colDivisao = margin + 20;
-      const colHora = margin + 44;
-      const colEvento = margin + 54;
+      const colDivisao = margin + 26;
+      const colHora = margin + 48;
+      const colEvento = margin + 56;
       const colPrioridade = margin + 88;
       const colCategoria = margin + 106;
       const colLocalAutor = pageWidth - margin - 40;
 
       const drawColumnHeader = (y: number) => {
+        pdf.setFillColor(241, 245, 249);
+        pdf.rect(margin, y - 1.5, pageWidth - margin * 2, 8, 'F');
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8);
         pdf.setTextColor(30, 41, 59);
@@ -617,7 +636,15 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       await drawReportHeader(pdf, pageWidth);
       drawReportFooter(pdf, pageWidth, pageHeight, undefined, undefined, generatorLabel);
 
-      let y = 29;
+      const filterSummary = buildFilterSummary();
+      if (filterSummary) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(filterSummary, margin, 23.5);
+      }
+
+      let y = 31;
 
       drawColumnHeader(y);
       y += 11;
@@ -640,13 +667,15 @@ export const ReportsModal: FC<ReportsModalProps> = ({
               drawColumnHeader(y);
               y += 11;
             }
+            pdf.setFillColor(226, 232, 240);
+            pdf.rect(margin, y - 3.2, pageWidth - margin * 2, 6.4, 'F');
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
             pdf.setTextColor(15, 23, 42);
-            pdf.text(monthLabel(monthKey), margin + 4, y);
+            pdf.text(monthLabel(monthKey).toUpperCase(), margin + 4, y);
             pdf.setDrawColor(70, 70, 70);
             pdf.setLineWidth(0.5);
-            pdf.line(margin, y + 1.5, pageWidth - margin, y + 1.5);
+            pdf.line(margin, y + 2, pageWidth - margin, y + 2);
             y += 7;
           }
 
@@ -689,8 +718,11 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             pdf.text(divLines.slice(0, 1), colDivisao, y + 2);
           }
           pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
           pdf.setTextColor(90, 90, 90);
           pdf.text(note.time || '—', colHora, y + 2);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(8.5);
           pdf.setTextColor(cRed, cGreen, cBlue);
           pdf.text(titleLines, colEvento, y + 2);
           const isHighPriority = note.priority === 'alta';
@@ -704,24 +736,31 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.text(isHighPriority ? 'ALTA' : 'Normal', colPrioridade, y + 2);
           pdf.setDrawColor(cRed, cGreen, cBlue);
           pdf.setLineWidth(0.45);
-          pdf.roundedRect(colCategoria - 1, y - 2, 30, 6, 2, 2, 'S');
+          pdf.roundedRect(colCategoria - 1, y - 2, 26, 6, 2, 2, 'S');
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(7);
           pdf.setTextColor(cRed, cGreen, cBlue);
-          pdf.text(category, colCategoria + 14, y + 2, { align: 'center' });
+          pdf.text(category, colCategoria + 12, y + 2, { align: 'center' });
+          const localLine = (
+            pdf.splitTextToSize(
+              [note.location || '', noteAuthor(note)].filter(Boolean).join(' • ').slice(0, 48) ||
+                '—',
+              pageWidth - margin - colLocalAutor - 2
+            ) as string[]
+          ).slice(0, 1);
+          pdf.setFont('helvetica', 'normal');
           pdf.setFontSize(7);
           pdf.setTextColor(cRed, cGreen, cBlue);
-          pdf.text(
-            [note.location || '', noteAuthor(note)].filter(Boolean).join(' • ').slice(0, 38) || '—',
-            colLocalAutor,
-            y + 2
-          );
+          pdf.text(localLine, colLocalAutor, y + 2);
           if (contentLines.length > 0) {
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(7.5);
-            pdf.setTextColor(cRed, cGreen, cBlue);
+            pdf.setTextColor(55, 65, 81);
             pdf.text(contentLines, colEvento, y + titleLines.length * 5 + 2);
           }
+          pdf.setDrawColor(233, 236, 239);
+          pdf.setLineWidth(0.25);
+          pdf.line(margin + 2, y + rowHeight - 0.3, pageWidth - margin - 2, y + rowHeight - 0.3);
 
           y += rowHeight;
         }
