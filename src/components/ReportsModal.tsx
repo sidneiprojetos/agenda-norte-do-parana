@@ -381,11 +381,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           const monthKey = monthKeyOf(note.date);
           if (monthKey !== lastMonthKey) {
             lastMonthKey = monthKey;
-            if (y + 9 > BOTTOM_LIMIT) {
+            if (y + 16 > BOTTOM_LIMIT) {
               const next = startNewPage(pdf, 'Relatório Detalhado');
               y = next.y;
               drawColumnHeader(pdf, y);
               y += 13;
+            } else {
+              y += 4;
             }
             const monthCount = sortedNotes.filter((n) => monthKeyOf(n.date) === monthKey).length;
             drawGroupHeader(pdf, y, monthLabel(monthKey), monthCount);
@@ -435,11 +437,13 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.text('Nenhuma anotação na agenda para este relatório.', MARGIN, y);
       } else {
         for (const group of groups) {
-          if (y + 9 > BOTTOM_LIMIT) {
+          if (y + 16 > BOTTOM_LIMIT) {
             const next = startNewPage(pdf, reportTitle);
             y = next.y;
             drawColumnHeader(pdf, y);
             y += 13;
+          } else {
+            y += 4;
           }
           drawGroupHeader(pdf, y, group.label, group.notes.length);
           y += 8;
