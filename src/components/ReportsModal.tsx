@@ -194,10 +194,10 @@ function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
   const divisionLines = divisionLine
     ? (pdf.splitTextToSize(divisionLine, COL_CATEGORIA - COL_DIVISAO - 1) as string[])
     : [];
-  const titleBlock = titleLines.length * 5 + 2;
-  const contentBlock = contentLines.length * 4;
-  const divisionBlock = divisionLines.length * 5 + 1;
-  const rowHeight = Math.max(9, titleBlock + contentBlock, divisionBlock);
+  const titleBlock = titleLines.length * 6 + 2.5;
+  const contentBlock = contentLines.length * 5;
+  const divisionBlock = divisionLines.length * 6 + 1.5;
+  const rowHeight = Math.max(11, titleBlock + contentBlock, divisionBlock) + 1.5;
   return { titleLines, contentLines, divisionLine, divisionLines, rowHeight };
 }
 
@@ -247,12 +247,12 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7.5);
     pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-    pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 5 + 2);
+    pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 6 + 2.5);
   }
 
   pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.25);
-  pdf.line(MARGIN + 2, y + rowHeight - 0.3, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 0.3);
+  pdf.line(MARGIN + 2, y + rowHeight - 0.6, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 0.6);
 }
 
 interface NoteGroup {
