@@ -26,6 +26,7 @@ import {
   deleteFirestoreNote
 } from './services/notesService';
 import { subscribeToDivisions } from './services/divisionService';
+import { cleanupPastNotes } from './services/notesService';
 import { logAuditEntry } from './services/auditService';
 import {
   syncUserProfile,
@@ -207,7 +208,12 @@ export default function App() {
     let unsubscribe: (() => void) | null = null;
     subscribeToNotes((firestoreNotes) => {
       const todayISO = formatDateToISO(new Date());
-      setNotes(firestoreNotes.filter((note) => note.date >= todayISO));
+      const visible = firestoreNotes.filter((note) => note.date >= todayISO);
+      const past = firestoreNotes.filter((note) => note.date < todayISO);
+      setNotes(visible);
+      if (past.length > 0) {
+        cleanupPastNotes(past);
+      }
     }).then((unsub) => {
       if (cancelled) {
         unsub();

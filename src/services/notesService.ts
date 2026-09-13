@@ -2,6 +2,7 @@ import { getDb, ADMIN_EMAIL } from '../firebase';
 import { Note, AuditActor, AuditAction } from '../types';
 import { INITIAL_NOTES } from '../data/initialNotes';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
+import { formatDateToISO } from '../utils/dateUtils';
 import { logAuditEntry } from './auditService';
 
 const NOTES_COLLECTION = 'notes';
@@ -186,4 +187,26 @@ export async function deleteFirestoreNote(
   const noteDocRef = doc(db, NOTES_COLLECTION, noteId);
   await deleteDoc(noteDocRef);
   await logNoteAudit('delete', audit, noteId, audit?.title || 'Anotação');
+}
+
+/**
+ * Silent best-effort cleanup: permanently deletes agenda notes whose date is
+ * before today. Called automatically when the app receives Firestore updates,
+ * so past events never accumulate. Failures are logged but never break the UI.
+ * Firestore rules still limit deletion to the author or an admin.
+ */
+export async function cleanupPastNotes(pastNotes: Note[]): Promise<void> {
+  const todayISO = formatDateToISO(new Date());
+  const past = pastNotes.filter((note) => note.date < todayISO);
+  if (past.length === 0) return;
+
+  const { db, doc, deleteDoc } = await firestore();
+  for (const note of past) {
+    try {
+      await deleteDoc(doc(db, NOTES_COLLECTION, note.id));
+      console.info('Limpeza automática: anotação passada removida', note.date, note.title);
+    } catch (err) {
+      console.warn('Limpeza automática falhou para a anotação:', note.id, err);
+    }
+  }
 }
