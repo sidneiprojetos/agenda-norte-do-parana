@@ -7,7 +7,8 @@ import {
   Trash2,
   ShieldCheck,
   Building2,
-  Tag
+  Tag,
+  MapPin
 } from 'lucide-react';
 import { Note, AppUser } from '../types';
 import { formatDateToBR, formatDateTimeBR } from '../utils/dateUtils';
@@ -101,6 +102,13 @@ export const ViewNoteModal: FC<ViewNoteModalProps> = ({
             </div>
           </div>
         </div>
+
+        {note.location && (
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-zinc-800 bg-[#1a1a1e] px-3 py-2 text-sm text-zinc-200">
+            <MapPin className="h-4 w-4 shrink-0 text-amber-400" />
+            <span className="min-w-0 break-all">{note.location}</span>
+          </div>
+        )}
 
         {/* Content Box */}
         <div className="rounded-xl border border-zinc-800 bg-[#1a1a1e] p-4 text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap min-h-[90px]">

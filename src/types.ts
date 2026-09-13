@@ -11,6 +11,7 @@ export interface Note {
   time?: string; // HH:mm
   category?: NoteCategory;
   division?: string;
+  location?: string;
   createdAt: string; // ISO string
   updatedAt?: string; // ISO string
   createdBy: string;

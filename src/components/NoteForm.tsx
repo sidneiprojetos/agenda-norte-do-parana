@@ -9,7 +9,8 @@ import {
   Tag,
   LogIn,
   Building2,
-  ChevronDown
+  ChevronDown,
+  MapPin
 } from 'lucide-react';
 import { Note, NoteCategory, AppUser, CATEGORIES, DEFAULT_CATEGORY } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
@@ -25,6 +26,7 @@ interface NoteFormProps {
     time?: string;
     category?: NoteCategory;
     division?: string;
+    location?: string;
   }) => Promise<void>;
   onCancelEdit: () => void;
 }
@@ -42,6 +44,7 @@ export const NoteForm: FC<NoteFormProps> = ({
   const [time, setTime] = useState('');
   const [category, setCategory] = useState<NoteCategory>(DEFAULT_CATEGORY);
   const [division, setDivision] = useState('');
+  const [location, setLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,11 +60,13 @@ export const NoteForm: FC<NoteFormProps> = ({
       setTime(editingNote.time || '');
       setCategory(editingNote.category || DEFAULT_CATEGORY);
       setDivision(editingNote.division || '');
+      setLocation(editingNote.location || '');
     } else {
       setContent('');
       setTime('');
       setCategory(DEFAULT_CATEGORY);
       setDivision('');
+      setLocation('');
       if (selectedDate) {
         setDateStr(selectedDate);
       }
@@ -87,6 +92,10 @@ export const NoteForm: FC<NoteFormProps> = ({
       setError('Por favor, selecione a categoria do evento.');
       return;
     }
+    if (!location.trim()) {
+      setError('Por favor, informe o local (endereço) do evento.');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -95,13 +104,15 @@ export const NoteForm: FC<NoteFormProps> = ({
         date: dateStr,
         time: time.trim() || undefined,
         category,
-        division: division.trim() || undefined
+        division: division.trim() || undefined,
+        location: location.trim() || undefined
       });
 
       if (!editingNote) {
         setContent('');
         setTime('');
         setDivision('');
+        setLocation('');
       }
       setError('');
     } catch (err: any) {
@@ -259,6 +270,34 @@ export const NoteForm: FC<NoteFormProps> = ({
             placeholder="Escreva o texto do evento..."
             className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
           />
+        </div>
+
+        {/* Local (Endereço do Evento) */}
+        <div>
+          <label
+            htmlFor="note-location-input"
+            className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase text-zinc-500"
+          >
+            <MapPin className="h-3 w-3" /> Local (Endereço do Evento) <span className="text-amber-400">*</span>
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+              <MapPin className="h-4 w-4" />
+            </div>
+            <input
+              id="note-location-input"
+              type="text"
+              aria-label="Local (Endereço do Evento)"
+              required
+              value={location}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                if (error) setError('');
+              }}
+              placeholder="Local / endereço do evento..."
+              className="w-full rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+            />
+          </div>
         </div>
 
         {error && (

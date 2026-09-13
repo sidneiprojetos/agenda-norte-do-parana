@@ -103,6 +103,7 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
           time: data.time || undefined,
           category: LEGACY_CATEGORY_MAP[data.category as string] || data.category || DEFAULT_CATEGORY,
           division: data.division || undefined,
+          location: data.location || undefined,
           createdAt: data.createdAt || new Date().toISOString(),
           updatedAt: data.updatedAt || undefined,
           createdBy: data.authorEmail || data.createdBy || ADMIN_EMAIL,

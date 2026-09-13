@@ -376,6 +376,7 @@ export default function App() {
     time?: string;
     category?: NoteCategory;
     division?: string;
+    location?: string;
   }) => {
     const userEmail = currentUser?.email || ADMIN_EMAIL;
     const userName = currentUser?.displayName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Sidnei (ADM)');
@@ -395,6 +396,7 @@ export default function App() {
                 time: data.time,
                 category: data.category || n.category,
                 division: data.division || n.division,
+                location: data.location || n.location,
                 updatedAt: new Date().toISOString()
               }
             : n
@@ -410,6 +412,7 @@ export default function App() {
             time: data.time,
             category: data.category || editingNote.category,
             division: data.division || editingNote.division,
+            location: data.location || editingNote.location,
             updatedAt: new Date().toISOString()
           },
           {
@@ -435,6 +438,7 @@ export default function App() {
         time: data.time,
         category: data.category || DEFAULT_CATEGORY,
         division: data.division || undefined,
+        location: data.location || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         createdBy: userEmail,
@@ -455,6 +459,7 @@ export default function App() {
             time: data.time,
             category: data.category || DEFAULT_CATEGORY,
             division: data.division || undefined,
+            location: data.location || undefined,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             createdBy: userEmail,
@@ -568,6 +573,7 @@ export default function App() {
                 time: item.time,
                 category: item.category || DEFAULT_CATEGORY,
                 division: item.division || currentUser?.division || 'Norte do Paraná',
+                location: item.location || undefined,
                 createdAt: item.createdAt || new Date().toISOString(),
                 createdBy: item.createdBy || currentUser?.email || ADMIN_EMAIL,
                 authorEmail: item.authorEmail || item.createdBy || currentUser?.email || ADMIN_EMAIL,
