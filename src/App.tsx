@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Note, NoteCategory, AppUser, UserProfile, Division } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
@@ -57,6 +57,10 @@ export default function App() {
   const [notes, setNotes] = useState<Note[]>(
     INITIAL_NOTES.filter((note) => note.date >= formatDateToISO(new Date()))
   );
+  const notesRef = useRef<Note[]>([]);
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
 
   // Divisions available for notes (admin-managed, synchronized realtime)
   const [divisionOptions, setDivisionOptions] = useState<string[]>(INITIAL_DIVISIONS);
@@ -226,6 +230,26 @@ export default function App() {
       cancelled = true;
       if (unsubscribe) unsubscribe();
     };
+  }, [currentUser?.isAdmin, userProfile?.status]);
+
+  // Periodic cleanup: removes past events even without realtime Firestore changes
+  useEffect(() => {
+    const isApprovedOrAdmin = currentUser?.isAdmin || userProfile?.status === 'approved';
+    if (!currentUser || !isApprovedOrAdmin) {
+      return;
+    }
+
+    const runCleanup = () => {
+      const todayISO = formatDateToISO(new Date());
+      const past = notesRef.current.filter((note) => note.date < todayISO);
+      if (past.length > 0) {
+        cleanupPastNotes(past);
+      }
+    };
+
+    runCleanup();
+    const timer = setInterval(runCleanup, 5 * 60 * 1000);
+    return () => clearInterval(timer);
   }, [currentUser?.isAdmin, userProfile?.status]);
 
   // Listen to Firestore real-time updates for divisions (when approved or admin)
