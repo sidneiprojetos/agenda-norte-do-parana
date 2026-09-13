@@ -10,7 +10,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { AppUser } from '../types';
-import { logoutUser } from '../firebase';
+import { logoutUser, ADMIN_EMAIL } from '../firebase';
 
 interface AdminSidebarProps {
   currentUser: AppUser | null;
@@ -44,6 +44,8 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (!currentUser) return null;
+
+  const isOwner = currentUser.email?.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
 
   const initials = (currentUser.displayName || currentUser.email || 'U')
     .split(' ')
@@ -185,7 +187,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
         </button>
       )}
 
-      {currentUser.isAdmin && onOpenAdmTools && (
+      {isOwner && onOpenAdmTools && (
         <button
           id="admin-adm-tools-btn"
           onClick={onOpenAdmTools}

@@ -713,7 +713,8 @@ export default function App() {
           <AuditDashboard
             onBackToAgenda={() => setIsViewingAudit(false)}
           />
-        ) : isViewingAdmTools && currentUser?.isAdmin ? (
+        ) : isViewingAdmTools &&
+        currentUser?.email?.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase() ? (
           <AdminTools
             currentUser={currentUser}
             onExportData={handleExportData}
