@@ -69,7 +69,7 @@ async function drawTitleHeader(pdf: JsPDF, reportTitle: string) {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8.5);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text('Relatório de eventos da região', MARGIN + 12, 18.5);
+  pdf.text('Relatório de eventos da regional', MARGIN + 12, 18.5);
 
   try {
     const logoDataUrl = await loadImageAsDataUrl('/insanos.png');
