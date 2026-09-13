@@ -194,10 +194,10 @@ function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
   const divisionLines = divisionLine
     ? (pdf.splitTextToSize(divisionLine, COL_CATEGORIA - COL_DIVISAO - 1) as string[])
     : [];
-  const titleBlock = titleLines.length * 6 + 2.5;
+  const titleBlock = titleLines.length * 6 + 5;
   const contentBlock = contentLines.length * 5;
   const divisionBlock = divisionLines.length * 6 + 1.5;
-  const rowHeight = Math.max(13, titleBlock + contentBlock, divisionBlock) + 2.5;
+  const rowHeight = Math.max(16, titleBlock + contentBlock, divisionBlock) + 3;
   return { titleLines, contentLines, divisionLine, divisionLines, rowHeight };
 }
 
@@ -208,29 +208,29 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(formatDateToBR(note.date), COL_DATA, y + 2);
+  pdf.text(formatDateToBR(note.date), COL_DATA, y + 5);
 
   if (divisionLine) {
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.5);
     pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-    pdf.text(divisionLines, COL_DIVISAO, y + 2);
+    pdf.text(divisionLines, COL_DIVISAO, y + 5);
   }
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(category, COL_CATEGORIA, y + 2);
+  pdf.text(category, COL_CATEGORIA, y + 5);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(note.time || '—', COL_HORA, y + 2);
+  pdf.text(note.time || '—', COL_HORA, y + 5);
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(titleLines, COL_EVENTO, y + 2);
+  pdf.text(titleLines, COL_EVENTO, y + 5);
 
   const authorLine = (
     pdf.splitTextToSize(
@@ -241,18 +241,18 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(authorLine, COL_AUTOR, y + 2);
+  pdf.text(authorLine, COL_AUTOR, y + 5);
 
   if (contentLines.length > 0) {
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7.5);
     pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-    pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 6 + 2.5);
+    pdf.text(contentLines, COL_EVENTO, y + titleLines.length * 6 + 5);
   }
 
   pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.25);
-  pdf.line(MARGIN + 2, y + rowHeight - 0.6, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 0.6);
+  pdf.line(MARGIN + 2, y + rowHeight - 1, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 1);
 }
 
 interface NoteGroup {
