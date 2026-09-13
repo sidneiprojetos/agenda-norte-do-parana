@@ -10,10 +10,7 @@ import {
   Search,
   Tags,
   X,
-  TrendingUp,
-  History,
   AlertTriangle,
-  LayoutGrid,
   List as ListIcon,
   FilterX,
   CalendarX2,
@@ -34,14 +31,6 @@ interface ReportsModalProps {
   generatorName?: string;
   generatorEmail?: string;
 }
-
-const CATEGORY_BAR: Record<NoteCategory, string> = {
-  Reunião: 'bg-sky-500',
-  Pub: 'bg-emerald-500',
-  Evento: 'bg-violet-500',
-  'Ação Social': 'bg-rose-500',
-  Geral: 'bg-amber-500'
-};
 
 const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
   Reunião: [2, 132, 199],
@@ -85,10 +74,9 @@ async function loadImageAsDataUrl(url: string): Promise<string> {
   });
 }
 
-type ReportView = 'geral' | 'categoria' | 'autor' | 'mes' | 'prioridade' | 'lista';
+type ReportView = 'categoria' | 'autor' | 'mes' | 'prioridade' | 'lista';
 
 const VIEW_OPTIONS: { id: ReportView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'geral', label: 'Visão geral', icon: LayoutGrid },
   { id: 'categoria', label: 'Por categoria', icon: Tags },
   { id: 'autor', label: 'Por autor', icon: Tags },
   { id: 'mes', label: 'Por mês', icon: CalendarDays },
@@ -312,7 +300,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
   const [location, setLocation] = useState('Todos');
   const [priority, setPriority] = useState('Todas');
   const [division, setDivision] = useState('Todos');
-  const [view, setView] = useState<ReportView>('geral');
+  const [view, setView] = useState<ReportView>('lista');
   const [monthFilter, setMonthFilter] = useState('todas');
 
   const todayISO = formatDateToISO(new Date());
@@ -436,8 +424,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     return rest > 0 ? [...top, { name: 'Outros', total: rest }] : top;
   }, [filteredNotes]);
 
-  const maxAuthorCount = Math.max(1, ...authorStats.map((item) => item.total));
-
   const divisionStats = useMemo(() => {
     const counts = new Map<string, number>();
     filteredNotes.forEach((note) => {
@@ -449,8 +435,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
   }, [filteredNotes]);
 
-  const maxDivisionCount = Math.max(1, ...divisionStats.map((item) => item.total));
-
   const monthStats = useMemo(() => {
     const counts = new Map<string, number>();
     filteredNotes.forEach((note) => {
@@ -461,8 +445,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       .map(([key, count]) => ({ key, count }))
       .sort((a, b) => a.key.localeCompare(b.key));
   }, [filteredNotes]);
-
-  const maxMonthCount = Math.max(1, ...monthStats.map((item) => item.count));
 
   const monthGroups: NoteGroup[] = useMemo(() => {
     return buildGroups(sortedNotes, (note) => monthKeyOf(note.date), monthLabel);
@@ -1151,185 +1133,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           </div>
         </div>
 
-        {view === 'geral' ? (
-          <div className="mt-5 flex flex-col gap-5">
-            {/* KPI cards */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-              <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-3">
-                <span className="text-[10px] uppercase text-zinc-500">Total (filtrados)</span>
-                <strong className="mt-1 block text-2xl text-white">{filteredNotes.length}</strong>
-                <span className="text-[10px] text-zinc-500">de {notes.length} no Firestore</span>
-              </div>
-              <div className="rounded-xl border border-sky-800/60 bg-sky-950/30 p-3">
-                <span className="flex items-center gap-1 text-[10px] uppercase text-sky-300">
-                  <TrendingUp className="h-3 w-3" /> Futuros / Hoje
-                </span>
-                <strong className="mt-1 block text-2xl text-white">{upcomingCount}</strong>
-                <span className="text-[10px] text-sky-400/80">
-                  {filteredNotes.length === 0
-                    ? '0%'
-                    : `${Math.round((upcomingCount / filteredNotes.length) * 100)}%`}{' '}
-                  do total
-                </span>
-              </div>
-              <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 p-3">
-                <span className="flex items-center gap-1 text-[10px] uppercase text-violet-300">
-                  <History className="h-3 w-3" /> Realizados
-                </span>
-                <strong className="mt-1 block text-2xl text-white">{completedCount}</strong>
-                <span className="text-[10px] text-violet-400/80">
-                  {filteredNotes.length === 0
-                    ? '0%'
-                    : `${Math.round((completedCount / filteredNotes.length) * 100)}%`}{' '}
-                  do total
-                </span>
-              </div>
-              <div className="rounded-xl border border-rose-800/60 bg-rose-950/30 p-3">
-                <span className="flex items-center gap-1 text-[10px] uppercase text-rose-300">
-                  <AlertTriangle className="h-3 w-3" /> Prioridade alta
-                </span>
-                <strong className="mt-1 block text-2xl text-white">{highPriorityCount}</strong>
-                <span className="text-[10px] text-rose-400/80">
-                  {filteredNotes.length === 0
-                    ? '0%'
-                    : `${Math.round((highPriorityCount / filteredNotes.length) * 100)}%`}{' '}
-                  do total
-                </span>
-              </div>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              {/* Category breakdown */}
-              <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-4">
-                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-300">
-                  Distribuição por categoria
-                </h3>
-                {categoryStats.filter((item) => item.total > 0).length === 0 ? (
-                  <p className="text-xs text-zinc-500">Sem dados no intervalo atual.</p>
-                ) : (
-                  <div className="flex flex-col gap-2.5">
-                    {categoryStats
-                      .filter((item) => item.total > 0)
-                      .map(({ category, total, pct }) => (
-                        <div key={category}>
-                          <div className="mb-1 flex items-center justify-between text-[11px]">
-                            <span className="font-semibold text-zinc-200">{category}</span>
-                            <span className="text-zinc-400">
-                              {total} • {pct}%
-                            </span>
-                          </div>
-                          <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                            <div
-                              className={`h-full rounded-full ${CATEGORY_BAR[category]}`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Author breakdown */}
-              <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-4">
-                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-300">
-                  Distribuição por autor
-                </h3>
-                {authorStats.length === 0 ? (
-                  <p className="text-xs text-zinc-500">Sem dados no intervalo atual.</p>
-                ) : (
-                  <div className="flex flex-col gap-2.5">
-                    {authorStats.map(({ name, total }) => (
-                      <div key={name}>
-                        <div className="mb-1 flex items-center justify-between gap-2 text-[11px]">
-                          <span className="min-w-0 truncate font-semibold text-zinc-200">
-                            {name}
-                          </span>
-                          <span className="text-zinc-400">
-                            {total} •{' '}
-                            {filteredNotes.length === 0
-                              ? '0'
-                              : Math.round((total / filteredNotes.length) * 100)}
-                            %
-                          </span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                          <div
-                            className="h-full rounded-full bg-sky-500"
-                            style={{ width: `${Math.round((total / maxAuthorCount) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Division breakdown */}
-            <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-4">
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-300">
-                Distribuição por divisão
-              </h3>
-              {divisionStats.length === 0 ? (
-                <p className="text-xs text-zinc-500">Sem dados no intervalo atual.</p>
-              ) : (
-                <div className="flex flex-col gap-2.5">
-                  {divisionStats.map(({ label, total }) => (
-                    <div key={label}>
-                      <div className="mb-1 flex items-center justify-between gap-2 text-[11px]">
-                        <span className="min-w-0 truncate font-semibold text-zinc-200">
-                          {label}
-                        </span>
-                        <span className="text-zinc-400">
-                          {total} •{' '}
-                          {filteredNotes.length === 0
-                            ? '0'
-                            : Math.round((total / filteredNotes.length) * 100)}
-                          %
-                        </span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                        <div
-                          className={`h-full rounded-full ${getDivisionStyle(label).dot}`}
-                          style={{ width: `${Math.round((total / maxDivisionCount) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Monthly breakdown */}
-            <div className="rounded-xl border border-zinc-800 bg-[#18181b] p-4">
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-300">
-                Eventos por mês
-              </h3>
-              {monthStats.length === 0 ? (
-                <p className="text-xs text-zinc-500">Sem dados no intervalo atual.</p>
-              ) : (
-                <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
-                  {monthStats.map(({ key, count }) => (
-                    <div key={key} className="flex items-center gap-2 text-[11px]">
-                      <span className="w-24 shrink-0 font-semibold text-zinc-200">
-                        {monthLabel(key)}
-                      </span>
-                      <div className="flex h-5 flex-1 items-center overflow-hidden rounded bg-zinc-800">
-                        <div
-                          className="flex h-full items-center rounded bg-sky-500/90 px-1.5 text-[9px] font-bold text-white"
-                          style={{ width: `${Math.max(8, (count / maxMonthCount) * 100)}%` }}
-                        >
-                          {count}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : view === 'mes' ? (
+        {view === 'mes' ? (
           <div className="mt-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
