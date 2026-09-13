@@ -83,6 +83,10 @@ export const NoteForm: FC<NoteFormProps> = ({
       setError('Por favor, selecione a divisão da anotação.');
       return;
     }
+    if (!category) {
+      setError('Por favor, selecione a categoria do evento.');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -137,6 +141,41 @@ export const NoteForm: FC<NoteFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        {/* Category select (required) */}
+        <div>
+          <label
+            htmlFor="note-category-input"
+            className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase text-zinc-500"
+          >
+            <Tag className="h-3 w-3" /> Categoria <span className="text-amber-400">*</span>
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+              <Tag className="h-4 w-4" />
+            </div>
+            <select
+              id="note-category-input"
+              aria-label="Categoria do evento"
+              required
+              value={category}
+              onChange={(e) => {
+                const value = e.target.value as NoteCategory | '';
+                setCategory(value === '' ? DEFAULT_CATEGORY : value);
+                if (error) setError('');
+              }}
+              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+            >
+              <option value="">Selecione a categoria</option>
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat} className="bg-[#1a1a1e]">
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
+          </div>
+        </div>
+
         {/* Division select (required) */}
         <div>
           <label
@@ -188,40 +227,6 @@ export const NoteForm: FC<NoteFormProps> = ({
             placeholder="Escreva o texto do evento..."
             className="w-full resize-none rounded-xl border border-zinc-700/80 bg-[#1a1a1e] p-3 text-base sm:text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
           />
-        </div>
-
-        {/* Category select */}
-        <div>
-          <label
-            htmlFor="note-category-input"
-            className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase text-zinc-500"
-          >
-            <Tag className="h-3 w-3" /> Categoria
-          </label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
-              <Tag className="h-4 w-4" />
-            </div>
-            <select
-              id="note-category-input"
-              aria-label="Categoria do evento"
-              value={category}
-              onChange={(e) => {
-                const value = e.target.value as NoteCategory | '';
-                setCategory(value === '' ? DEFAULT_CATEGORY : value);
-                if (error) setError('');
-              }}
-              className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
-            >
-              <option value="">Selecione a categoria</option>
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} className="bg-[#1a1a1e]">
-                  {cat}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute inset-y-0 right-3 h-4 w-4 my-auto text-zinc-500" />
-          </div>
         </div>
 
         {/* Primary Row: Date Input */}
