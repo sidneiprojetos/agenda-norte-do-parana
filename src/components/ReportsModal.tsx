@@ -281,48 +281,6 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, zebra: boolean, metric
   pdf.line(MARGIN + 2, y + rowHeight - 0.3, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 0.3);
 }
 
-function drawSummary(pdf: JsPDF, y: number, reportNotes: Note[]) {
-  const total = reportNotes.length;
-  const counts = CATEGORIES.map((category) => ({
-    category,
-    count: reportNotes.filter((n) => (n.category || DEFAULT_CATEGORY) === category).length
-  })).filter((item) => item.count > 0);
-
-  const boxHeight = 12 + counts.length * 5.5 + 4;
-
-  pdf.setFillColor(248, 250, 252);
-  pdf.rect(MARGIN, y - 6, PAGE_WIDTH - MARGIN * 2, boxHeight, 'F');
-  pdf.setDrawColor(SLATE_300[0], SLATE_300[1], SLATE_300[2]);
-  pdf.setLineWidth(0.3);
-  pdf.rect(MARGIN, y - 6, PAGE_WIDTH - MARGIN * 2, boxHeight, 'S');
-
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
-  pdf.text('RESUMO DO RELATÓRIO', MARGIN + 5, y - 1);
-
-  pdf.setFontSize(9.5);
-  pdf.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
-  pdf.text(`Total: ${total} anotação(ões)`, PAGE_WIDTH - MARGIN - 5, y - 1, { align: 'right' });
-
-  let rowY = y + 6;
-  counts.forEach((item) => {
-    const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[item.category];
-    pdf.setFillColor(cRed, cGreen, cBlue);
-    pdf.rect(MARGIN + 5, rowY - 1.6, 3, 3, 'F');
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(8);
-    pdf.setTextColor(SLATE_600[0], SLATE_600[1], SLATE_600[2]);
-    pdf.text(item.category, MARGIN + 11, rowY + 0.4);
-
-    pdf.setTextColor(cRed, cGreen, cBlue);
-    pdf.text(String(item.count), PAGE_WIDTH - MARGIN - 5, rowY + 0.4, { align: 'right' });
-
-    rowY += 5.5;
-  });
-}
-
 interface NoteGroup {
   key: string;
   label: string;
@@ -476,20 +434,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           renderNoteRow(pdf, note, y, zebraBand, metrics);
           y += metrics.rowHeight;
         }
-
-        if (y + 48 > BOTTOM_LIMIT) {
-          const next = startNewPage(pdf, 'Relatório Detalhado');
-          y = next.y;
-        }
-        pdf.setDrawColor(60, 60, 60);
-        pdf.setLineWidth(0.4);
-        pdf.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8.5);
-        pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
-        pdf.text(`Total: ${sortedNotes.length} anotação(ões)`, MARGIN + 4, y + 4.5);
-        pdf.text('Eventos futuros', PAGE_WIDTH - MARGIN - 4, y + 4.5, { align: 'right' });
-        drawSummary(pdf, y + 10, sortedNotes);
       }
 
       applyPageFooters(pdf, generatorLabel);
@@ -549,25 +493,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             y += metrics.rowHeight;
           }
         }
-
-        if (y + 48 > BOTTOM_LIMIT) {
-          const next = startNewPage(pdf, reportTitle);
-          y = next.y;
-        }
-        const totalCount = groups.reduce((acc, group) => acc + group.notes.length, 0);
-        pdf.setDrawColor(60, 60, 60);
-        pdf.setLineWidth(0.4);
-        pdf.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8.5);
-        pdf.setTextColor(SLATE_900[0], SLATE_900[1], SLATE_900[2]);
-        pdf.text(`Total: ${totalCount} anotação(ões)`, MARGIN + 4, y + 4.5);
-        pdf.text('Eventos futuros', PAGE_WIDTH - MARGIN - 4, y + 4.5, { align: 'right' });
-        drawSummary(
-          pdf,
-          y + 10,
-          groups.flatMap((group) => group.notes)
-        );
       }
 
       applyPageFooters(pdf, generatorLabel);
