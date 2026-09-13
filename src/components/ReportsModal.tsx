@@ -601,19 +601,19 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     };
     try {
       const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF();
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 14;
       const bottomLimit = pageHeight - 14;
 
       const colData = margin + 4;
-      const colDivisao = margin + 26;
-      const colHora = margin + 48;
+      const colDivisao = margin + 22;
+      const colHora = margin + 44;
       const colEvento = margin + 56;
-      const colPrioridade = margin + 88;
-      const colCategoria = margin + 106;
-      const colLocalAutor = pageWidth - margin - 40;
+      const colPrioridade = margin + 118;
+      const colCategoria = margin + 138;
+      const colLocalAutor = pageWidth - margin - 60;
 
       const drawColumnHeader = (y: number) => {
         pdf.setFillColor(241, 245, 249);
@@ -656,6 +656,8 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         pdf.text('Nenhuma anotação corresponde aos filtros selecionados.', margin, y);
       } else {
         let lastMonthKey = '';
+        let lastDivision: string | null = null;
+        let zebraBand = false;
         for (const note of sortedNotes) {
           const monthKey = monthKeyOf(note.date);
           if (monthKey !== lastMonthKey) {
@@ -700,6 +702,16 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             y += 11;
           }
 
+          const noteDivision = note.division || '';
+          if (noteDivision !== lastDivision) {
+            lastDivision = noteDivision;
+            zebraBand = !zebraBand;
+          }
+          if (zebraBand) {
+            pdf.setFillColor(246, 247, 249);
+            pdf.rect(margin, y - 0.6, pageWidth - margin * 2, rowHeight + 1.2, 'F');
+          }
+
           const [cRed, cGreen, cBlue] = PDF_CATEGORY_COLORS[category];
 
           pdf.setFont('helvetica', 'bold');
@@ -736,11 +748,11 @@ export const ReportsModal: FC<ReportsModalProps> = ({
           pdf.text(isHighPriority ? 'ALTA' : 'Normal', colPrioridade, y + 2);
           pdf.setDrawColor(cRed, cGreen, cBlue);
           pdf.setLineWidth(0.45);
-          pdf.roundedRect(colCategoria - 1, y - 2, 26, 6, 2, 2, 'S');
+          pdf.roundedRect(colCategoria - 1, y - 2, 28, 6, 2, 2, 'S');
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(7);
           pdf.setTextColor(cRed, cGreen, cBlue);
-          pdf.text(category, colCategoria + 12, y + 2, { align: 'center' });
+          pdf.text(category, colCategoria + 13, y + 2, { align: 'center' });
           const localLine = (
             pdf.splitTextToSize(
               [note.location || '', noteAuthor(note)].filter(Boolean).join(' • ').slice(0, 48) ||
