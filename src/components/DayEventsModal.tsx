@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, Eye } from 'lucide-react';
-import { Note } from '../types';
+import { Note, DEFAULT_CATEGORY } from '../types';
 import { formatDateToBR } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
 import { getDivisionStyle } from '../utils/divisionStyles';
@@ -59,7 +59,7 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
         ) : (
           <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
             {dayNotes.map((note) => {
-              const categoryStyle = getCategoryStyle(note.category || 'Geral');
+              const categoryStyle = getCategoryStyle(note.category || DEFAULT_CATEGORY);
               return (
                 <button
                   key={note.id}
@@ -71,7 +71,7 @@ export const DayEventsModal: FC<DayEventsModalProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-white truncate">{note.title}</span>
                       <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${categoryStyle.badge}`}>
-                        {note.category || 'Geral'}
+                        {note.category || DEFAULT_CATEGORY}
                       </span>
                       <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${getDivisionStyle(note.division).badge}`}>
                         {note.division || 'Sem divisão'}

@@ -1,6 +1,8 @@
-export type NoteCategory = 'Reunião' | 'Pub' | 'Coletamento' | 'Ação Social' | 'Geral';
+export type NoteCategory = 'Reunião' | 'Pub' | 'Coletamento' | 'Ação Social';
 
-export const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Coletamento', 'Ação Social', 'Geral'];
+export const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Coletamento', 'Ação Social'];
+
+export const DEFAULT_CATEGORY: NoteCategory = 'Reunião';
 
 export interface Note {
   id: string;

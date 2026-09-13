@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { Note, NoteCategory } from '../types';
+import { Note, NoteCategory, DEFAULT_CATEGORY } from '../types';
 import {
   MONTH_NAMES_PT,
   WEEKDAYS_PT,
@@ -127,9 +127,9 @@ export const Calendar: FC<CalendarProps> = ({
           const isToday = day.dateString === todayStr;
           const dayNotes = notes.filter((note) => note.date === day.dateString);
           const categoryKeys: NoteCategory[] = Array.from(
-            new Set(dayNotes.map((note) => note.category || 'Geral'))
+            new Set(dayNotes.map((note) => note.category || DEFAULT_CATEGORY))
           );
-          const primaryCategory = dayNotes[0]?.category || 'Geral';
+          const primaryCategory = dayNotes[0]?.category || DEFAULT_CATEGORY;
           const calendarCategoryStyle = getCategoryStyle(primaryCategory);
 
           return (

@@ -15,7 +15,7 @@ import {
   CalendarX2,
   Building2
 } from 'lucide-react';
-import { Note, NoteCategory, CATEGORIES } from '../types';
+import { Note, NoteCategory, CATEGORIES, DEFAULT_CATEGORY } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
 import { getCategoryStyle } from '../utils/categoryStyles';
 import { getDivisionStyle, getDivisionRgb } from '../utils/divisionStyles';
@@ -35,8 +35,7 @@ const PDF_CATEGORY_COLORS: Record<NoteCategory, [number, number, number]> = {
   Reunião: [2, 132, 199],
   Pub: [5, 150, 105],
   Coletamento: [124, 58, 237],
-  'Ação Social': [225, 29, 72],
-  Geral: [217, 119, 6]
+  'Ação Social': [225, 29, 72]
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -255,7 +254,7 @@ const GroupedNotes: FC<GroupedNotesProps> = ({
                         <span
                           className={`rounded border px-1.5 py-0.5 ${getCategoryStyle(note.category).badge}`}
                         >
-                          {note.category || 'Geral'}
+                          {note.category || DEFAULT_CATEGORY}
                         </span>
                       </span>
                     </span>
@@ -365,7 +364,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       if (endDate && note.date > endDate) return false;
       if (
         selectedCategories.length > 0 &&
-        !selectedCategories.includes(note.category || 'Geral')
+        !selectedCategories.includes(note.category || DEFAULT_CATEGORY)
       ) {
         return false;
       }
@@ -412,7 +411,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     CATEGORIES.forEach((category, index) => {
       categoryOrder[category] = index;
     });
-    return buildGroups(sortedNotes, (note) => note.category || 'Geral', (key) => key).sort(
+    return buildGroups(sortedNotes, (note) => note.category || DEFAULT_CATEGORY, (key) => key).sort(
       (a, b) =>
         (categoryOrder[a.key] ?? 99) - (categoryOrder[b.key] ?? 99) ||
         a.label.localeCompare(b.label)
@@ -486,7 +485,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
       note.title,
       note.date,
       note.time || '',
-      note.category || 'Geral',
+      note.category || DEFAULT_CATEGORY,
       note.priority || 'normal',
       note.division || '',
       note.location || '',
@@ -607,7 +606,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             y += 7;
           }
 
-          const category = note.category || 'Geral';
+          const category = note.category || DEFAULT_CATEGORY;
           const titleLines = pdf.splitTextToSize(
             note.title,
             colPrioridade - colEvento - 6

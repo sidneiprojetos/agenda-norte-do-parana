@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Note, NoteCategory, AppUser, UserProfile, Division } from './types';
+import {
+  Note,
+  NoteCategory,
+  AppUser,
+  UserProfile,
+  Division,
+  DEFAULT_CATEGORY
+} from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
 import { INITIAL_DIVISIONS } from './data/initialDivisions';
 import { Calendar } from './components/Calendar';
@@ -437,7 +444,7 @@ export default function App() {
         date: data.date,
         time: data.time,
         location: data.location,
-        category: data.category || 'Geral',
+        category: data.category || DEFAULT_CATEGORY,
         priority: data.priority || 'normal',
         division: data.division || undefined,
         createdAt: new Date().toISOString(),
@@ -460,7 +467,7 @@ export default function App() {
             date: data.date,
             time: data.time,
             location: data.location,
-            category: data.category || 'Geral',
+            category: data.category || DEFAULT_CATEGORY,
             priority: data.priority || 'normal',
             division: data.division || undefined,
             createdAt: new Date().toISOString(),
@@ -576,7 +583,7 @@ export default function App() {
                 date: item.date,
                 time: item.time,
                 location: item.location,
-                category: item.category || 'Geral',
+                category: item.category || DEFAULT_CATEGORY,
                 priority: item.priority || 'normal',
                 division: item.division || currentUser?.division || 'Norte do Paraná',
                 createdAt: item.createdAt || new Date().toISOString(),

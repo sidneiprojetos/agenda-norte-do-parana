@@ -29,8 +29,7 @@ const CATEGORIES: (NoteCategory | 'Todas')[] = [
   'Reunião',
   'Pub',
   'Coletamento',
-  'Ação Social',
-  'Geral'
+  'Ação Social'
 ];
 
 export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({

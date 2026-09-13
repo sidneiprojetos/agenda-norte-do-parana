@@ -1,4 +1,4 @@
-import { NoteCategory } from '../types';
+import { DEFAULT_CATEGORY, NoteCategory } from '../types';
 
 type CategoryStyle = {
   badge: string;
@@ -36,16 +36,9 @@ const CATEGORY_STYLES: Record<NoteCategory, CategoryStyle> = {
     selected: 'border-rose-500/50 bg-rose-600 text-white shadow-sm',
     calendar: 'border-rose-400/70 bg-rose-950/75 text-rose-100',
     border: 'border-rose-500/40'
-  },
-  Geral: {
-    badge: 'border-amber-500/40 bg-amber-950/40 text-amber-300',
-    active: 'border-amber-500 bg-amber-600 text-white shadow-sm',
-    selected: 'border-amber-500/50 bg-amber-600 text-white shadow-sm',
-    calendar: 'border-amber-400/70 bg-amber-950/75 text-amber-100',
-    border: 'border-amber-500/40'
   }
 };
 
 export function getCategoryStyle(category?: NoteCategory): CategoryStyle {
-  return CATEGORY_STYLES[category || 'Geral'];
+  return CATEGORY_STYLES[category || DEFAULT_CATEGORY];
 }

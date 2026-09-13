@@ -14,7 +14,7 @@ import {
   Building2,
   ChevronDown
 } from 'lucide-react';
-import { Note, NoteCategory, AppUser, CATEGORIES } from '../types';
+import { Note, NoteCategory, AppUser, CATEGORIES, DEFAULT_CATEGORY } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
 
 interface NoteFormProps {
@@ -48,7 +48,7 @@ export const NoteForm: FC<NoteFormProps> = ({
   const [dateStr, setDateStr] = useState(selectedDate || formatDateToISO(new Date()));
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
-  const [category, setCategory] = useState<NoteCategory>('Geral');
+  const [category, setCategory] = useState<NoteCategory>(DEFAULT_CATEGORY);
   const [priority, setPriority] = useState<'normal' | 'alta'>('normal');
   const [division, setDivision] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,7 +66,7 @@ export const NoteForm: FC<NoteFormProps> = ({
       setDateStr(editingNote.date);
       setTime(editingNote.time || '');
       setLocation(editingNote.location || '');
-      setCategory(editingNote.category || 'Geral');
+      setCategory(editingNote.category || DEFAULT_CATEGORY);
       setPriority(editingNote.priority || 'normal');
       setDivision(editingNote.division || '');
     } else {
@@ -74,7 +74,7 @@ export const NoteForm: FC<NoteFormProps> = ({
       setContent('');
       setTime('');
       setLocation('');
-      setCategory('Geral');
+      setCategory(DEFAULT_CATEGORY);
       setPriority('normal');
       setDivision('');
       if (selectedDate) {
@@ -234,7 +234,7 @@ export const NoteForm: FC<NoteFormProps> = ({
               value={category}
               onChange={(e) => {
                 const value = e.target.value as NoteCategory | '';
-                setCategory(value === '' ? 'Geral' : value);
+                setCategory(value === '' ? DEFAULT_CATEGORY : value);
                 if (error) setError('');
               }}
               className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"

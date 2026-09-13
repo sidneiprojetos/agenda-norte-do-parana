@@ -1,5 +1,5 @@
 import { getDb, ADMIN_EMAIL } from '../firebase';
-import { Note, AuditActor, AuditAction } from '../types';
+import { Note, AuditActor, AuditAction, DEFAULT_CATEGORY } from '../types';
 import { INITIAL_NOTES } from '../data/initialNotes';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
 import { formatDateToISO } from '../utils/dateUtils';
@@ -8,7 +8,8 @@ import { logAuditEntry } from './auditService';
 const NOTES_COLLECTION = 'notes';
 
 const LEGACY_CATEGORY_MAP: Record<string, Note['category']> = {
-  Evento: 'Coletamento'
+  Evento: 'Coletamento',
+  Geral: DEFAULT_CATEGORY
 };
 
 async function firestore() {
@@ -102,7 +103,7 @@ export async function subscribeToNotes(callback: (notes: Note[]) => void): Promi
           date: data.date || '',
           time: data.time || undefined,
           location: data.location || undefined,
-          category: LEGACY_CATEGORY_MAP[data.category as string] || data.category || 'Geral',
+          category: LEGACY_CATEGORY_MAP[data.category as string] || data.category || DEFAULT_CATEGORY,
           priority: data.priority || 'normal',
           division: data.division || undefined,
           createdAt: data.createdAt || new Date().toISOString(),
