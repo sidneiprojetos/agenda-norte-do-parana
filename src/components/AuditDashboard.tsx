@@ -130,6 +130,12 @@ const ACTION_META: Record<string, ActionMeta> = {
     iconClass: 'text-teal-400',
     chipClass: 'bg-teal-500/10 border-teal-500/40 text-teal-300'
   },
+  division_update: {
+    label: 'Renomeou divisão',
+    icon: Pencil,
+    iconClass: 'text-teal-400',
+    chipClass: 'bg-teal-500/10 border-teal-500/40 text-teal-300'
+  },
   division_delete: {
     label: 'Excluiu divisão',
     icon: Building,
@@ -139,6 +145,12 @@ const ACTION_META: Record<string, ActionMeta> = {
   category_create: {
     label: 'Criou categoria',
     icon: Tags,
+    iconClass: 'text-amber-400',
+    chipClass: 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+  },
+  category_update: {
+    label: 'Renomeou categoria',
+    icon: Pencil,
     iconClass: 'text-amber-400',
     chipClass: 'bg-amber-500/10 border-amber-500/40 text-amber-300'
   },
@@ -182,8 +194,10 @@ function describeLog(log: AuditLog): { title: string; detail: string } {
     case 'user_update':
     case 'user_delete':
     case 'division_create':
+    case 'division_update':
     case 'division_delete':
     case 'category_create':
+    case 'category_update':
     case 'category_delete':
       return {
         title: meta?.label || log.action,

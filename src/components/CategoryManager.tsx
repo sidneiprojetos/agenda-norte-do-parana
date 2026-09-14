@@ -3,6 +3,9 @@ import {
   Tags,
   Plus,
   Trash2,
+  Pencil,
+  Check,
+  X,
   Palette,
   ShieldCheck,
   FileText
@@ -14,6 +17,7 @@ import {
 } from '../utils/categoryStyles';
 import {
   createCategory,
+  updateCategory,
   deleteCategory
 } from '../services/categoriesService';
 
@@ -33,6 +37,10 @@ export const CategoryManager: FC<CategoryManagerProps> = ({
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState<string>('sky');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editColor, setEditColor] = useState<string>('sky');
+  const [isEditing, setIsEditing] = useState(false);
 
   const actor = currentUser
     ? { uid: currentUser.uid, name: currentUser.displayName || undefined, email: currentUser.email || undefined }
@@ -57,6 +65,47 @@ export const CategoryManager: FC<CategoryManagerProps> = ({
       onShowToast('Erro ao criar categoria no Firebase.', 'error');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const startEdit = (cat: Category) => {
+    setEditingId(cat.id);
+    setEditName(cat.name);
+    setEditColor(cat.color);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditColor('sky');
+  };
+
+  const handleUpdate = async (cat: Category) => {
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      onShowToast('Informe o nome da categoria.', 'error');
+      return;
+    }
+    if (
+      trimmed.toLowerCase() !== cat.name.toLowerCase() &&
+      categories.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())
+    ) {
+      onShowToast('Já existe uma categoria com esse nome.', 'error');
+      return;
+    }
+    if (trimmed === cat.name && editColor === cat.color) {
+      cancelEdit();
+      return;
+    }
+    setIsEditing(true);
+    try {
+      await updateCategory(cat.id, cat.name, trimmed, editColor, actor);
+      onShowToast(`Categoria renomeada para "${trimmed}".`);
+      cancelEdit();
+    } catch {
+      onShowToast('Erro ao atualizar categoria no Firebase.', 'error');
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -150,6 +199,59 @@ export const CategoryManager: FC<CategoryManagerProps> = ({
           categories.map((cat) => {
             const count = notes.filter((n) => n.category === cat.name).length;
             const style = getCategoryStyle(cat.name);
+            const isEditingThis = editingId === cat.id;
+            if (isEditingThis) {
+              return (
+                <div
+                  key={cat.id}
+                  className="rounded-xl border border-amber-500/40 bg-amber-500/5 px-3 py-3 transition-all"
+                >
+                  <div className="flex flex-col gap-3">
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Nome da categoria..."
+                      autoFocus
+                      className="flex-1 rounded-xl border border-zinc-700 bg-[#1a1a1e] px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition-colors"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Palette className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                      <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Cor</span>
+                      <div className="flex gap-1.5">
+                        {CATEGORY_COLOR_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.key}
+                            onClick={() => setEditColor(opt.key)}
+                            title={opt.label}
+                            className={`h-5 w-5 rounded-full border-2 transition-all active:scale-90 ${
+                              getCatStyleClass(opt.key)
+                            } ${editColor === opt.key ? 'border-white ring-2 ring-white/40 scale-110' : 'border-transparent hover:scale-110'}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={cancelEdit}
+                        className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-700"
+                      >
+                        <X className="h-3.5 w-3.5 inline mr-1" />
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => handleUpdate(cat)}
+                        disabled={isEditing || !editName.trim()}
+                        className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 px-3 py-1.5 text-xs font-bold text-white transition active:scale-95 disabled:opacity-50"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        {isEditing ? 'Salvando...' : 'Salvar'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
             return (
               <div
                 key={cat.id}
@@ -170,13 +272,22 @@ export const CategoryManager: FC<CategoryManagerProps> = ({
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(cat)}
-                  title="Excluir categoria"
-                  className="rounded-lg p-2 text-zinc-400 transition hover:bg-rose-950/50 hover:text-rose-400 active:scale-95"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => startEdit(cat)}
+                    title="Editar categoria"
+                    className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-sky-400 active:scale-95"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cat)}
+                    title="Excluir categoria"
+                    className="rounded-lg p-2 text-zinc-400 transition hover:bg-rose-950/50 hover:text-rose-400 active:scale-95"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             );
           })

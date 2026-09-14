@@ -8,9 +8,21 @@ const CATEGORIES_COLLECTION = 'categories';
 
 async function firestore() {
   const db = await getDb();
-  const { collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, getDoc } =
-    await import('firebase/firestore');
-  return { db, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, getDoc };
+  const {
+    collection,
+    doc,
+    setDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    where,
+    getDoc,
+    getDocs
+  } = await import('firebase/firestore');
+  return { db, collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where, getDoc, getDocs };
 }
 
 function defaultCategories(): Category[] {
@@ -129,6 +141,43 @@ export async function createCategory(
   });
 
   return docRef.id;
+}
+
+/**
+ * Update a category (name/color) in Firestore (admin only by Firestore rules).
+ * Also updates every note that references the old name, so the agenda stays consistent.
+ */
+export async function updateCategory(
+  categoryId: string,
+  oldName: string,
+  newName: string,
+  color: string,
+  actor?: AuditActor
+): Promise<void> {
+  const { db, doc, updateDoc, collection, query, where, getDocs } = await firestore();
+
+  await updateDoc(doc(db, CATEGORIES_COLLECTION, categoryId), {
+    name: newName,
+    color,
+    updatedAt: new Date().toISOString()
+  });
+
+  const notesRef = collection(db, 'notes');
+  const snapshot = await getDocs(query(notesRef, where('category', '==', oldName)));
+  for (const noteSnap of snapshot.docs) {
+    await updateDoc(noteSnap.ref, { category: newName });
+  }
+
+  await logAuditEntry({
+    action: 'category_update',
+    entityType: 'category',
+    entityId: categoryId,
+    entityTitle: newName,
+    actorUid: actor?.uid,
+    actorName: actor?.name,
+    actorEmail: actor?.email,
+    details: `Renomeou a categoria "${oldName}" para "${newName}"${snapshot.size > 0 ? ` e atualizou ${snapshot.size} anotação(ões)` : ''}`
+  });
 }
 
 export async function deleteCategory(

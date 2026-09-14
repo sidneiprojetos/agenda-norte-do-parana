@@ -92,8 +92,10 @@ export type AuditAction =
   | 'user_update'
   | 'user_delete'
   | 'division_create'
+  | 'division_update'
   | 'division_delete'
   | 'category_create'
+  | 'category_update'
   | 'category_delete';
 
 export type AuditEntityType = 'note' | 'user' | 'auth' | 'data' | 'division' | 'category';

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import type { FC } from 'react';
-import { Building2, Trash2, Plus, ShieldCheck, FileText } from 'lucide-react';
+import { Building2, Trash2, Plus, Pencil, Check, X, ShieldCheck, FileText } from 'lucide-react';
 import { Division, Note, AppUser } from '../types';
 import { ToastType } from './Toast';
-import { createDivision, deleteDivision } from '../services/divisionService';
+import { createDivision, updateDivision, deleteDivision } from '../services/divisionService';
 import { getDivisionStyle } from '../utils/divisionStyles';
 import { formatDateTimeBR } from '../utils/dateUtils';
 import { Modal } from './Modal';
@@ -30,6 +30,9 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
   const [name, setName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const actor = {
     uid: currentUser?.uid || 'admin-default',
@@ -92,6 +95,53 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
     }
   };
 
+  const startEdit = (division: Division) => {
+    setEditingId(division.id);
+    setEditName(division.name);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const handleUpdate = async (division: Division) => {
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      setError('Informe o nome da divisão.');
+      return;
+    }
+    if (
+      trimmed.toLowerCase() !== division.name.toLowerCase() &&
+      divisions.some((d) => d.name.trim().toLowerCase() === trimmed.toLowerCase())
+    ) {
+      onShowToast?.('Já existe uma divisão com esse nome.', 'error');
+      return;
+    }
+    if (trimmed === division.name) {
+      cancelEdit();
+      return;
+    }
+    if (division.id.startsWith('div-default-')) {
+      onShowToast?.(
+        'Esta divisão é padrão do sistema e ainda não foi salva no Firebase. Crie-a novamente para poder gerenciá-la.',
+        'info'
+      );
+      return;
+    }
+    setIsEditing(true);
+    try {
+      await updateDivision(division.id, division.name, trimmed, actor);
+      onShowToast?.(`Divisão renomeada para "${trimmed}".`, 'success');
+      cancelEdit();
+    } catch (err) {
+      console.error('Error updating division:', err);
+      onShowToast?.('Erro ao atualizar divisão do Firebase.', 'error');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
   const content = (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
@@ -147,6 +197,43 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
           divisions.map((division) => {
             const style = getDivisionStyle(division.name);
             const usedByCount = notes.filter((note) => note.division === division.name).length;
+            const isEditingThis = editingId === division.id;
+            if (isEditingThis) {
+              return (
+                <div
+                  key={division.id}
+                  className="rounded-xl border border-teal-500/40 bg-teal-500/5 p-3 transition-all"
+                >
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Nome da divisão..."
+                      autoFocus
+                      className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={cancelEdit}
+                        className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-700"
+                      >
+                        <X className="h-3.5 w-3.5 inline mr-1" />
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => handleUpdate(division)}
+                        disabled={isEditing || !editName.trim()}
+                        className="flex items-center gap-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 px-3 py-1.5 text-xs font-bold text-white transition active:scale-95 disabled:opacity-50"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        {isEditing ? 'Salvando...' : 'Salvar'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
             return (
               <div
                 key={division.id}
@@ -170,14 +257,24 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
                   </div>
                 </div>
 
-                <button
-                  id={`delete-division-${division.id}`}
-                  onClick={() => handleDelete(division)}
-                  title="Excluir divisão"
-                  className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-rose-950/50 hover:border-rose-800/80 p-2 text-zinc-400 hover:text-rose-400 transition"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    id={`edit-division-${division.id}`}
+                    onClick={() => startEdit(division)}
+                    title="Renomear divisão"
+                    className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 hover:border-zinc-700 p-2 text-zinc-400 hover:text-sky-400 transition"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    id={`delete-division-${division.id}`}
+                    onClick={() => handleDelete(division)}
+                    title="Excluir divisão"
+                    className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-rose-950/50 hover:border-rose-800/80 p-2 text-zinc-400 hover:text-rose-400 transition"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             );
           })

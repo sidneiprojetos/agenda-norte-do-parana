@@ -8,19 +8,34 @@ const DIVISIONS_COLLECTION = 'divisions';
 
 async function firestore() {
   const db = await getDb();
-  const { collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, getDoc } =
-    await import('firebase/firestore');
+  const {
+    collection,
+    doc,
+    setDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    where,
+    getDoc,
+    getDocs
+  } = await import('firebase/firestore');
   return {
     db,
     collection,
     doc,
     setDoc,
     addDoc,
+    updateDoc,
     deleteDoc,
     onSnapshot,
     query,
     orderBy,
-    getDoc
+    where,
+    getDoc,
+    getDocs
   };
 }
 
@@ -147,6 +162,41 @@ export async function createDivision(
   });
 
   return docRef.id;
+}
+
+/**
+ * Rename a division in Firestore (admin only by Firestore rules).
+ * Also updates every note that references the old name, so the agenda stays consistent.
+ */
+export async function updateDivision(
+  divisionId: string,
+  oldName: string,
+  newName: string,
+  actor?: AuditActor
+): Promise<void> {
+  const { db, doc, updateDoc, collection, query, where, getDocs } = await firestore();
+
+  await updateDoc(doc(db, DIVISIONS_COLLECTION, divisionId), {
+    name: newName,
+    updatedAt: new Date().toISOString()
+  });
+
+  const notesRef = collection(db, 'notes');
+  const snapshot = await getDocs(query(notesRef, where('division', '==', oldName)));
+  for (const noteSnap of snapshot.docs) {
+    await updateDoc(noteSnap.ref, { division: newName });
+  }
+
+  await logAuditEntry({
+    action: 'division_update',
+    entityType: 'division',
+    entityId: divisionId,
+    entityTitle: newName,
+    actorUid: actor?.uid,
+    actorName: actor?.name,
+    actorEmail: actor?.email,
+    details: `Renomeou a divisão "${oldName}" para "${newName}"${snapshot.size > 0 ? ` e atualizou ${snapshot.size} anotação(ões)` : ''}`
+  });
 }
 
 /**
