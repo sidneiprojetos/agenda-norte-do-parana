@@ -239,7 +239,7 @@ export function UserManagementDashboard({
             )}
             <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400">
               <Shield className="h-3.5 w-3.5" />
-              Painel ADM
+              Painel Administrativo
             </span>
           </div>
           <h2 className="mt-2 text-xl sm:text-2xl font-black text-white tracking-tight">

@@ -75,15 +75,26 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
         Painéis
       </span>
 
-      {onOpenReports && (
+      {currentUser.isAdmin && onOpenAdmTools && (
         <button
-          id="admin-reports-btn"
-          onClick={onOpenReports}
-          title="Abrir relatórios com filtros"
-          className={`${navBtnBase} border-sky-500/40 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20`}
+          id="admin-adm-tools-btn"
+          onClick={onOpenAdmTools}
+          title="Painel administrativo: gestão de usuários, categorias e backup"
+          className={`${navBtnBase} ${
+            isViewingAdmTools
+              ? 'border-fuchsia-500 bg-fuchsia-500/20 text-fuchsia-300'
+              : pendingUsersCount > 0
+              ? 'border-fuchsia-500/80 bg-fuchsia-500/20 text-fuchsia-300 shadow-md shadow-fuchsia-950/40 animate-pulse'
+              : 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 hover:bg-fuchsia-500/20'
+          }`}
         >
-          <BarChart3 className="h-4 w-4 shrink-0" />
-          <span className="whitespace-nowrap">Relatórios</span>
+          <Settings className="h-4 w-4 shrink-0" />
+          <span className="whitespace-nowrap">Acesso Administrativo</span>
+          {pendingUsersCount > 0 && (
+            <span className="rounded-full bg-amber-400 text-black px-1.5 py-px text-[10px] font-black">
+              {pendingUsersCount}
+            </span>
+          )}
         </button>
       )}
 
@@ -103,26 +114,15 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
         </button>
       )}
 
-      {currentUser.isAdmin && onOpenAdmTools && (
+      {onOpenReports && (
         <button
-          id="admin-adm-tools-btn"
-          onClick={onOpenAdmTools}
-          title="Painel administrativo: gestão de usuários, categorias e backup"
-          className={`${navBtnBase} ${
-            isViewingAdmTools
-              ? 'border-fuchsia-500 bg-fuchsia-500/20 text-fuchsia-300'
-              : pendingUsersCount > 0
-              ? 'border-fuchsia-500/80 bg-fuchsia-500/20 text-fuchsia-300 shadow-md shadow-fuchsia-950/40 animate-pulse'
-              : 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 hover:bg-fuchsia-500/20'
-          }`}
+          id="admin-reports-btn"
+          onClick={onOpenReports}
+          title="Abrir relatórios com filtros"
+          className={`${navBtnBase} border-sky-500/40 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20`}
         >
-          <Settings className="h-4 w-4 shrink-0" />
-          <span className="whitespace-nowrap">Adm</span>
-          {pendingUsersCount > 0 && (
-            <span className="rounded-full bg-amber-400 text-black px-1.5 py-px text-[10px] font-black">
-              {pendingUsersCount}
-            </span>
-          )}
+          <BarChart3 className="h-4 w-4 shrink-0" />
+          <span className="whitespace-nowrap">Relatórios</span>
         </button>
       )}
 

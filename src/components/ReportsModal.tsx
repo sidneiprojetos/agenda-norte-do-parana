@@ -510,7 +510,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     {
       id: 'categoria' as const,
       title: 'Relatório por categoria',
-      description: 'Eventos agrupados por categoria cadastrada na guia Adm.',
+      description: 'Eventos agrupados por categoria cadastrada no Acesso Administrativo.',
       icon: Tags,
       generate: () =>
         generateReport('categoria', () =>
