@@ -8,12 +8,13 @@ import {
   Tags,
   Building2
 } from 'lucide-react';
-import { Note, CATEGORIES, DEFAULT_CATEGORY } from '../types';
+import { Note, DEFAULT_CATEGORY } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
 import { Modal } from './Modal';
 
 interface ReportsModalProps {
   notes: Note[];
+  categories?: string[];
   isOpen: boolean;
   onClose: () => void;
   notify?: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -176,32 +177,51 @@ function drawGroupHeader(pdf: JsPDF, y: number, label: string, count: number) {
 
 interface NoteRowMetrics {
   titleLines: string[];
-  contentLines: string[];
+  categoryLines: string[];
+  authorLines: string[];
   divisionLine: string;
   divisionLines: string[];
   rowHeight: number;
 }
 
 function measureNoteRow(pdf: JsPDF, note: Note): NoteRowMetrics {
+  const category = note.category || DEFAULT_CATEGORY;
+  const author = noteAuthor(note) || '—';
   const titleLines = pdf.splitTextToSize(
     note.content,
     COL_AUTOR - COL_EVENTO - 6
   ) as string[];
-  const contentLines: string[] = [];
+  const categoryLines = pdf.splitTextToSize(
+    category,
+    COL_HORA - COL_CATEGORIA - 2
+  ) as string[];
+  const authorLines = (
+    pdf.splitTextToSize(
+      author,
+      PAGE_WIDTH - MARGIN - COL_AUTOR - 4
+    ) as string[]
+  ).slice(0, 2);
   const divisionLine = note.division ? note.division : '';
   const divisionLines = divisionLine
     ? (pdf.splitTextToSize(divisionLine, COL_CATEGORIA - COL_DIVISAO - 1) as string[])
     : [];
   const titleBlock = titleLines.length * 6 + 5;
-  const contentBlock = contentLines.length * 5;
+  const categoryBlock = categoryLines.length * 5;
+  const authorBlock = authorLines.length * 5;
   const divisionBlock = divisionLines.length * 6 + 1.5;
-  const rowHeight = Math.max(16, titleBlock + contentBlock, divisionBlock) + 3;
-  return { titleLines, contentLines, divisionLine, divisionLines, rowHeight };
+  const rowHeight = Math.max(16, titleBlock, categoryBlock, authorBlock, divisionBlock) + 3;
+  return { titleLines, categoryLines, authorLines, divisionLine, divisionLines, rowHeight };
 }
 
 function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metrics: NoteRowMetrics) {
-  const category = note.category || DEFAULT_CATEGORY;
-  const { titleLines, divisionLine, divisionLines, rowHeight } = metrics;
+  const {
+    titleLines,
+    categoryLines,
+    authorLines,
+    divisionLine,
+    divisionLines,
+    rowHeight
+  } = metrics;
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(8.5);
@@ -218,7 +238,7 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(category, COL_CATEGORIA, y + 5);
+  pdf.text(categoryLines, COL_CATEGORIA, y + 5);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
@@ -230,16 +250,10 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.text(titleLines, COL_EVENTO, y + 5);
 
-  const authorLine = (
-    pdf.splitTextToSize(
-      noteAuthor(note) || '—',
-      PAGE_WIDTH - MARGIN - COL_AUTOR - 2
-    ) as string[]
-  ).slice(0, 1);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(7);
   pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-  pdf.text(authorLine, COL_AUTOR, y + 5);
+  pdf.text(authorLines, COL_AUTOR, y + 5);
 
   pdf.setDrawColor(BLACK[0], BLACK[1], BLACK[2]);
   pdf.setLineWidth(0.25);
@@ -278,6 +292,7 @@ function startNewPage(pdf: JsPDF, reportTitle: string) {
 
 export const ReportsModal: FC<ReportsModalProps> = ({
   notes,
+  categories = [],
   isOpen,
   onClose,
   notify,
@@ -314,7 +329,8 @@ export const ReportsModal: FC<ReportsModalProps> = ({
 
   const categoryGroups = useMemo(() => {
     const categoryOrder: Record<string, number> = {};
-    CATEGORIES.forEach((category, index) => {
+    const orderedCats = categories.length > 0 ? categories : DEFAULT_CATEGORY ? [DEFAULT_CATEGORY] : [];
+    orderedCats.forEach((category, index) => {
       categoryOrder[category] = index;
     });
     return buildGroups(
@@ -326,7 +342,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         (categoryOrder[a.key] ?? 99) - (categoryOrder[b.key] ?? 99) ||
         a.label.localeCompare(b.label)
     );
-  }, [sortedNotes]);
+  }, [sortedNotes, categories]);
 
   const divisionGroups = useMemo(
     () =>
@@ -494,7 +510,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     {
       id: 'categoria' as const,
       title: 'Relatório por categoria',
-      description: 'Eventos agrupados por categoria: Reunião, Pub, Coletamento e Ação Social.',
+      description: 'Eventos agrupados por categoria cadastrada na guia Adm.',
       icon: Tags,
       generate: () =>
         generateReport('categoria', () =>

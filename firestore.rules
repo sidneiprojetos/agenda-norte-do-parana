@@ -58,6 +58,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Categories collection (administrator manages the categories used by notes)
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // App metadata (e.g. one-time seed flag for initial divisions)
     match /appMeta/{metaId} {
       allow read: if isAuthenticated();

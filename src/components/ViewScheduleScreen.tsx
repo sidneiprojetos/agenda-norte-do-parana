@@ -17,6 +17,7 @@ import { isUserAdmin } from '../firebase';
 
 interface ViewScheduleScreenProps {
   notes: Note[];
+  categories?: string[];
   currentUser: AppUser | null;
   onBack: () => void;
   onViewNote: (note: Note) => void;
@@ -24,16 +25,9 @@ interface ViewScheduleScreenProps {
   onDeleteNote: (note: Note) => void;
 }
 
-const CATEGORIES: (NoteCategory | 'Todas')[] = [
-  'Todas',
-  'Reunião',
-  'Pub',
-  'Coletamento',
-  'Ação Social'
-];
-
 export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
   notes,
+  categories = [],
   currentUser,
   onBack,
   onViewNote,
@@ -42,6 +36,8 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<NoteCategory | 'Todas'>('Todas');
+
+  const sortingOptions: (NoteCategory | 'Todas')[] = ['Todas', ...categories];
 
   const todayISO = formatDateToISO(new Date());
 
@@ -114,7 +110,7 @@ export const ViewScheduleScreen: FC<ViewScheduleScreenProps> = ({
       {/* Category filter pills */}
       <div className="flex flex-wrap items-center gap-1.5 px-1">
         <span className="text-[11px] font-medium text-zinc-400 mr-1">Filtrar:</span>
-        {CATEGORIES.map((cat) => (
+        {sortingOptions.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}

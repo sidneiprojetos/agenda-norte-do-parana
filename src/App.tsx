@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   Note,
-  NoteCategory,
   AppUser,
   UserProfile,
   Division,
+  Category,
   DEFAULT_CATEGORY
 } from './types';
 import { INITIAL_NOTES } from './data/initialNotes';
@@ -18,15 +18,13 @@ import { ViewNoteModal } from './components/ViewNoteModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { PendingApprovalScreen } from './components/PendingApprovalScreen';
 import { RejectedScreen } from './components/RejectedScreen';
-import { UserManagementDashboard } from './components/UserManagementDashboard';
 import { ReportsModal } from './components/ReportsModal';
 import { ViewScheduleScreen } from './components/ViewScheduleScreen';
 import { DayEventsModal } from './components/DayEventsModal';
-import { AuditDashboard } from './components/AuditDashboard';
 import { AdminTools } from './components/AdminTools';
-import { DivisionManagerModal } from './components/DivisionManagerModal';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
+import { registerCategoryColors } from './utils/categoryStyles';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
 import {
   subscribeToNotes,
@@ -35,6 +33,7 @@ import {
   deleteFirestoreNote
 } from './services/notesService';
 import { subscribeToDivisions } from './services/divisionService';
+import { subscribeToCategories } from './services/categoriesService';
 import { cleanupPastNotes } from './services/notesService';
 import { logAuditEntry } from './services/auditService';
 import {
@@ -54,13 +53,10 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  // Admin User Management dashboard view toggle
-  const [isViewingUserManagement, setIsViewingUserManagement] = useState(false);
+  // Admin panels view toggles
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isViewingSchedule, setIsViewingSchedule] = useState(false);
-  const [isViewingAudit, setIsViewingAudit] = useState(false);
   const [isViewingAdmTools, setIsViewingAdmTools] = useState(false);
-  const [isDivisionManagerOpen, setIsDivisionManagerOpen] = useState(false);
   const [pendingUsersCount, setPendingUsersCount] = useState(0);
 
   // Notes state synchronized from Firebase Firestore
@@ -75,6 +71,9 @@ export default function App() {
   // Divisions available for notes (admin-managed, synchronized realtime)
   const [divisionOptions, setDivisionOptions] = useState<string[]>(INITIAL_DIVISIONS);
   const [divisionList, setDivisionList] = useState<Division[]>([]);
+
+  // Categories available for notes (admin-managed, synchronized realtime)
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
 
   // Calendar month view (defaults to today)
   const [viewDate, setViewDate] = useState<Date>(() => new Date());
@@ -178,7 +177,7 @@ export default function App() {
       } else {
         setCurrentUser(null);
         setUserProfile(null);
-        setIsViewingUserManagement(false);
+        setIsViewingAdmTools(false);
         setAuthLoading(false);
       }
     });
@@ -290,6 +289,32 @@ export default function App() {
     };
   }, [currentUser?.isAdmin, userProfile?.status]);
 
+  // Listen to Firestore real-time updates for categories (when approved or admin)
+  useEffect(() => {
+    const isApprovedOrAdmin = currentUser?.isAdmin || userProfile?.status === 'approved';
+    if (!currentUser || !isApprovedOrAdmin) {
+      return;
+    }
+
+    let cancelled = false;
+    let unsubscribeCategories: (() => void) | null = null;
+    subscribeToCategories((firestoreCategories) => {
+      setCategoryList(firestoreCategories);
+      registerCategoryColors(firestoreCategories);
+    }).then((unsub) => {
+      if (cancelled) {
+        unsub();
+        return;
+      }
+      unsubscribeCategories = unsub;
+    });
+
+    return () => {
+      cancelled = true;
+      if (unsubscribeCategories) unsubscribeCategories();
+    };
+  }, [currentUser?.isAdmin, userProfile?.status]);
+
   const handleRefreshProfile = useCallback(async () => {
     if (auth.currentUser) {
       const profile = await syncUserProfile(auth.currentUser);
@@ -315,31 +340,13 @@ export default function App() {
     [currentUser]
   );
 
-  // Mutually exclusive full-screen views (User Management / Audit / Adm Tools / Schedule)
-  const handleToggleUserManagement = useCallback(() => {
-    setIsViewingSchedule(false);
-    setIsViewingAudit(false);
-    setIsViewingAdmTools(false);
-    setIsViewingUserManagement((prev) => !prev);
-  }, []);
-
-  const handleToggleAudit = useCallback(() => {
-    setIsViewingSchedule(false);
-    setIsViewingUserManagement(false);
-    setIsViewingAdmTools(false);
-    setIsViewingAudit((prev) => !prev);
-  }, []);
-
+  // Mutually exclusive full-screen views (Adm Tools / Schedule)
   const handleToggleAdmTools = useCallback(() => {
     setIsViewingSchedule(false);
-    setIsViewingUserManagement(false);
-    setIsViewingAudit(false);
     setIsViewingAdmTools((prev) => !prev);
   }, []);
 
   const handleToggleSchedule = useCallback(() => {
-    setIsViewingAudit(false);
-    setIsViewingUserManagement(false);
     setIsViewingAdmTools(false);
     setIsViewingSchedule((prev) => !prev);
   }, []);
@@ -374,7 +381,7 @@ export default function App() {
     content: string;
     date: string;
     time?: string;
-    category?: NoteCategory;
+    category?: string;
     division?: string;
     location?: string;
   }) => {
@@ -603,8 +610,6 @@ export default function App() {
 
   const handleOpenCreateForm = useCallback(() => {
     setIsViewingSchedule(false);
-    setIsViewingUserManagement(false);
-    setIsViewingAudit(false);
     setIsViewingAdmTools(false);
     setEditingNote(null);
     setTimeout(() => {
@@ -677,13 +682,8 @@ export default function App() {
                 pendingUsersCount={pendingUsersCount}
                 onOpenCreateForm={handleOpenCreateForm}
                 onOpenReports={() => setIsReportsOpen(true)}
-                onOpenUserManagement={handleToggleUserManagement}
-                onOpenAudit={handleToggleAudit}
-                onOpenDivisions={() => setIsDivisionManagerOpen(true)}
                 onViewSchedule={handleToggleSchedule}
                 onOpenAdmTools={handleToggleAdmTools}
-                isViewingUserManagement={isViewingUserManagement}
-                isViewingAudit={isViewingAudit}
                 isViewingSchedule={isViewingSchedule}
                 isViewingAdmTools={isViewingAdmTools}
               />
@@ -694,28 +694,24 @@ export default function App() {
         {/* Admin Header with user imc.sidnei@gmail.com, Google login for guests, and Firestore sync */}
         <AdminHeader currentUser={currentUser} />
 
-        {/* Conditional View: Admin User Management Dashboard OR Audit OR Schedule OR Normal Agenda */}
-        {isViewingUserManagement && currentUser?.isAdmin ? (
-          <UserManagementDashboard
-            currentAdminEmail={currentUser.email || ADMIN_EMAIL}
-            onBackToAgenda={() => setIsViewingUserManagement(false)}
-            onShowToast={showNotification}
-          />
-        ) : isViewingAudit && currentUser?.isAdmin ? (
-          <AuditDashboard
-            onBackToAgenda={() => setIsViewingAudit(false)}
-          />
-        ) : isViewingAdmTools &&
-        currentUser?.email?.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase() ? (
+        {/* Conditional View: Adm Tools OR Schedule OR Normal Agenda */}
+        {isViewingAdmTools && currentUser?.isAdmin ? (
           <AdminTools
             currentUser={currentUser}
+            isOwner={currentUser.email?.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase()}
             onExportData={handleExportData}
             onImportData={handleImportData}
             onBackToAgenda={() => setIsViewingAdmTools(false)}
+            onShowToast={showNotification}
+            categories={categoryList}
+            divisions={divisionList}
+            notes={notes}
+            pendingUsersCount={pendingUsersCount}
           />
         ) : isViewingSchedule ? (
           <ViewScheduleScreen
             notes={notes}
+            categories={categoryList.map((c) => c.name)}
             currentUser={currentUser}
             onBack={() => setIsViewingSchedule(false)}
             onViewNote={(note) => {
@@ -749,6 +745,7 @@ export default function App() {
                 editingNote={editingNote}
                 currentUser={currentUser}
                 divisions={divisionOptions}
+                categories={categoryList.map((c) => c.name)}
                 onSaveNote={handleSaveNote}
                 onCancelEdit={() => setEditingNote(null)}
               />
@@ -785,6 +782,7 @@ export default function App() {
 
       <ReportsModal
         notes={notes}
+        categories={categoryList.map((c) => c.name)}
         isOpen={isReportsOpen}
         onClose={() => setIsReportsOpen(false)}
         notify={showNotification}
@@ -812,15 +810,6 @@ export default function App() {
         isOpen={!!deletingNote}
         onClose={() => setDeletingNote(null)}
         onConfirm={handleConfirmDelete}
-      />
-
-      <DivisionManagerModal
-        isOpen={isDivisionManagerOpen}
-        onClose={() => setIsDivisionManagerOpen(false)}
-        divisions={divisionList}
-        notes={notes}
-        currentUser={currentUser}
-        onShowToast={showNotification}
       />
     </div>
   );

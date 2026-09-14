@@ -12,7 +12,7 @@ import {
   ChevronDown,
   MapPin
 } from 'lucide-react';
-import { Note, NoteCategory, AppUser, CATEGORIES, DEFAULT_CATEGORY } from '../types';
+import { Note, NoteCategory, AppUser, DEFAULT_CATEGORY } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
 
 interface NoteFormProps {
@@ -20,6 +20,7 @@ interface NoteFormProps {
   editingNote: Note | null;
   currentUser: AppUser | null;
   divisions: string[];
+  categories?: string[];
   onSaveNote: (noteData: {
     content: string;
     date: string;
@@ -36,6 +37,7 @@ export const NoteForm: FC<NoteFormProps> = ({
   editingNote,
   currentUser,
   divisions,
+  categories = [],
   onSaveNote,
   onCancelEdit
 }) => {
@@ -177,7 +179,7 @@ export const NoteForm: FC<NoteFormProps> = ({
               className="w-full appearance-none cursor-pointer rounded-xl border border-zinc-700/80 bg-[#1a1a1e] py-2.5 pl-10 pr-9 text-base sm:text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
             >
               <option value="">Selecione a categoria</option>
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat} value={cat} className="bg-[#1a1a1e]">
                   {cat}
                 </option>

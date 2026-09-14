@@ -29,12 +29,14 @@ interface UserManagementDashboardProps {
   currentAdminEmail: string;
   onBackToAgenda: () => void;
   onShowToast: (msg: string) => void;
+  embedded?: boolean;
 }
 
 export function UserManagementDashboard({
   currentAdminEmail,
   onBackToAgenda,
-  onShowToast
+  onShowToast,
+  embedded = false
 }: UserManagementDashboardProps) {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -225,14 +227,16 @@ export function UserManagementDashboard({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <button
-              id="back-to-agenda-btn"
-              onClick={onBackToAgenda}
-              className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition active:scale-95"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Voltar para a Agenda</span>
-            </button>
+            {!embedded && (
+              <button
+                id="back-to-agenda-btn"
+                onClick={onBackToAgenda}
+                className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition active:scale-95"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar para a Agenda</span>
+              </button>
+            )}
             <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400">
               <Shield className="h-3.5 w-3.5" />
               Painel ADM

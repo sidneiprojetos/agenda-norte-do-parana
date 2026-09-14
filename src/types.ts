@@ -1,8 +1,17 @@
-export type NoteCategory = 'Reunião' | 'Pub' | 'Coletamento' | 'Ação Social';
+export type CategoryColor = 'sky' | 'emerald' | 'violet' | 'rose' | 'amber' | 'teal' | 'cyan' | 'fuchsia';
 
-export const CATEGORIES: NoteCategory[] = ['Reunião', 'Pub', 'Coletamento', 'Ação Social'];
+export interface Category {
+  id: string;
+  name: string;
+  color: CategoryColor;
+  createdAt: string;
+  createdBy?: string;
+  createdByName?: string;
+}
 
-export const DEFAULT_CATEGORY: NoteCategory = 'Reunião';
+export type NoteCategory = string;
+
+export const DEFAULT_CATEGORY = 'Reunião';
 
 export interface Note {
   id: string;
@@ -83,9 +92,11 @@ export type AuditAction =
   | 'user_update'
   | 'user_delete'
   | 'division_create'
-  | 'division_delete';
+  | 'division_delete'
+  | 'category_create'
+  | 'category_delete';
 
-export type AuditEntityType = 'note' | 'user' | 'auth' | 'data' | 'division';
+export type AuditEntityType = 'note' | 'user' | 'auth' | 'data' | 'division' | 'category';
 
 export interface AuditActor {
   uid?: string | null;

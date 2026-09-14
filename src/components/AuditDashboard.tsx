@@ -18,6 +18,7 @@ import {
   Activity,
   Building2,
   Building,
+  Tags,
   type LucideIcon
 } from 'lucide-react';
 import { AuditLog } from '../types';
@@ -26,6 +27,7 @@ import { formatDateTimeBR } from '../utils/dateUtils';
 
 interface AuditDashboardProps {
   onBackToAgenda: () => void;
+  embedded?: boolean;
 }
 
 type FilterKey = 'all' | 'create' | 'update' | 'delete' | 'view' | 'login' | 'user' | 'data';
@@ -133,6 +135,18 @@ const ACTION_META: Record<string, ActionMeta> = {
     icon: Building,
     iconClass: 'text-teal-400',
     chipClass: 'bg-teal-500/10 border-teal-500/40 text-teal-300'
+  },
+  category_create: {
+    label: 'Criou categoria',
+    icon: Tags,
+    iconClass: 'text-amber-400',
+    chipClass: 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+  },
+  category_delete: {
+    label: 'Excluiu categoria',
+    icon: Tags,
+    iconClass: 'text-rose-400',
+    chipClass: 'bg-rose-500/10 border-rose-500/40 text-rose-300'
   }
 };
 
@@ -169,6 +183,8 @@ function describeLog(log: AuditLog): { title: string; detail: string } {
     case 'user_delete':
     case 'division_create':
     case 'division_delete':
+    case 'category_create':
+    case 'category_delete':
       return {
         title: meta?.label || log.action,
         detail: `${entity} • por ${actor}`
@@ -178,7 +194,7 @@ function describeLog(log: AuditLog): { title: string; detail: string } {
   }
 }
 
-export const AuditDashboard: FC<AuditDashboardProps> = ({ onBackToAgenda }) => {
+export const AuditDashboard: FC<AuditDashboardProps> = ({ onBackToAgenda, embedded = false }) => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
@@ -267,17 +283,19 @@ export const AuditDashboard: FC<AuditDashboardProps> = ({ onBackToAgenda }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <button
-              id="back-to-agenda-audit-btn"
-              onClick={onBackToAgenda}
-              className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition active:scale-95"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Voltar para a Agenda</span>
-            </button>
+            {!embedded && (
+              <button
+                id="back-to-agenda-audit-btn"
+                onClick={onBackToAgenda}
+                className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition active:scale-95"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar para a Agenda</span>
+              </button>
+            )}
             <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400">
               <Shield className="h-3.5 w-3.5" />
-              Painel ADM
+              Auditoria
             </span>
           </div>
           <h2 className="mt-2 text-xl sm:text-2xl font-black text-white tracking-tight">
