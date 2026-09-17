@@ -1,12 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import {
   BarChart3,
   X,
   FileText,
-  CalendarDays,
-  Tags,
-  Building2
+  CalendarDays
 } from 'lucide-react';
 import { Note, DEFAULT_CATEGORY } from '../types';
 import { formatDateToBR, formatDateToISO, MONTH_NAMES_PT } from '../utils/dateUtils';
@@ -260,30 +258,6 @@ function renderNoteRow(pdf: JsPDF, note: Note, y: number, _zebra: boolean, metri
   pdf.line(MARGIN + 2, y + rowHeight - 1, PAGE_WIDTH - MARGIN - 2, y + rowHeight - 1);
 }
 
-interface NoteGroup {
-  key: string;
-  label: string;
-  notes: Note[];
-}
-
-function buildGroups(
-  notes: Note[],
-  keyOf: (note: Note) => string,
-  labelOf: (key: string) => string
-): NoteGroup[] {
-  const map = new Map<string, Note[]>();
-  notes.forEach((note) => {
-    const key = keyOf(note);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(note);
-  });
-  return Array.from(map.entries()).map(([key, groupNotes]) => ({
-    key,
-    label: labelOf(key),
-    notes: groupNotes
-  }));
-}
-
 function startNewPage(pdf: JsPDF, reportTitle: string) {
   pdf.addPage();
   drawContinuationHeader(pdf, reportTitle);
@@ -292,16 +266,14 @@ function startNewPage(pdf: JsPDF, reportTitle: string) {
 
 export const ReportsModal: FC<ReportsModalProps> = ({
   notes,
-  categories = [],
   isOpen,
   onClose,
   notify,
   generatorName,
   generatorEmail
 }) => {
-  const [isExporting, setIsExporting] = useState<
-    'detalhado' | 'data' | 'categoria' | 'divisao' | null
-  >(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
 
   const todayISO = formatDateToISO(new Date());
 
@@ -321,48 +293,6 @@ export const ReportsModal: FC<ReportsModalProps> = ({
         }),
     [notes, todayISO]
   );
-
-  const dateGroups = useMemo(
-    () => buildGroups(sortedNotes, (note) => note.date, (key) => formatDateToBR(key)),
-    [sortedNotes]
-  );
-
-  const categoryGroups = useMemo(() => {
-    const categoryOrder: Record<string, number> = {};
-    const orderedCats = categories.length > 0 ? categories : DEFAULT_CATEGORY ? [DEFAULT_CATEGORY] : [];
-    orderedCats.forEach((category, index) => {
-      categoryOrder[category] = index;
-    });
-    return buildGroups(
-      sortedNotes,
-      (note) => note.category || DEFAULT_CATEGORY,
-      (key) => key
-    ).sort(
-      (a, b) =>
-        (categoryOrder[a.key] ?? 99) - (categoryOrder[b.key] ?? 99) ||
-        a.label.localeCompare(b.label)
-    );
-  }, [sortedNotes, categories]);
-
-  const divisionGroups = useMemo(
-    () =>
-      buildGroups(
-        sortedNotes,
-        (note) => note.division || 'Sem divisão',
-        (key) => key
-      ).sort((a, b) => a.label.localeCompare(b.label)),
-    [sortedNotes]
-  );
-
-  const generateReport = async (type: 'detalhado' | 'data' | 'categoria' | 'divisao', run: () => Promise<void>) => {
-    if (isExporting) return;
-    setIsExporting(type);
-    try {
-      await run();
-    } finally {
-      setIsExporting(null);
-    }
-  };
 
   const exportPdfDetailed = async () => {
     try {
@@ -428,106 +358,23 @@ export const ReportsModal: FC<ReportsModalProps> = ({
     }
   };
 
-  const exportGroupedPdf = async (groups: NoteGroup[], fileNamePrefix: string, reportTitle: string) => {
+  const generateDetailed = async () => {
+    if (isExporting) return;
+    setReportDone(false);
+    setIsExporting(true);
     try {
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-      await drawTitleHeader(pdf, reportTitle);
-
-      let y = 29;
-
-      if (groups.length === 0) {
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        pdf.setTextColor(BLACK[0], BLACK[1], BLACK[2]);
-        pdf.text('Nenhuma anotação na agenda para este relatório.', MARGIN, y);
-      } else {
-        for (const group of groups) {
-          if (y + 16 > BOTTOM_LIMIT) {
-            const next = startNewPage(pdf, reportTitle);
-            y = next.y;
-            drawColumnHeader(pdf, y);
-            y += 14;
-          } else {
-            y += 4;
-          }
-          drawGroupHeader(pdf, y, group.label, group.notes.length);
-          y += 9;
-
-          drawColumnHeader(pdf, y);
-          y += 14;
-
-          let lastDivision: string | null = null;
-          let zebraBand = false;
-          for (const note of group.notes) {
-            const metrics = measureNoteRow(pdf, note);
-            if (y + metrics.rowHeight > BOTTOM_LIMIT) {
-              const next = startNewPage(pdf, reportTitle);
-              y = next.y;
-              drawColumnHeader(pdf, y);
-              y += 14;
-            }
-
-            const noteDivision = note.division || '';
-            if (noteDivision !== lastDivision) {
-              lastDivision = noteDivision;
-              zebraBand = !zebraBand;
-            }
-            renderNoteRow(pdf, note, y, zebraBand, metrics);
-            y += metrics.rowHeight;
-          }
-        }
-      }
-
-      applyPageFooters(pdf, generatorLabel);
-      pdf.save(`${fileNamePrefix}_${new Date().toISOString().slice(0, 10)}.pdf`);
-      notify?.('Relatório PDF gerado com sucesso.', 'success');
-    } catch (error) {
-      console.error('Erro ao gerar relatório agrupado:', error);
-      notify?.('Não foi possível gerar o relatório. Veja o console para mais detalhes.', 'error');
+      await exportPdfDetailed();
+      setReportDone(true);
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const reportOptions = [
-    {
-      id: 'detalhado' as const,
-      title: 'Relatório detalhado',
-      description: 'Listagem completa dos eventos com data, divisão, categoria e autor.',
-      icon: FileText,
-      generate: () => generateReport('detalhado', exportPdfDetailed)
-    },
-    {
-      id: 'data' as const,
-      title: 'Relatório por data',
-      description: 'Eventos agrupados por data para acompanhamento diário.',
-      icon: CalendarDays,
-      generate: () =>
-        generateReport('data', () =>
-          exportGroupedPdf(dateGroups, 'relatorio_por_data', 'Relatório por Data')
-        )
-    },
-    {
-      id: 'categoria' as const,
-      title: 'Relatório por categoria',
-      description: 'Eventos agrupados por categoria cadastrada no Acesso Administrativo.',
-      icon: Tags,
-      generate: () =>
-        generateReport('categoria', () =>
-          exportGroupedPdf(categoryGroups, 'relatorio_por_categoria', 'Relatório por Categoria')
-        )
-    },
-    {
-      id: 'divisao' as const,
-      title: 'Relatório por divisão',
-      description: 'Eventos agrupados por divisão regional.',
-      icon: Building2,
-      generate: () =>
-        generateReport('divisao', () =>
-          exportGroupedPdf(divisionGroups, 'relatorio_por_divisao', 'Relatório por Divisão')
-        )
+  useEffect(() => {
+    if (isOpen && notes.length > 0) {
+      generateDetailed();
     }
-  ];
+  }, [isOpen, notes]);
 
   return (
     <Modal
@@ -548,7 +395,7 @@ export const ReportsModal: FC<ReportsModalProps> = ({
               Relatórios da agenda
             </h2>
             <p className="text-[11px] text-zinc-400">
-              Escolha um tipo de relatório para gerar o PDF
+              Relatório detalhado gerado automaticamente
             </p>
           </div>
         </div>
@@ -570,33 +417,37 @@ export const ReportsModal: FC<ReportsModalProps> = ({
             </p>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {reportOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={option.generate}
-                disabled={isExporting !== null || sortedNotes.length === 0}
-                className="group flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-[#18181b] p-5 text-left transition hover:border-sky-500/50 hover:bg-zinc-800/40 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
-                    <option.icon className="h-5 w-5" />
-                  </span>
-                  {isExporting === option.id ? (
-                    <span className="text-[11px] font-semibold text-sky-300">Gerando...</span>
-                  ) : (
-                    <FileText className="h-4 w-4 text-zinc-600 transition group-hover:text-sky-300" />
-                  )}
-                </div>
-                <span>
-                  <span className="block text-sm font-bold text-white">{option.title}</span>
-                  <span className="mt-1 block text-xs text-zinc-400">{option.description}</span>
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-zinc-800 bg-[#18181b] p-8 text-center">
+            {isExporting || !reportDone ? (
+              <>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
+                  <FileText className="h-5 w-5 animate-pulse" />
                 </span>
-                <span className="text-[11px] font-semibold text-sky-300">
-                  Gerar PDF <span className="transition group-hover:translate-x-0.5 inline-block">→</span>
+                <p className="text-sm font-bold text-white">Gerando relatório detalhado...</p>
+                <p className="text-xs text-zinc-400">
+                  Aguarde enquanto o PDF com todos os eventos é gerado.
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
+                  <FileText className="h-5 w-5" />
                 </span>
-              </button>
-            ))}
+                <p className="text-sm font-bold text-white">
+                  Relatório detalhado gerado com sucesso.
+                </p>
+                <p className="text-xs text-zinc-400">
+                  O download do PDF foi iniciado automaticamente.
+                </p>
+                <button
+                  onClick={generateDetailed}
+                  disabled={isExporting}
+                  className="mt-1 rounded-xl bg-sky-500/15 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-sky-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Gerar novamente
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
