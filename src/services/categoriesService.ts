@@ -3,6 +3,7 @@ import { Category, AuditActor } from '../types';
 import { INITIAL_CATEGORIES } from '../data/initialCategories';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
 import { logAuditEntry } from './auditService';
+import { normalizeLabel } from '../utils/textUtils';
 
 const CATEGORIES_COLLECTION = 'categories';
 
@@ -49,9 +50,13 @@ export async function subscribeToCategories(
     q,
     async (snapshot) => {
       const categories: Category[] = [];
+      const seen = new Set<string>();
       snapshot.forEach((docSnap) => {
         if (docSnap.id.startsWith('_')) return;
         const data = docSnap.data();
+        const norm = normalizeLabel(data.name || '');
+        if (seen.has(norm)) return;
+        seen.add(norm);
         categories.push({
           id: docSnap.id,
           name: data.name || '',
@@ -116,8 +121,16 @@ export async function createCategory(
   color: string,
   actor?: AuditActor
 ): Promise<string> {
-  const { db, collection, addDoc } = await firestore();
+  const { db, collection, addDoc, getDocs } = await firestore();
   const ref = collection(db, CATEGORIES_COLLECTION);
+  const norm = normalizeLabel(name);
+  const existing = await getDocs(ref);
+  let duplicate = false;
+  existing.forEach((d) => {
+    if (d.id.startsWith('_')) return;
+    if (normalizeLabel(String(d.data().name || '')) === norm) duplicate = true;
+  });
+  if (duplicate) throw new Error('DUPLICATE');
   const docRef = await addDoc(
     ref,
     removeUndefinedFields({

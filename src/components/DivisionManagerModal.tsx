@@ -5,6 +5,7 @@ import { Division, Note, AppUser } from '../types';
 import { ToastType } from './Toast';
 import { createDivision, updateDivision, deleteDivision } from '../services/divisionService';
 import { getDivisionStyle } from '../utils/divisionStyles';
+import { normalizeLabel } from '../utils/textUtils';
 import { formatDateTimeBR } from '../utils/dateUtils';
 import { Modal } from './Modal';
 
@@ -48,7 +49,7 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
       return;
     }
     const exists = divisions.some(
-      (d) => d.name.trim().toLowerCase() === trimmed.toLowerCase()
+      (d) => normalizeLabel(d.name) === normalizeLabel(trimmed)
     );
     if (exists) {
       setError('Já existe uma divisão com esse nome.');
@@ -63,7 +64,11 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
       onShowToast?.(`Divisão "${trimmed}" criada com sucesso!`, 'success');
     } catch (err) {
       console.error('Error creating division:', err);
-      onShowToast?.('Erro ao criar divisão no Firebase.', 'error');
+      if (err instanceof Error && err.message === 'DUPLICATE') {
+        onShowToast?.('Já existe uma divisão com esse nome.', 'error');
+      } else {
+        onShowToast?.('Erro ao criar divisão no Firebase.', 'error');
+      }
     } finally {
       setIsCreating(false);
     }
@@ -112,8 +117,8 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
       return;
     }
     if (
-      trimmed.toLowerCase() !== division.name.toLowerCase() &&
-      divisions.some((d) => d.name.trim().toLowerCase() === trimmed.toLowerCase())
+      normalizeLabel(trimmed) !== normalizeLabel(division.name) &&
+      divisions.some((d) => normalizeLabel(d.name) === normalizeLabel(trimmed))
     ) {
       onShowToast?.('Já existe uma divisão com esse nome.', 'error');
       return;

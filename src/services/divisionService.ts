@@ -3,6 +3,7 @@ import { Division, AuditActor } from '../types';
 import { INITIAL_DIVISIONS } from '../data/initialDivisions';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
 import { logAuditEntry } from './auditService';
+import { normalizeLabel } from '../utils/textUtils';
 
 const DIVISIONS_COLLECTION = 'divisions';
 
@@ -68,9 +69,13 @@ export async function subscribeToDivisions(
     q,
     async (snapshot) => {
       const divisions: Division[] = [];
+      const seen = new Set<string>();
       snapshot.forEach((docSnap) => {
         if (docSnap.id.startsWith('_')) return;
         const data = docSnap.data();
+        const norm = normalizeLabel(data.name || '');
+        if (seen.has(norm)) return;
+        seen.add(norm);
         divisions.push({
           id: docSnap.id,
           name: data.name || '',
@@ -138,8 +143,15 @@ export async function createDivision(
   name: string,
   actor?: AuditActor
 ): Promise<string> {
-  const { db, collection, addDoc } = await firestore();
+  const { db, collection, addDoc, getDocs } = await firestore();
   const divisionsRef = collection(db, DIVISIONS_COLLECTION);
+  const norm = normalizeLabel(name);
+  const existing = await getDocs(divisionsRef);
+  let duplicate = false;
+  existing.forEach((d) => {
+    if (normalizeLabel(String(d.data().name || '')) === norm) duplicate = true;
+  });
+  if (duplicate) throw new Error('DUPLICATE');
   const docRef = await addDoc(
     divisionsRef,
     removeUndefinedFields({

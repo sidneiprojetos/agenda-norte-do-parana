@@ -146,6 +146,30 @@ html {
 .theme-light .bg-sky-950\/40 {
   background-color: #e0f2fe;
 }
+.theme-light .bg-blue-950\/75,
+.theme-light .bg-blue-950\/40 {
+  background-color: #dbeafe;
+}
+.theme-light .bg-green-950\/75,
+.theme-light .bg-green-950\/40 {
+  background-color: #dcfce7;
+}
+.theme-light .bg-red-950\/75,
+.theme-light .bg-red-950\/40 {
+  background-color: #fee2e2;
+}
+.theme-light .bg-pink-950\/75,
+.theme-light .bg-pink-950\/40 {
+  background-color: #fce7f3;
+}
+.theme-light .bg-purple-950\/75,
+.theme-light .bg-purple-950\/40 {
+  background-color: #f3e8ff;
+}
+.theme-light .bg-yellow-950\/75,
+.theme-light .bg-yellow-950\/40 {
+  background-color: #fef9c3;
+}
 .theme-light .bg-amber-600\/30,
 .theme-light .bg-amber-400\/30 {
   background-color: #fef3c7;
@@ -305,6 +329,67 @@ html {
 .theme-light .text-cyan-300 {
   color: #0891b2;
 }
+.theme-light .text-lime-100,
+.theme-light .text-lime-200,
+.theme-light .text-lime-300 {
+  color: #65a30d;
+}
+.theme-light .text-indigo-100,
+.theme-light .text-indigo-200 {
+  color: #4338ca;
+}
+.theme-light .text-indigo-300,
+.theme-light .text-indigo-400 {
+  color: #4f46e5;
+}
+.theme-light .text-blue-100,
+.theme-light .text-blue-200 {
+  color: #1d4ed8;
+}
+.theme-light .text-blue-300,
+.theme-light .text-blue-400 {
+  color: #2563eb;
+}
+.theme-light .text-green-100,
+.theme-light .text-green-200 {
+  color: #15803d;
+}
+.theme-light .text-green-300,
+.theme-light .text-green-400 {
+  color: #16a34a;
+}
+.theme-light .text-red-100,
+.theme-light .text-red-200 {
+  color: #b91c1c;
+}
+.theme-light .text-red-300,
+.theme-light .text-red-400 {
+  color: #dc2626;
+}
+.theme-light .text-pink-100,
+.theme-light .text-pink-200 {
+  color: #be185d;
+}
+.theme-light .text-pink-300,
+.theme-light .text-pink-400 {
+  color: #db2777;
+}
+.theme-light .text-purple-100,
+.theme-light .text-purple-200 {
+  color: #7e22ce;
+}
+.theme-light .text-purple-300,
+.theme-light .text-purple-400 {
+  color: #9333ea;
+}
+.theme-light .text-yellow-100,
+.theme-light .text-yellow-200 {
+  color: #a16207;
+}
+.theme-light .text-yellow-300,
+.theme-light .text-yellow-400 {
+  color: #ca8a04;
+}
 .theme-light .text-lime-300 {
   color: #65a30d;
 }
@@ -323,7 +408,14 @@ html {
   .bg-cyan-600, .bg-cyan-500, .bg-cyan-400,
   .bg-fuchsia-600, .bg-fuchsia-500, .bg-fuchsia-400,
   .bg-orange-500, .bg-orange-400,
-  .bg-lime-400, .bg-indigo-400,
+  .bg-lime-600, .bg-lime-500, .bg-lime-400,
+  .bg-indigo-600, .bg-indigo-500, .bg-indigo-400,
+  .bg-blue-600, .bg-blue-500, .bg-blue-400,
+  .bg-green-700, .bg-green-600, .bg-green-500, .bg-green-400,
+  .bg-red-600, .bg-red-500, .bg-red-400,
+  .bg-pink-600, .bg-pink-500, .bg-pink-400,
+  .bg-purple-600, .bg-purple-500, .bg-purple-400,
+  .bg-yellow-600, .bg-yellow-500, .bg-yellow-400,
   .from-amber-500, .from-amber-600, .to-orange-600, .to-amber-500
 ) {
   color: #ffffff;

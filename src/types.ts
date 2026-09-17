@@ -1,4 +1,6 @@
-export type CategoryColor = 'sky' | 'emerald' | 'violet' | 'rose' | 'amber' | 'teal' | 'cyan' | 'fuchsia';
+export type CategoryColor =
+  | 'sky' | 'emerald' | 'violet' | 'rose' | 'amber' | 'teal' | 'cyan' | 'fuchsia'
+  | 'blue' | 'green' | 'red' | 'orange' | 'lime' | 'indigo' | 'pink' | 'yellow' | 'purple';
 
 export interface Category {
   id: string;

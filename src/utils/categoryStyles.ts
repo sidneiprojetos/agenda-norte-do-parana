@@ -73,18 +73,99 @@ const COLOR_STYLES: Record<CategoryColor, CategoryStyle> = {
     calendar: 'border-fuchsia-400/70 bg-fuchsia-950/75 text-fuchsia-100',
     border: 'border-fuchsia-500/40',
     dot: 'bg-fuchsia-400'
+  },
+  blue: {
+    badge: 'border-blue-500/40 bg-blue-950/40 text-blue-300',
+    active: 'border-blue-500 bg-blue-600 text-white shadow-sm',
+    selected: 'border-blue-500/50 bg-blue-600 text-white shadow-sm',
+    calendar: 'border-blue-400/70 bg-blue-950/75 text-blue-100',
+    border: 'border-blue-500/40',
+    dot: 'bg-blue-400'
+  },
+  green: {
+    badge: 'border-green-500/40 bg-green-950/40 text-green-300',
+    active: 'border-green-500 bg-green-600 text-white shadow-sm',
+    selected: 'border-green-500/50 bg-green-600 text-white shadow-sm',
+    calendar: 'border-green-400/70 bg-green-950/75 text-green-100',
+    border: 'border-green-500/40',
+    dot: 'bg-green-400'
+  },
+  red: {
+    badge: 'border-red-500/40 bg-red-950/40 text-red-300',
+    active: 'border-red-500 bg-red-600 text-white shadow-sm',
+    selected: 'border-red-500/50 bg-red-600 text-white shadow-sm',
+    calendar: 'border-red-400/70 bg-red-950/75 text-red-100',
+    border: 'border-red-500/40',
+    dot: 'bg-red-400'
+  },
+  orange: {
+    badge: 'border-orange-500/40 bg-orange-950/40 text-orange-300',
+    active: 'border-orange-500 bg-orange-600 text-white shadow-sm',
+    selected: 'border-orange-500/50 bg-orange-600 text-white shadow-sm',
+    calendar: 'border-orange-400/70 bg-orange-950/75 text-orange-100',
+    border: 'border-orange-500/40',
+    dot: 'bg-orange-400'
+  },
+  lime: {
+    badge: 'border-lime-500/40 bg-lime-950/40 text-lime-300',
+    active: 'border-lime-500 bg-lime-600 text-white shadow-sm',
+    selected: 'border-lime-500/50 bg-lime-600 text-white shadow-sm',
+    calendar: 'border-lime-400/70 bg-lime-950/75 text-lime-100',
+    border: 'border-lime-500/40',
+    dot: 'bg-lime-400'
+  },
+  indigo: {
+    badge: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-300',
+    active: 'border-indigo-500 bg-indigo-600 text-white shadow-sm',
+    selected: 'border-indigo-500/50 bg-indigo-600 text-white shadow-sm',
+    calendar: 'border-indigo-400/70 bg-indigo-950/75 text-indigo-100',
+    border: 'border-indigo-500/40',
+    dot: 'bg-indigo-400'
+  },
+  pink: {
+    badge: 'border-pink-500/40 bg-pink-950/40 text-pink-300',
+    active: 'border-pink-500 bg-pink-600 text-white shadow-sm',
+    selected: 'border-pink-500/50 bg-pink-600 text-white shadow-sm',
+    calendar: 'border-pink-400/70 bg-pink-950/75 text-pink-100',
+    border: 'border-pink-500/40',
+    dot: 'bg-pink-400'
+  },
+  yellow: {
+    badge: 'border-yellow-500/40 bg-yellow-950/40 text-yellow-300',
+    active: 'border-yellow-500 bg-yellow-600 text-white shadow-sm',
+    selected: 'border-yellow-500/50 bg-yellow-600 text-white shadow-sm',
+    calendar: 'border-yellow-400/70 bg-yellow-950/75 text-yellow-100',
+    border: 'border-yellow-500/40',
+    dot: 'bg-yellow-400'
+  },
+  purple: {
+    badge: 'border-purple-500/40 bg-purple-950/40 text-purple-300',
+    active: 'border-purple-500 bg-purple-600 text-white shadow-sm',
+    selected: 'border-purple-500/50 bg-purple-600 text-white shadow-sm',
+    calendar: 'border-purple-400/70 bg-purple-950/75 text-purple-100',
+    border: 'border-purple-500/40',
+    dot: 'bg-purple-400'
   }
 };
 
 export const CATEGORY_COLOR_OPTIONS: { key: CategoryColor; label: string }[] = [
-  { key: 'sky', label: 'Azul' },
-  { key: 'emerald', label: 'Verde' },
+  { key: 'sky', label: 'Azul Claro' },
+  { key: 'blue', label: 'Azul' },
+  { key: 'indigo', label: 'Índigo' },
   { key: 'violet', label: 'Violeta' },
+  { key: 'purple', label: 'Roxo' },
+  { key: 'fuchsia', label: 'Fúcsia' },
+  { key: 'pink', label: 'Pink' },
   { key: 'rose', label: 'Rosa' },
-  { key: 'amber', label: 'Amarelo' },
+  { key: 'red', label: 'Vermelho' },
+  { key: 'orange', label: 'Laranja' },
+  { key: 'amber', label: 'Âmbar' },
+  { key: 'yellow', label: 'Amarelo' },
+  { key: 'lime', label: 'Lima' },
+  { key: 'green', label: 'Verde' },
+  { key: 'emerald', label: 'Verde Esmeralda' },
   { key: 'teal', label: 'Teal' },
-  { key: 'cyan', label: 'Ciano' },
-  { key: 'fuchsia', label: 'Fúcsia' }
+  { key: 'cyan', label: 'Ciano' }
 ];
 
 const categoryColorRegistry = new Map<string, CategoryColor>();
@@ -104,7 +185,10 @@ function categoryHash(name: string): number {
   return hash;
 }
 
-const FALLBACK_COLORS: CategoryColor[] = ['sky', 'emerald', 'violet', 'rose', 'amber', 'teal', 'cyan', 'fuchsia'];
+const FALLBACK_COLORS: CategoryColor[] = [
+  'sky', 'emerald', 'violet', 'rose', 'amber', 'teal', 'cyan', 'fuchsia',
+  'blue', 'green', 'red', 'orange', 'lime', 'indigo', 'pink', 'yellow', 'purple'
+];
 
 export function getCategoryStyle(category?: string): CategoryStyle {
   if (!category) {
