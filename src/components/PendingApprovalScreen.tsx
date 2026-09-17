@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Clock, RefreshCw, LogOut, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { logoutUser } from '../firebase';
+import { ThemeToggle } from './ThemeToggle';
 
 interface PendingApprovalScreenProps {
   userProfile: UserProfile;
@@ -31,6 +32,7 @@ export function PendingApprovalScreen({
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#09090b] px-4 py-8 text-zinc-100 font-sans selection:bg-amber-500 selection:text-black">
 
+      <ThemeToggle />
 
       {/* Card */}
       <div

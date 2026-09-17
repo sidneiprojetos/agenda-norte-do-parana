@@ -22,6 +22,7 @@ import { ReportsModal } from './components/ReportsModal';
 import { ViewScheduleScreen } from './components/ViewScheduleScreen';
 import { DayEventsModal } from './components/DayEventsModal';
 import { AdminTools } from './components/AdminTools';
+import { ThemeToggle } from './components/ThemeToggle';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { registerCategoryColors } from './utils/categoryStyles';
@@ -667,6 +668,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen w-full bg-[#09090b] px-3 py-6 sm:px-6 md:py-10 text-zinc-100 antialiased font-sans selection:bg-amber-500 selection:text-black">
 
+      <ThemeToggle />
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />

@@ -8,6 +8,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { loginWithGoogle, getAuthErrorMessage } from '../firebase';
+import { ThemeToggle } from './ThemeToggle';
 
 interface LoginScreenProps {
   onLoginSuccess?: () => void;
@@ -50,6 +51,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#09090b] px-4 py-8 text-zinc-100 font-sans selection:bg-amber-500 selection:text-black">
 
+      <ThemeToggle />
 
       {/* Login Card */}
       <div

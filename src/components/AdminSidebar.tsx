@@ -118,11 +118,11 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({
         <button
           id="admin-reports-btn"
           onClick={onOpenReports}
-          title="Abrir relatório detalhado"
+          title="Gerar agenda em PDF"
           className={`${navBtnBase} border-sky-500/40 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20`}
         >
           <BarChart3 className="h-4 w-4 shrink-0" />
-          <span className="whitespace-nowrap">Relatórios</span>
+          <span className="whitespace-nowrap">Gerar Agenda em PDF</span>
         </button>
       )}
 

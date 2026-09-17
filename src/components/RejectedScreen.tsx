@@ -1,6 +1,7 @@
 import { ShieldX, LogOut } from 'lucide-react';
 import { UserProfile } from '../types';
 import { logoutUser } from '../firebase';
+import { ThemeToggle } from './ThemeToggle';
 
 interface RejectedScreenProps {
   userProfile: UserProfile;
@@ -17,6 +18,7 @@ export function RejectedScreen({ userProfile }: RejectedScreenProps) {
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#09090b] px-4 py-8 text-zinc-100 font-sans selection:bg-amber-500 selection:text-black">
+      <ThemeToggle />
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-rose-900/60 bg-[#121215]/95 p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-950/40 border border-rose-900/80 p-2 text-rose-400">
           <ShieldX className="h-8 w-8" />
