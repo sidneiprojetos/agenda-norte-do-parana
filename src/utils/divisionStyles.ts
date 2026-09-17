@@ -1,18 +1,30 @@
-const DIVISION_PALETTES = [
-  { badge: 'border-teal-500/40 bg-teal-950/40 text-teal-300', dot: 'bg-teal-400' },
-  { badge: 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300', dot: 'bg-cyan-400' },
-  { badge: 'border-indigo-500/40 bg-indigo-950/40 text-indigo-300', dot: 'bg-indigo-400' },
-  { badge: 'border-lime-600/40 bg-lime-950/40 text-lime-300', dot: 'bg-lime-400' },
-  { badge: 'border-orange-500/40 bg-orange-950/40 text-orange-300', dot: 'bg-orange-400' }
+import { CategoryColor } from '../types';
+import { COLOR_STYLES } from './categoryStyles';
+
+const FALLBACK_COLORS: CategoryColor[] = [
+  'sky', 'emerald', 'violet', 'rose', 'amber', 'teal', 'cyan', 'fuchsia',
+  'blue', 'green', 'red', 'orange', 'lime', 'indigo', 'pink', 'yellow', 'purple'
 ];
 
-const DIVISION_RGB: [number, number, number][] = [
-  [45, 212, 191],
-  [34, 211, 238],
-  [129, 140, 248],
-  [163, 230, 53],
-  [251, 146, 60]
-];
+const COLOR_RGB: Record<CategoryColor, [number, number, number]> = {
+  sky: [56, 189, 248],
+  blue: [59, 130, 246],
+  indigo: [129, 140, 248],
+  violet: [167, 139, 250],
+  purple: [168, 85, 247],
+  fuchsia: [232, 121, 249],
+  pink: [244, 114, 182],
+  rose: [251, 113, 133],
+  red: [239, 68, 68],
+  orange: [251, 146, 60],
+  amber: [251, 191, 36],
+  yellow: [250, 204, 21],
+  lime: [163, 230, 53],
+  green: [34, 197, 94],
+  emerald: [52, 211, 153],
+  teal: [45, 212, 191],
+  cyan: [34, 211, 238]
+};
 
 function divisionHash(division: string): number {
   let hash = 0;
@@ -27,15 +39,37 @@ export interface DivisionStyle {
   dot: string;
 }
 
+const divisionColorRegistry = new Map<string, CategoryColor>();
+
+export function registerDivisionColors(
+  divisions: { name: string; color?: CategoryColor }[]
+) {
+  divisionColorRegistry.clear();
+  for (const d of divisions) {
+    if (d.color) {
+      divisionColorRegistry.set(d.name, d.color);
+    }
+  }
+}
+
 export function getDivisionStyle(division?: string): DivisionStyle {
   if (!division) {
     return { badge: '', dot: 'bg-zinc-500' };
   }
-  return DIVISION_PALETTES[divisionHash(division) % DIVISION_PALETTES.length];
+  const registered = divisionColorRegistry.get(division);
+  const color = registered && COLOR_STYLES[registered]
+    ? registered
+    : FALLBACK_COLORS[divisionHash(division) % FALLBACK_COLORS.length];
+  const style = COLOR_STYLES[color];
+  return { badge: style.badge, dot: style.dot };
 }
 
 /** RGB color for a division, used in PDF reports (zinc for missing division). */
 export function getDivisionRgb(division?: string): [number, number, number] {
   if (!division) return [113, 113, 122];
-  return DIVISION_RGB[divisionHash(division) % DIVISION_RGB.length];
+  const registered = divisionColorRegistry.get(division);
+  const color = registered && COLOR_RGB[registered]
+    ? registered
+    : FALLBACK_COLORS[divisionHash(division) % FALLBACK_COLORS.length];
+  return COLOR_RGB[color];
 }

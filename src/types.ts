@@ -35,6 +35,7 @@ export interface Note {
 export interface Division {
   id: string;
   name: string;
+  color?: CategoryColor;
   createdAt: string; // ISO string
   createdBy?: string;
   createdByName?: string;

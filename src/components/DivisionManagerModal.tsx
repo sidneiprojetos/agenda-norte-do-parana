@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import type { FC } from 'react';
-import { Building2, Trash2, Plus, Pencil, Check, X, ShieldCheck, FileText } from 'lucide-react';
-import { Division, Note, AppUser } from '../types';
+import { Building2, Trash2, Plus, Pencil, Check, X, ShieldCheck, FileText, Palette } from 'lucide-react';
+import { Division, Note, AppUser, CategoryColor } from '../types';
 import { ToastType } from './Toast';
 import { createDivision, updateDivision, deleteDivision } from '../services/divisionService';
 import { getDivisionStyle } from '../utils/divisionStyles';
+import { CATEGORY_COLOR_OPTIONS, getColorSwatchClass } from '../utils/categoryStyles';
 import { normalizeLabel } from '../utils/textUtils';
 import { formatDateTimeBR } from '../utils/dateUtils';
 import { Modal } from './Modal';
@@ -29,10 +30,12 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
   embedded = false
 }) => {
   const [name, setName] = useState('');
+  const [newColor, setNewColor] = useState<CategoryColor>('teal');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editColor, setEditColor] = useState<CategoryColor>('teal');
   const [isEditing, setIsEditing] = useState(false);
 
   const actor = {
@@ -58,8 +61,9 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
 
     setIsCreating(true);
     try {
-      await createDivision(trimmed, actor);
+      await createDivision(trimmed, actor, newColor);
       setName('');
+      setNewColor('teal');
       setError('');
       onShowToast?.(`Divisão "${trimmed}" criada com sucesso!`, 'success');
     } catch (err) {
@@ -103,11 +107,13 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
   const startEdit = (division: Division) => {
     setEditingId(division.id);
     setEditName(division.name);
+    setEditColor(division.color || 'teal');
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditName('');
+    setEditColor('teal');
   };
 
   const handleUpdate = async (division: Division) => {
@@ -123,7 +129,7 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
       onShowToast?.('Já existe uma divisão com esse nome.', 'error');
       return;
     }
-    if (trimmed === division.name) {
+    if (trimmed === division.name && editColor === division.color) {
       cancelEdit();
       return;
     }
@@ -136,8 +142,13 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
     }
     setIsEditing(true);
     try {
-      await updateDivision(division.id, division.name, trimmed, actor);
-      onShowToast?.(`Divisão renomeada para "${trimmed}".`, 'success');
+      await updateDivision(division.id, division.name, trimmed, actor, editColor);
+      onShowToast?.(
+        trimmed === division.name
+          ? `Cor da divisão "${trimmed}" atualizada.`
+          : `Divisão renomeada para "${trimmed}".`,
+        'success'
+      );
       cancelEdit();
     } catch (err) {
       console.error('Error updating division:', err);
@@ -185,6 +196,26 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
             {isCreating ? 'Criando...' : 'Criar Divisão'}
           </button>
         </div>
+        {/* Color picker */}
+        <div className="flex items-center gap-2">
+          <Palette className="h-3.5 w-3.5 text-zinc-400" />
+          <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mr-1">
+            Cor
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {CATEGORY_COLOR_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setNewColor(opt.key)}
+                title={opt.label}
+                className={`h-6 w-6 rounded-full border-2 transition-all active:scale-90 ${
+                  getColorSwatchClass(opt.key)
+                } ${newColor === opt.key ? 'border-white ring-2 ring-white/40 scale-110' : 'border-transparent hover:scale-110'}`}
+              />
+            ))}
+          </div>
+        </div>
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
       </form>
 
@@ -218,7 +249,26 @@ export const DivisionManagerModal: FC<DivisionManagerModalProps> = ({
                       autoFocus
                       className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
                     />
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center gap-2">
+                      <Palette className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                      <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
+                        Cor
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {CATEGORY_COLOR_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.key}
+                            type="button"
+                            onClick={() => setEditColor(opt.key)}
+                            title={opt.label}
+                            className={`h-5 w-5 rounded-full border-2 transition-all active:scale-90 ${
+                              getColorSwatchClass(opt.key)
+                            } ${editColor === opt.key ? 'border-white ring-2 ring-white/40 scale-110' : 'border-transparent hover:scale-110'}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 pt-1">
                       <button
                         onClick={cancelEdit}
                         className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-700"

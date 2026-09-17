@@ -26,6 +26,7 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { ToastContainer, ToastData, ToastType } from './components/Toast';
 import { formatDateToISO } from './utils/dateUtils';
 import { registerCategoryColors } from './utils/categoryStyles';
+import { registerDivisionColors } from './utils/divisionStyles';
 import { auth, isUserAdmin, ADMIN_EMAIL } from './firebase';
 import {
   subscribeToNotes,
@@ -70,7 +71,9 @@ export default function App() {
   }, [notes]);
 
   // Divisions available for notes (admin-managed, synchronized realtime)
-  const [divisionOptions, setDivisionOptions] = useState<string[]>(INITIAL_DIVISIONS);
+  const [divisionOptions, setDivisionOptions] = useState<string[]>(
+    INITIAL_DIVISIONS.map((div) => div.name)
+  );
   const [divisionList, setDivisionList] = useState<Division[]>([]);
 
   // Categories available for notes (admin-managed, synchronized realtime)
@@ -273,6 +276,7 @@ export default function App() {
     let unsubscribeDivisions: (() => void) | null = null;
     subscribeToDivisions((firestoreDivisions) => {
       setDivisionList(firestoreDivisions);
+      registerDivisionColors(firestoreDivisions);
       setDivisionOptions(
         firestoreDivisions.map((div) => div.name).filter((name): name is string => Boolean(name))
       );

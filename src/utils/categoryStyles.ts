@@ -9,7 +9,7 @@ type CategoryStyle = {
   dot: string;
 };
 
-const COLOR_STYLES: Record<CategoryColor, CategoryStyle> = {
+export const COLOR_STYLES: Record<CategoryColor, CategoryStyle> = {
   sky: {
     badge: 'border-sky-500/40 bg-sky-950/40 text-sky-300',
     active: 'border-sky-500 bg-sky-600 text-white shadow-sm',
@@ -167,6 +167,31 @@ export const CATEGORY_COLOR_OPTIONS: { key: CategoryColor; label: string }[] = [
   { key: 'teal', label: 'Teal' },
   { key: 'cyan', label: 'Ciano' }
 ];
+
+const SWATCH_BG: Record<CategoryColor, string> = {
+  sky: 'bg-sky-500',
+  blue: 'bg-blue-500',
+  indigo: 'bg-indigo-500',
+  violet: 'bg-violet-500',
+  purple: 'bg-purple-500',
+  fuchsia: 'bg-fuchsia-500',
+  pink: 'bg-pink-500',
+  rose: 'bg-rose-500',
+  red: 'bg-red-500',
+  orange: 'bg-orange-500',
+  amber: 'bg-amber-500',
+  yellow: 'bg-yellow-500',
+  lime: 'bg-lime-500',
+  green: 'bg-green-500',
+  emerald: 'bg-emerald-500',
+  teal: 'bg-teal-500',
+  cyan: 'bg-cyan-500'
+};
+
+/** Solid swatch background class used by color pickers (categories and divisions). */
+export function getColorSwatchClass(color: CategoryColor): string {
+  return SWATCH_BG[color];
+}
 
 const categoryColorRegistry = new Map<string, CategoryColor>();
 

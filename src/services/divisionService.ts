@@ -1,5 +1,5 @@
 import { getDb, ADMIN_EMAIL } from '../firebase';
-import { Division, AuditActor } from '../types';
+import { Division, AuditActor, CategoryColor } from '../types';
 import { INITIAL_DIVISIONS } from '../data/initialDivisions';
 import { removeUndefinedFields } from '../utils/cleanFirestore';
 import { logAuditEntry } from './auditService';
@@ -41,9 +41,10 @@ async function firestore() {
 }
 
 function defaultDivisions(): Division[] {
-  return INITIAL_DIVISIONS.map((name, index) => ({
+  return INITIAL_DIVISIONS.map((div, index) => ({
     id: `div-default-${index + 1}`,
-    name,
+    name: div.name,
+    color: div.color,
     createdAt: '2025-01-01T00:00:00.000Z',
     createdBy: ADMIN_EMAIL
   }));
@@ -79,6 +80,7 @@ export async function subscribeToDivisions(
         divisions.push({
           id: docSnap.id,
           name: data.name || '',
+          color: data.color || undefined,
           createdAt: data.createdAt || new Date().toISOString(),
           createdBy: data.createdBy || undefined,
           createdByName: data.createdByName || undefined
@@ -105,15 +107,16 @@ export async function subscribeToDivisions(
 
         callback(defaultDivisions());
 
-        for (const name of INITIAL_DIVISIONS) {
-          const id = name
+        for (const div of INITIAL_DIVISIONS) {
+          const id = div.name
             .toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '');
           await setDoc(doc(db, DIVISIONS_COLLECTION, id), {
-            name,
+            name: div.name,
+            color: div.color,
             createdAt: new Date().toISOString(),
             createdBy: ADMIN_EMAIL
           });
@@ -141,7 +144,8 @@ export async function subscribeToDivisions(
  */
 export async function createDivision(
   name: string,
-  actor?: AuditActor
+  actor?: AuditActor,
+  color?: CategoryColor
 ): Promise<string> {
   const { db, collection, addDoc, getDocs } = await firestore();
   const divisionsRef = collection(db, DIVISIONS_COLLECTION);
@@ -156,6 +160,7 @@ export async function createDivision(
     divisionsRef,
     removeUndefinedFields({
       name,
+      color,
       createdAt: new Date().toISOString(),
       createdBy: actor?.email || ADMIN_EMAIL,
       createdByName: actor?.name
@@ -184,12 +189,14 @@ export async function updateDivision(
   divisionId: string,
   oldName: string,
   newName: string,
-  actor?: AuditActor
+  actor?: AuditActor,
+  color?: CategoryColor
 ): Promise<void> {
   const { db, doc, updateDoc, collection, query, where, getDocs } = await firestore();
 
   await updateDoc(doc(db, DIVISIONS_COLLECTION, divisionId), {
     name: newName,
+    color: color || null,
     updatedAt: new Date().toISOString()
   });
 
@@ -207,7 +214,12 @@ export async function updateDivision(
     actorUid: actor?.uid,
     actorName: actor?.name,
     actorEmail: actor?.email,
-    details: `Renomeou a divisão "${oldName}" para "${newName}"${snapshot.size > 0 ? ` e atualizou ${snapshot.size} anotação(ões)` : ''}`
+    details:
+      oldName !== newName
+        ? `Renomeou a divisão "${oldName}" para "${newName}"${snapshot.size > 0 ? ` e atualizou ${snapshot.size} anotação(ões)` : ''}`
+        : color
+          ? `Atualizou a cor da divisão "${newName}" para ${color}`
+          : `Atualizou a divisão "${newName}"`
   });
 }
 
